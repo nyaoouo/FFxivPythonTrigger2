@@ -11,6 +11,9 @@ from FFxivPythonTrigger.memory import read_ushort, scan_pattern, read_memory, sc
 from FFxivPythonTrigger.memory.StructFactory import OffsetStruct
 from .simulator import Models, Manager, Craft
 from .solvers import Skyrim23
+import win32com.client
+
+speaker = win32com.client.Dispatch("SAPI.SpVoice")
 
 recipe_sheet = realm.game_data.get_sheet('Recipe')
 craft_start_sig = "40 53 48 83 EC ? 48 8B D9 C6 81 ? ? ? ? ? E8 ? ? ? ? 48 8D 4B ?"
@@ -28,7 +31,7 @@ registered_solvers = [
     Skyrim23.Skyrim23Solver
 ]
 
-callback = None
+callback = lambda ans: speaker.Speak(ans)
 
 
 class XivCraft(PluginBase):
@@ -88,7 +91,7 @@ class XivCraft(PluginBase):
 
         self._recipe = None
         self.solver = None
-        self.base_data=None
+        self.base_data = None
         self.register_event("log_event", self.chat_log_processor.process)
 
     def get_base_data(self):
@@ -127,7 +130,7 @@ class XivCraft(PluginBase):
                 break
         if self.solver is not None:
             self.logger.info("solver found, starting to solve...")
-            ans = self.solver.process(None,None)
+            ans = self.solver.process(None, None)
             if ans is not None and callback is not None: callback(ans)
         else:
             self.logger.info("no solver found, please add a solver for this recipe")
@@ -135,13 +138,13 @@ class XivCraft(PluginBase):
     def craft_next(self, chat_log, regex_result):
         sleep(0.5)
         if self.solver is not None:
-            skill=Manager.skills[regex_result.group(2) + ('' if regex_result.group(3) != "失败" else ':fail')]()
-            #self.logger.info("use %s" % skill_name)
+            skill = Manager.skills[regex_result.group(2) + ('' if regex_result.group(3) != "失败" else ':fail')]()
+            # self.logger.info("use %s" % skill_name)
             craft = self.get_current_craft()
             if skill == "观察":
                 craft.add_effect("观察", 1)
                 craft.merge_effects()
-            ans = self.solver.process(craft,skill)
+            ans = self.solver.process(craft, skill)
             self.logger.info("suggested skill '%s'" % ans)
             if ans and callback is not None: callback(ans)
 
