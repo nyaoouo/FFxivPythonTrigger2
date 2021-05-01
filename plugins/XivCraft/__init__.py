@@ -139,11 +139,11 @@ class XivCraft(PluginBase):
         sleep(0.5)
         if self.solver is not None:
             skill = Manager.skills[regex_result.group(2) + ('' if regex_result.group(3) != "失败" else ':fail')]()
-            # self.logger.info("use %s" % skill_name)
             craft = self.get_current_craft()
             if skill == "观察":
                 craft.add_effect("观察", 1)
                 craft.merge_effects()
+            self.logger.debug(craft)
             ans = self.solver.process(craft, skill)
             self.logger.info("suggested skill '%s'" % ans)
             if ans and callback is not None: self.create_mission(callback, ans)
