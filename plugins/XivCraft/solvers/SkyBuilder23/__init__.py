@@ -4,7 +4,7 @@ from .. import Solver
 stages = [Stage1.Stage1, Stage2.Stage2, Stage3.Stage3, Stage4.Stage4]
 
 
-class Skyrim23Solver(Solver):
+class SkyBuilder23(Solver):
     @staticmethod
     def suitable(recipe, player):
         return recipe.status_flag == 0b1110011

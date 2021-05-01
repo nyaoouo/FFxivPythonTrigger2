@@ -61,8 +61,6 @@ def try_solve(craft: Craft, timeLimit=None):
             tt_craft.status = DEFAULT_STATUS()
             new_data = (tt_craft, t_history + [skill])
             if tt_craft.current_durability >= durReq and (best is None or tt_craft.current_quality > best[0].current_quality):
-                # debug("solver dfs",new_data[0])
-                # debug("solver dfs",new_data[1])
                 best = new_data
             queue.append(new_data)
     return best
