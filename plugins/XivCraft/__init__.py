@@ -131,7 +131,7 @@ class XivCraft(PluginBase):
         if self.solver is not None:
             self.logger.info("solver found, starting to solve...")
             ans = self.solver.process(None, None)
-            if ans is not None and callback is not None: callback(ans)
+            if ans is not None and callback is not None: self.create_mission(callback, ans)
         else:
             self.logger.info("no solver found, please add a solver for this recipe")
 
@@ -146,7 +146,7 @@ class XivCraft(PluginBase):
                 craft.merge_effects()
             ans = self.solver.process(craft, skill)
             self.logger.info("suggested skill '%s'" % ans)
-            if ans and callback is not None: callback(ans)
+            if ans and callback is not None: self.create_mission(callback, ans)
 
     def craft_end(self, chat_log, regex_result):
         self.solver = None
