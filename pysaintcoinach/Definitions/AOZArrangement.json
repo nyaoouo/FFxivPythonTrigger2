@@ -1,0 +1,16 @@
+{
+  "sheet": "AOZArrangement",
+  "definitions": [
+    {
+      "name": "AOZContentBriefingBNpc",
+      "converter": {
+        "type": "link",
+        "target": "AOZContentBriefingBNpc"
+      }
+    },
+    {
+      "index": 1,
+      "name": "Position"
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "sheet": "SubmarineExploration",
+  "defaultColumn": "Destination",
+  "definitions": [
+    {
+      "name": "Destination"
+    },
+    {
+      "index": 1,
+      "name": "Location"
+    },
+    {
+      "index": 5,
+      "name": "Map",
+      "converter": {
+        "type": "link",
+        "target": "SubmarineMap"
+      }
+    },
+    {
+      "index": 7,
+      "name": "Stars"
+    },
+    {
+      "index": 8,
+      "name": "RankReq"
+    },
+    {
+      "index": 9,
+      "name": "CeruleumTankReq"
+    },
+    {
+      "index": 10,
+      "name": "Duration<min>"
+    },
+    {
+      "index": 11,
+      "name": "DistanceForSurvey"
+    },
+    {
+      "index": 12,
+      "name": "ExpReward"
+    }
+  ]
+}
