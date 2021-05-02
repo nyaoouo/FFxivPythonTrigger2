@@ -66,4 +66,10 @@ skill_ani_lock_addr = _am.get("skill animation lock", scan_address, skill_ani_lo
 chat_log_sig = "48 8b da 49 8b f8 41 8b d1 48 8b f1 ?? ?? ?? ?? ?? 48 8d 05"
 chat_log_addr = _am.get("chat log", scan_address, chat_log_sig, cmd_len=24)
 
+##########
+# movement
+##########
+movement_sig="48 8D 0D ? ? ? ? E8 ? ? ? ? BA ? ? ? ? 48 8D 0D ? ? ? ? 0F B6 D8"
+movement_addr = _am.get("movement", scan_address,movement_sig,cmd_len = 7)
+
 _storage.save()
