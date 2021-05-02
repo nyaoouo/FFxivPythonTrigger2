@@ -62,7 +62,7 @@ class Actor(OffsetStruct({
     "IsCasting2": (c_bool,7010),
     "CastingID": (c_uint,7012),
     "CastingTargetID": (c_uint,7024),
-    "CastingProgress": (c_uint,7060),
+    "CastingProgress": (c_float,7060),
     "CastingTime": (c_float,7064),
 })):
 

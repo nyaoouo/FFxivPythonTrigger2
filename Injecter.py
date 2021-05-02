@@ -69,7 +69,7 @@ init_modules = sys.modules.copy()
 try:
     sys.path=%s
     chdir(sys.path[0])
-    exec(open("%s").read())
+    exec(open("%s").read(encoding='utf-8'))
 except:
     with open("%s", "w+") as f:
         f.write(format_exc())
@@ -83,7 +83,7 @@ finally:
     err_path
 )
 
-shellcode = shellcode.encode('ascii')
+shellcode = shellcode.encode('utf-8')
 shellcode_addr = memory.allocate_memory(len(shellcode), handler)
 written = ctypes.c_ulonglong(0)
 memory.write_bytes(shellcode_addr, shellcode, handler=handler)
