@@ -3,6 +3,7 @@ AppData/
 .idea/
 Test*.py
 Debug*.py
+run.bat
 
 # Created by .ignore support plugin (hsz.mobi)
 ### Python template
