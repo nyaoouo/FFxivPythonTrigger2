@@ -113,8 +113,8 @@ ArcanistGauge = OffsetStruct({
 
 class SummonerGauge(OffsetStruct({
     'stanceMilliseconds': (c_ushort, 0),
-    'bahamutStance': (c_ubyte, 2),
-    'bahamutSummoned': (c_ubyte, 3),
+    'ReturnSummon': (c_ubyte, 2),
+    'ReturnSummonGlam': (c_ubyte, 3),
     'stacks': (c_ubyte, 4),
 })):
     @property
@@ -122,12 +122,12 @@ class SummonerGauge(OffsetStruct({
         return byte_get_bit(self.stacks, 0, 2)
 
     @property
-    def dreadwyrmStacks(self):
-        return byte_get_bit(self.stacks, 2, 2)
+    def bahamutReady(self):
+        return self.stacks&0b1000>0
 
     @property
     def phoenixReady(self):
-        return byte_get_bit(self.stacks, 4, 1)
+        return self.stacks&0b10000>0
 
 
 ScholarGauge = OffsetStruct({

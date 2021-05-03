@@ -1,1 +1,1 @@
-venv\Scripts\python Injecter.py
+venv\Scripts\python DebugInjecter.py
