@@ -80,7 +80,7 @@ class XivCraft(PluginBase):
 
         self.chat_log_processor.register(2091, "^(.+)发动了“(.+)”(。)$", self.craft_next)
         self.chat_log_processor.register(2114, "^(.+)发动“(.+)”  \ue06f (成功|失败)$", self.craft_next)
-        self.chat_log_processor.register(56, "^@Craft next$", self.craft_next)
+        # self.chat_log_processor.register(56, "^@Craft next$", self.craft_next)
 
         self.chat_log_processor.register(2114, "^(.+)练习制作\ue0bb(.+)成功了！$", self.craft_end)
         self.chat_log_processor.register(2114, "^(.+)练习制作\ue0bb(.+)失败了……$", self.craft_end)

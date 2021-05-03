@@ -69,7 +69,7 @@ init_modules = sys.modules.copy()
 try:
     sys.path=%s
     chdir(sys.path[0])
-    exec(open("%s").read(encoding='utf-8'))
+    exec(open("%s",encoding='utf-8').read())
 except:
     with open("%s", "w+") as f:
         f.write(format_exc())
