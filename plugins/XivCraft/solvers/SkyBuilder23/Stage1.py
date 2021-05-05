@@ -27,13 +27,16 @@ class Stage1:
         if craft.status == "安定":
             if craft.effects['内静'].param < 6 and craft.current_durability > 10:
                 return '专心加工'
-        temp=craft.clone().use_skill('高速制作')
-        if temp.current_durability <= 0:
-            return '精修'
+        for s in '制作','模范制作','高速制作':
+            temp=craft.clone().use_skill(s)
+            if temp.current_durability <= 0:
+                return '精修'
+            if self.is_finished(temp):
+                if temp.is_finished():
+                    return '最终确认'
+                else:
+                    return s
         if '崇敬' in craft.effects:
-            if temp.is_finished():
-                return '最终确认'
-            else:
-                return '高速制作'
+            return '高速制作'
         else:
             return '崇敬'
