@@ -10,8 +10,8 @@ Effect = OffsetStruct({
 
 
 class Effects(Effect * 19):
-    def get_dict(self):
-        return {effect.buffId: effect for effect in self if effect.buffId}
+    def get_dict(self, source=None):
+        return {effect.buffId: effect for effect in self if effect.buffId and (source is None or Effect.actorId == source)}
 
     def get_items(self):
         for effect in self:
@@ -58,12 +58,12 @@ class Actor(OffsetStruct({
     'job': (c_byte, 482),
     'level': (c_byte, 483),
     'effects': (Effects, 6616),
-    "IsCasting1": (c_bool,7008),
-    "IsCasting2": (c_bool,7010),
-    "CastingID": (c_uint,7012),
-    "CastingTargetID": (c_uint,7024),
-    "CastingProgress": (c_float,7060),
-    "CastingTime": (c_float,7064),
+    "IsCasting1": (c_bool, 7008),
+    "IsCasting2": (c_bool, 7010),
+    "CastingID": (c_uint, 7012),
+    "CastingTargetID": (c_uint, 7024),
+    "CastingProgress": (c_float, 7060),
+    "CastingTime": (c_float, 7064),
 })):
 
     @property
