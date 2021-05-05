@@ -16,7 +16,10 @@ class FrameInjectHook(Hook):
         self._continue_works[call] = (args, kwargs)
 
     def unregister_continue_call(self, call):
-        del self._continue_works[call]
+        try:
+            del self._continue_works[call]
+        except KeyError:
+            pass
 
     def register_once_call(self, call, *args, **kwargs):
         self._once_works.append((call, args, kwargs))
