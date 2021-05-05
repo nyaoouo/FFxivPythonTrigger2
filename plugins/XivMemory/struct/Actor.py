@@ -9,7 +9,7 @@ Effect = OffsetStruct({
 })
 
 
-class Effects(Effect * 19):
+class Effects(Effect * 23):
     def get_dict(self, source=None):
         return {effect.buffId: effect for effect in self if effect.buffId and (source is None or effect.actorId == source)}
 
