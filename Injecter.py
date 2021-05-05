@@ -1,35 +1,41 @@
 from FFxivPythonTrigger.memory.res import kernel32, structure
 from FFxivPythonTrigger.memory import process, memory
-import ctypes
 import locale
-import sys
 import os
 from json import dumps
 import _thread
 import socket
 import time
+import argparse
+import ctypes
+import sys
+
+parser = argparse.ArgumentParser(description='using to inject FFxivPythonTrigger to a game process')
+parser.add_argument('-p', '--pid', type=int, nargs='?', default=None, metavar='PID', help='pid of process to inject')
+parser.add_argument('-n', '--pName', nargs='?', default="ffxiv_dx11.exe", metavar='Process Name', help='name of process find to inject')
+parser.add_argument('-e', '--entrance', nargs='?', default="Entrance.py", metavar='File Name', help='entrance file of FFxivPythonTrigger')
+args = parser.parse_args(sys.argv[1:])
 
 try:
     is_admin = ctypes.windll.shell32.IsUserAnAdmin()
 except:
     is_admin = False
 if not is_admin:
-    ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, sys.argv[0], None, 1)
+    ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
     exit()
 
 endl = "\n<press enter to exit>"
-
-name = "ffxiv_dx11.exe"
-pid = None
-print("start searching for game process...")
-while pid is None:
-    for p in process.list_processes():
-        if name in p.szExeFile.decode(locale.getpreferredencoding()).lower():
-            pid = p.th32ProcessID
-            break
-    time.sleep(1)
+pid = args.pid
+if pid is None:
+    print("start searching for game process [%s]..." % args.pName)
+    while pid is None:
+        for p in process.list_processes():
+            if args.pName in p.szExeFile.decode(locale.getpreferredencoding()).lower():
+                pid = p.th32ProcessID
+                break
+        time.sleep(1)
 print("game process pid: %s" % pid)
-time.sleep(3)
+
 handler = kernel32.OpenProcess(structure.PROCESS.PROCESS_ALL_ACCESS.value, False, pid)
 if not handler:
     input("could not open process" + endl)
@@ -46,7 +52,7 @@ if python_module:
 else:
     python_lib_h = process.inject_dll(bytes(python_lib, 'ascii'), handler)
     if not python_lib_h:
-        print("inject failed" + endl)
+        input("inject failed" + endl)
         exit()
 
 local_handle = kernel32.GetModuleHandleW(python_version)
@@ -79,7 +85,7 @@ finally:
             del sys.modules[key]
 """ % (
     dumps(sys.path),
-    'Entrance.py',
+    args.entrance,
     err_path
 )
 
@@ -109,6 +115,7 @@ while True:
             break
         else:
             print(sock.recv(size).decode('utf-8'))
-    except:
+    except Exception:
         break
-process.start_thread(funcs[b'Py_FinalizeEx'], handler=handler)
+input(endl)
+exit()

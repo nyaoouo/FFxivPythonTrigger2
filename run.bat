@@ -1,1 +1,1 @@
-venv\Scripts\python DebugInjecter.py
+venv\Scripts\python Injecter.py -e DebugEntrance.py
