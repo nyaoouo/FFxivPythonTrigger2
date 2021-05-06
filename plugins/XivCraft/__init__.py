@@ -10,7 +10,7 @@ from FFxivPythonTrigger.hook import Hook
 from FFxivPythonTrigger.memory import read_ushort, scan_pattern, read_memory, scan_address
 from FFxivPythonTrigger.memory.StructFactory import OffsetStruct
 from .simulator import Models, Manager, Craft
-from .solvers import SkyBuilder23
+from .solvers import SkyBuilder23, JustDoIt
 import win32com.client
 
 speaker = win32com.client.Dispatch("SAPI.SpVoice")
@@ -28,7 +28,8 @@ CraftStatus = OffsetStruct({
 })
 
 registered_solvers = [
-    SkyBuilder23.SkyBuilder23
+    JustDoIt.JustDoIt,
+    SkyBuilder23.SkyBuilder23,
 ]
 
 callback = lambda ans: speaker.Speak(ans)
