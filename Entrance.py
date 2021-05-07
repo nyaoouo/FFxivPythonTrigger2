@@ -24,7 +24,7 @@ try:
     register_modules([
         "MoPlus",  # 鼠标功能增强
         "ActorQuery",  # actor 查询
-        "Zoom",  # 视距解限
+        "Zoom2",  # 视距解限
         "XivCombo",  # 连击绑定（一键系列）
         "XivCraft",  # 生产规划器
         # "ACTLogLines",  # act接口
