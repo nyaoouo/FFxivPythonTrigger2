@@ -27,6 +27,7 @@ def get_current_process_filename(length: int = wintypes.MAX_PATH, coding: str = 
 
 def base_module(handle=CURRENT_PROCESS_HANDLER):
     hModules = (c_void_p * 1024)()
+    windll.kernel32.SetLastError(0)
     process_module_success = psapi.EnumProcessModulesEx(
         handle,
         byref(hModules),
@@ -52,6 +53,7 @@ def base_module(handle=CURRENT_PROCESS_HANDLER):
 
 def enum_process_module(handle=CURRENT_PROCESS_HANDLER):
     hModules = (c_void_p * 1024)()
+    windll.kernel32.SetLastError(0)
     process_module_success = psapi.EnumProcessModulesEx(
         handle,
         byref(hModules),
@@ -111,6 +113,7 @@ def inject_dll(filepath, handle=CURRENT_PROCESS_HANDLER):
 def start_thread(address, params=None, handler=CURRENT_PROCESS_HANDLER):
     params = params or 0
     NULL_SECURITY_ATTRIBUTES = cast(0, structure.LPSECURITY_ATTRIBUTES)
+    windll.kernel32.SetLastError(0)
     thread_h = kernel32.CreateRemoteThread(
         handler,
         NULL_SECURITY_ATTRIBUTES,
