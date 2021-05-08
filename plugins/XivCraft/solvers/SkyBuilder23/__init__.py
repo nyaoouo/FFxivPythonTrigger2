@@ -9,8 +9,8 @@ class SkyBuilder23(Solver):
     def suitable(craft):
         return craft.recipe.status_flag == 0b1110011
 
-    def __init__(self, recipe, player, logger):
-        super().__init__(recipe, player, logger)
+    def __init__(self, craft, logger):
+        super().__init__(craft, logger)
         self.stage = 0
         self.process_stages = [s() for s in stages]
 

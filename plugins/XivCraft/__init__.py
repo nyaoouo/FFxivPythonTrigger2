@@ -10,7 +10,7 @@ from FFxivPythonTrigger.hook import Hook
 from FFxivPythonTrigger.memory import read_ushort, scan_pattern, read_memory, scan_address
 from FFxivPythonTrigger.memory.StructFactory import OffsetStruct, PointerStruct
 from .simulator import Models, Manager, Craft
-from .solvers import SkyBuilder23, JustDoIt
+from .solvers import SkyBuilder23, JustDoIt, MacroCraft
 import win32com.client
 
 speaker = win32com.client.Dispatch("SAPI.SpVoice")
@@ -32,6 +32,7 @@ BaseQualityPtr = PointerStruct(c_uint, 0x60, 0x408)
 registered_solvers = [
     JustDoIt.JustDoIt,
     SkyBuilder23.SkyBuilder23,
+    MacroCraft.MacroCraft
 ]
 
 callback = lambda ans: speaker.Speak(ans)
@@ -131,7 +132,7 @@ class XivCraft(PluginBase):
         craft=Craft.Craft(recipe=recipe,player=player,current_quality=self.base_quality.value)
         for solver in registered_solvers:
             if solver.suitable(craft):
-                self.solver = solver(recipe=recipe, player=player, logger=self.logger)
+                self.solver = solver(craft=craft, logger=self.logger)
                 break
         if self.solver is not None:
             self.logger.info("solver found, starting to solve...")

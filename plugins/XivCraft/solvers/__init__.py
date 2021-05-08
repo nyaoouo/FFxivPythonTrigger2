@@ -7,9 +7,9 @@ class Solver(object):
     player: Models.Player
     logger: Logger
 
-    def __init__(self, recipe: Models.Recipe, player: Models.Player, logger: Logger):
-        self.recipe = recipe
-        self.player = player
+    def __init__(self, craft:Craft.Craft, logger: Logger):
+        self.recipe = craft.recipe
+        self.player = craft.player
         self.logger = logger
 
     @staticmethod
