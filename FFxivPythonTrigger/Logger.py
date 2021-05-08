@@ -4,11 +4,6 @@ from datetime import datetime
 from threading import Lock
 
 
-class ModuleExistsException(Exception):
-    def __init__(self, module_name: str):
-        super(ModuleExistsException, self).__init__("module [%s] is already exists as logger" % module_name)
-
-
 class ModuleTypeException(Exception):
     def __init__(self, module: any):
         super(ModuleTypeException, self).__init__("module type [%s] is an invalid logger module type" % module)
@@ -16,9 +11,6 @@ class ModuleTypeException(Exception):
 
 class Logger(object):
     _module: str
-
-    def __delete__(self, instance):
-        _logger_modules.remove(self._module)
 
     def __init__(self, module_name: str = None):
         """
@@ -30,9 +22,16 @@ class Logger(object):
             module_name = getmodule(stack()[1][0]).__name__
         if type(module_name) != str:
             raise ModuleTypeException(module_name)
-        if module_name in _logger_modules:
-            raise ModuleExistsException(module_name)
         self._module = module_name
+        self.default_level = INFO
+
+    def __call__(self, *messages: any) -> None:
+        """
+        log a message in default level~
+
+        :param messages: the message elements to be logged
+        """
+        self.log(self.default_level, *messages)
 
     def log(self, level: int, *messages: any) -> None:
         """
@@ -136,7 +135,7 @@ def log(level: int, module: str, *messages: any) -> None:
         with _print_lock:
             print_history.append(msg_log)
             for line in msg_log.message.split('\n'):
-                PRINT(LOG_FORMAT.format(header=msg_log.header(),message=line))
+                PRINT(LOG_FORMAT.format(header=msg_log.header(), message=line))
     for h_lv, handler in log_handler:
         if level >= h_lv:
             try:
@@ -231,5 +230,4 @@ log_handler: Annotated[Set[Tuple[int, Callable[[Log], None]]], "a set of handler
 exception_handler: Annotated[Callable[[Exception], None], "the handler of exceptions happen in log handlers"] = _default_log_error_handler
 print_history: Annotated[List[Log], "store the log have printed"] = list()
 
-_logger_modules: Set[str] = set()
 _print_lock = Lock()

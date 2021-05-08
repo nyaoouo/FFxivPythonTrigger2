@@ -8,7 +8,7 @@ from FFxivPythonTrigger.AddressManager import AddressManager
 from FFxivPythonTrigger.SaintCoinach import realm
 from FFxivPythonTrigger.hook import Hook
 from FFxivPythonTrigger.memory import read_ushort, scan_pattern, read_memory, scan_address
-from FFxivPythonTrigger.memory.StructFactory import OffsetStruct
+from FFxivPythonTrigger.memory.StructFactory import OffsetStruct, PointerStruct
 from .simulator import Models, Manager, Craft
 from .solvers import SkyBuilder23, JustDoIt
 import win32com.client
@@ -18,6 +18,7 @@ speaker = win32com.client.Dispatch("SAPI.SpVoice")
 recipe_sheet = realm.game_data.get_sheet('Recipe')
 craft_start_sig = "40 53 48 83 EC ? 48 8B D9 C6 81 ? ? ? ? ? E8 ? ? ? ? 48 8D 4B ?"
 craft_status_sig = "8B 05 ? ? ? ? BE ? ? ? ? 89 44 24 ?"
+base_quality_ptr_sig = "48 83 3D ? ? ? ? ? 74 ? E8 ? ? ? ? 48 8B C8 E8 ? ? ? ? 3C ? 0F B6 CB"
 
 CraftStatus = OffsetStruct({
     'round': (c_uint, 0x18),
@@ -26,6 +27,7 @@ CraftStatus = OffsetStruct({
     'current_durability': (c_uint, 0x30),
     'status_id': (c_ushort, 0x38)
 })
+BaseQualityPtr = PointerStruct(c_uint, 0x60, 0x408)
 
 registered_solvers = [
     JustDoIt.JustDoIt,
@@ -72,12 +74,13 @@ class XivCraft(PluginBase):
         am = AddressManager(self.storage.data, self.logger)
         self.craft_start_hook = CraftStartHook(am.get('craft_start', scan_pattern, craft_start_sig))
         self.craft_status = read_memory(CraftStatus, am.get('craft_status', scan_address, craft_status_sig, cmd_len=6))
+        self.base_quality = read_memory(BaseQualityPtr, am.get('base_quality_ptr', scan_address, base_quality_ptr_sig, cmd_len=8, ptr_idx=3))
         self.storage.save()
 
         self.chat_log_processor = ChatLogRegexProcessor()
 
         self.chat_log_processor.register(2114, "^(.+)开始练习制作\ue0bb(.+)。$", self.craft_start)
-        self.chat_log_processor.register(2114, "^(.+)开始制作“\ue0bb(.+)”。$", self.craft_start)
+        self.chat_log_processor.register(2114, "^(.+)开始制作“\ue0bb(.+)”(×\d+)?。$", self.craft_start)
 
         self.chat_log_processor.register(2091, "^(.+)发动了“(.+)”(。)$", self.craft_next)
         self.chat_log_processor.register(2114, "^(.+)发动“(.+)”  \ue06f (成功|失败)$", self.craft_next)
@@ -118,20 +121,21 @@ class XivCraft(PluginBase):
             current_quality=self.craft_status.current_quality,
             current_durability=self.craft_status.current_durability,
             current_cp=me.currentCP,
-            status=Manager.status_id[self.craft_status.status_id](),
+            status=Manager.status_id[self.craft_status.status_id or 1](),
             effects=effects,
         )
 
     def craft_start(self, chat_log, regex_result):
         recipe, player = self.base_data = self.get_base_data()
         self.logger.info("start recipe:" + recipe.detail_str)
+        craft=Craft.Craft(recipe=recipe,player=player,current_quality=self.base_quality.value)
         for solver in registered_solvers:
-            if solver.suitable(recipe=recipe, player=player):
+            if solver.suitable(craft):
                 self.solver = solver(recipe=recipe, player=player, logger=self.logger)
                 break
         if self.solver is not None:
             self.logger.info("solver found, starting to solve...")
-            ans = self.solver.process(None, None)
+            ans = self.solver.process(craft, None)
             if ans is not None and callback is not None: self.create_mission(callback, ans)
         else:
             self.logger.info("no solver found, please add a solver for this recipe")

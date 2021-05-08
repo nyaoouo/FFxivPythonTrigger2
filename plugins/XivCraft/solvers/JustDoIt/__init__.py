@@ -4,8 +4,8 @@ from ...simulator.Craft import Craft
 
 class JustDoIt(Solver):
     @staticmethod
-    def suitable(recipe, player):
-        return player.lv >= 80 and recipe.recipe_row["RecipeLevelTable"]["ClassJobLevel"] + 10 <= player.lv
+    def suitable(craft):
+        return craft.player.lv >= 80 and craft.recipe.recipe_row["RecipeLevelTable"]["ClassJobLevel"] + 10 <= craft.player.lv
 
     def __init__(self, recipe, player, logger):
         super().__init__(recipe, player, logger)
@@ -13,8 +13,8 @@ class JustDoIt(Solver):
         self.player = player
         self.can_hq = recipe.recipe_row["CanHq"]
 
-    def process(self, craft=None, used_skill=None) -> str:
-        if craft is None and self.can_hq:
+    def process(self, craft, used_skill=None) -> str:
+        if used_skill is None and self.can_hq:
             return '工匠的神速技巧'
         if craft is None:
             craft = Craft(self.recipe,self.player)

@@ -87,6 +87,7 @@ def module_from_name(module_name: str, handle=CURRENT_PROCESS_HANDLER):
 
 
 def inject_dll(filepath, handle=CURRENT_PROCESS_HANDLER):
+    windll.kernel32.SetLastError(0)
     filepath_address = kernel32.VirtualAllocEx(
         handle,
         0,
@@ -112,6 +113,7 @@ def inject_dll(filepath, handle=CURRENT_PROCESS_HANDLER):
 
 def start_thread(address, params=None, handler=CURRENT_PROCESS_HANDLER):
     params = params or 0
+    windll.kernel32.SetLastError(0)
     NULL_SECURITY_ATTRIBUTES = cast(0, structure.LPSECURITY_ATTRIBUTES)
     windll.kernel32.SetLastError(0)
     thread_h = kernel32.CreateRemoteThread(
@@ -131,6 +133,7 @@ def start_thread(address, params=None, handler=CURRENT_PROCESS_HANDLER):
 
 def list_processes():
     SNAPPROCESS = 0x00000002
+    windll.kernel32.SetLastError(0)
     hSnap = kernel32.CreateToolhelp32Snapshot(SNAPPROCESS, 0)
     process_entry = structure.ProcessEntry32()
     process_entry.dwSize = sizeof(process_entry)

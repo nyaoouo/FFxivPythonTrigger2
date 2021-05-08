@@ -1,6 +1,6 @@
 from pathlib import Path
 from json import load, decoder, dumps
-from typing import Annotated
+from typing import Annotated, Union
 from os import getcwd
 from inspect import getmodule, stack
 from re import compile
@@ -19,7 +19,9 @@ class ModuleStorage(object):
     _path: Path
     data: Annotated[dict, "data stored"]
 
-    def __init__(self, path: Path):
+    def __init__(self, path: Union[Path, str]):
+        if type(path) == str:
+            path = Path(path)
         self._path = path
         self.data = self.load() if self._path.exists() else dict()
 

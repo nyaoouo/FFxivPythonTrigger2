@@ -13,8 +13,8 @@ class Solver(object):
         self.logger = logger
 
     @staticmethod
-    def suitable(recipe: Models.Recipe, player: Models.Player)->bool:
+    def suitable(craft)->bool:
         return True
 
-    def process(self, craft: Craft.Craft = None, used_skill: Models.Skill = None)->str:
+    def process(self, craft: Craft.Craft, used_skill: Models.Skill = None)->str:
         return "观察"
