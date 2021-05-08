@@ -90,7 +90,7 @@ class XivCraft(PluginBase):
         self.chat_log_processor.register(2114, "^(.+)练习制作\ue0bb(.+)成功了！$", self.craft_end)
         self.chat_log_processor.register(2114, "^(.+)练习制作\ue0bb(.+)失败了……$", self.craft_end)
         self.chat_log_processor.register(2114, "^(.+)停止了练习。$", self.craft_end)
-        self.chat_log_processor.register(2242, "^(.+)制作“\ue0bb(.+)”成功！$", self.craft_end)
+        self.chat_log_processor.register(2242, "^(.+)制作“\ue0bb(.+)”(×\d+)?成功！$", self.craft_end)
         self.chat_log_processor.register(2114, "^(.+)制作失败了……$", self.craft_end)
         self.chat_log_processor.register(2114, "^(.+)中止了制作作业。$", self.craft_end)
 
