@@ -53,7 +53,8 @@ def try_solve(craft: Craft, timeLimit=None):
         t_craft, t_history = queue.pop(0)
         for skill in allowSkills(t_craft):
             try:
-                tt_craft = t_craft.clone().use_skill(skill, True)
+                tt_craft= t_craft.clone()
+                tt_craft.use_skill(skill, True)
             except CheckUnpass:
                 continue
             if tt_craft.current_cp < cpReq:
