@@ -64,6 +64,7 @@ class Actor(OffsetStruct({
     "CastingTargetID": (c_uint, 7024),
     "CastingProgress": (c_float, 7060),
     "CastingTime": (c_float, 7064),
+    'HitboxRadius': (c_float,190),
 })):
 
     @property
