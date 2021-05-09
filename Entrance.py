@@ -22,13 +22,13 @@ try:
 
     # functions
     register_modules([
-        "MoPlus",  # 鼠标功能增强
-        "ActorQuery",  # actor 查询
-        "Zoom2",  # 视距解限
-        "XivCombo",  # 连击绑定（一键系列）
+        # "MoPlus",  # 鼠标功能增强
+        # "ActorQuery",  # actor 查询
+        # "Zoom2",  # 视距解限
+        # "XivCombo",  # 连击绑定（一键系列）
         "XivCraft",  # 生产规划器
         # "ACTLogLines",  # act接口
-        "SendKeys"  # 按键发送
+        # "SendKeys"  # 按键发送
     ])
     start()
 except Exception:

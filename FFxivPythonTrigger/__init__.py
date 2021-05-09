@@ -6,6 +6,6 @@ try:
     with open(Path(PROCESS_FILENAME).parent / "ffxivgame.ver") as fi:
         FFxiv_Version = fi.read()
 except FileNotFoundError:
-    pass
+    FFxiv_Version = None
 else:
     from .FFxivPythonTrigger import *
