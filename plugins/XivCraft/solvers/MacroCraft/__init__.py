@@ -71,6 +71,8 @@ class MacroCraft(Solver):
                 t_craft = craft.clone()
                 runner = macro.get_runner()
                 size = 0
+                m_name = (tags['Name'] if 'Name' in tags else tags['_file'])
+                arg = None
                 while True:
                     try:
                         size += 1
@@ -82,15 +84,20 @@ class MacroCraft(Solver):
                         t_craft.use_skill(arg.strip('"'), check_mode=True)
                         if t_craft.is_finished():
                             if t_craft.current_quality >= t_craft.recipe.max_quality:
-                                macro_pairing[key] = macro
+                                macro_pairing[key] = macro, m_name
+                                _logger.debug('macro [%s] paired' % m_name)
                                 break
                             else:
+                                _logger.debug('macro [%s] unpaired: quality not enough' % m_name)
                                 break
                     except MacroFinish:
+                        _logger.debug('macro [%s] unpaired: recipe cant finish' % m_name)
                         break
                     except MacroOversize:
+                        _logger.debug('macro [%s] unpaired: macro oversize' % m_name)
                         break
                     except CheckUnpass:
+                        _logger.debug('macro [%s] unpaired: skill [%s](%s) cant be used' % (m_name, arg.strip('"'), runner.current_line - 1))
                         break
                 # _logger.debug(tags["Name"],t_craft)
                 if key in macro_pairing:
@@ -111,7 +118,8 @@ class MacroCraft(Solver):
             craft.recipe.max_quality - craft.current_quality,
             craft.recipe.max_durability,
         )
-        self.runner = macro_pairing[key].get_runner()
+        _logger.debug("macro used:[%s]" % macro_pairing[key][1])
+        self.runner = macro_pairing[key][0].get_runner()
 
     def process(self, craft, used_skill=None) -> str:
         if self.runner is None: return ''

@@ -147,8 +147,8 @@ class Craft(object):
         used_cp = self.get_skill_cost(skill)
 
         if check_mode:
-            if self.current_progress + added_progress < self.recipe.max_difficulty and self.current_durability <= used_durability: raise CheckUnpass()
-            if self.current_cp < used_cp: raise CheckUnpass()
+            if self.current_progress + added_progress < self.recipe.max_difficulty and self.current_durability <= used_durability: raise CheckUnpass(skill.name)
+            if self.current_cp < used_cp: raise CheckUnpass(skill.name)
 
         self.current_progress = min(self.current_progress + added_progress, self.recipe.max_difficulty)
         self.current_quality = min(self.current_quality + added_quality, self.recipe.max_quality)
