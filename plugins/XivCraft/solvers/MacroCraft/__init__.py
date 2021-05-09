@@ -45,6 +45,7 @@ def load():
                         raise MacroOversize()
                 except MacroFinish:
                     break
+            _logger.debug('load macro [%s]' % (tags['Name'] if 'Name' in tags else tags['_file']))
             macros.append((count, macro, tags))
         except MacroOversize:
             continue
@@ -91,6 +92,7 @@ class MacroCraft(Solver):
                         break
                     except CheckUnpass:
                         break
+                # _logger.debug(tags["Name"],t_craft)
                 if key in macro_pairing:
                     break
             if key not in macro_pairing:

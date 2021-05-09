@@ -115,7 +115,6 @@ def start_thread(address, params=None, handler=CURRENT_PROCESS_HANDLER):
     params = params or 0
     windll.kernel32.SetLastError(0)
     NULL_SECURITY_ATTRIBUTES = cast(0, structure.LPSECURITY_ATTRIBUTES)
-    windll.kernel32.SetLastError(0)
     thread_h = kernel32.CreateRemoteThread(
         handler,
         NULL_SECURITY_ATTRIBUTES,

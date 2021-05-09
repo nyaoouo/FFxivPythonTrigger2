@@ -4,6 +4,7 @@ from datetime import datetime
 from threading import Lock
 
 
+
 class ModuleTypeException(Exception):
     def __init__(self, module: any):
         super(ModuleTypeException, self).__init__("module type [%s] is an invalid logger module type" % module)

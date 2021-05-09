@@ -11,6 +11,8 @@ from importlib import import_module, reload
 
 from . import AttrContainer, Storage, Logger, FrameInject, Sigs, AddressManager
 
+LOG_FILE_SIZE_MAX = 1024 * 1024
+
 
 class Mission(Thread):
     def __init__(self, name: str, mission_id: int, mission, *args, **kwargs):
@@ -272,6 +274,6 @@ plugin_path = Path(os.getcwd()) / 'plugins'
 plugin_path.mkdir(exist_ok=True)
 sys.path.insert(0, str(plugin_path))
 for path in _storage.data.setdefault('paths', list()):
-    _logger.debug("add plugin path:%s"%path)
+    _logger.debug("add plugin path:%s" % path)
     sys.path.insert(0, path)
 _storage.save()

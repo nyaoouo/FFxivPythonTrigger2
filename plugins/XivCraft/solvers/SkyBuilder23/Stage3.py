@@ -77,7 +77,7 @@ class Stage3:
             ans = try_solve(craft, 8)
             if ans is not None:
                 self.queue = ans[1]
-                debug("solver dfs", "new plan in {:.2f}s:{}({})".format(time.perf_counter() - start, self.queue, ans[0].current_quality))
+                debug("solver bfs", "new plan in {:.2f}s:{}({})".format(time.perf_counter() - start, self.queue, ans[0].current_quality))
         return not bool(self.queue)
 
     def deal(self, craft, prev_skill=None):
