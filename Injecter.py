@@ -1,53 +1,68 @@
-import urllib.request
-from urllib.error import HTTPError, URLError
-import pkg_resources, pip
-from pkg_resources import DistributionNotFound
-from urllib.parse import urlsplit
-pip_source_name = "default"
-pip_source = "https://pypi.python.org/simple"
-pip_sources = {
-    '阿里云': 'http://mirrors.aliyun.com/pypi/simple/',
-    # '中国科技大学': 'https://pypi.mirrors.ustc.edu.cn/simple',
-    '豆瓣(douban)': 'http://pypi.douban.com/simple/',
-    '清华大学': 'https://pypi.tuna.tsinghua.edu.cn/simple',
-}
-endl = "\n<press enter to exit>"
+import argparse
+import sys
+
+parser = argparse.ArgumentParser(description='using to inject FFxivPythonTrigger to a game process')
+parser.add_argument('-p', '--pid', type=int, nargs='?', default=None, metavar='PID', help='pid of process to inject')
+parser.add_argument('-n', '--pName', nargs='?', default="ffxiv_dx11.exe", metavar='Process Name', help='name of process find to inject')
+parser.add_argument('-e', '--entrance', nargs='?', default="Entrance.py", metavar='File Name', help='entrance file of FFxivPythonTrigger')
+parser.add_argument('-sr', dest='skip_requirement_check', action='store_const', const=True, default=False, help='sum the integers')
+args = parser.parse_args(sys.argv[1:])
+if not args.skip_requirement_check:
+    import urllib.request
+    from urllib.error import HTTPError, URLError
+    import pkg_resources, pip
+    from pkg_resources import DistributionNotFound, VersionConflict
+    from urllib.parse import urlsplit
+
+    pip_source_name = "default"
+    pip_source = "https://pypi.python.org/simple"
+    pip_sources = {
+        '阿里云': 'http://mirrors.aliyun.com/pypi/simple/',
+        # '中国科技大学': 'https://pypi.mirrors.ustc.edu.cn/simple',
+        '豆瓣(douban)': 'http://pypi.douban.com/simple/',
+        '清华大学': 'https://pypi.tuna.tsinghua.edu.cn/simple',
+    }
+    endl = "\n<press enter to exit>"
 
 
-def test_url(name, url):
-    try:
-        return urllib.request.urlopen(url, timeout=5).getcode() == 200
-    except (HTTPError, URLError) as error:
-        print('Data of [%s] not retrieved because %s'%(name, error))
-    except socket.timeout:
-        print('socket timed out - URL [%s]'%url)
-    return False
-
-def test_requirements():
-    try:
-        pkg_resources.require(open('requirements.txt', mode='r'))
-    except DistributionNotFound:
+    def test_url(name, url):
+        try:
+            return urllib.request.urlopen(url, timeout=5).getcode() == 200
+        except (HTTPError, URLError) as error:
+            print('Data of [%s] not retrieved because %s' % (name, error))
+        except socket.timeout:
+            print('socket timed out - URL [%s]' % url)
         return False
-    else:
-        return True
 
-if not test_requirements():
-    back = list(pip_sources.items())
-    while not test_url(pip_source_name, pip_source):
-        if not back:
-            input("no valid pip source" + endl)
-            exit()
-        pip_source_name, pip_source = back.pop(0)
 
-    print('use pypi source [%s]' % pip_source_name)
-    param = ['install', '-r', 'requirements.txt', '-i', pip_source,'--trusted-host',urlsplit(pip_source).netloc]
-    if hasattr(pip, 'main'):
-        pip.main(param)
-    else:
-        pip._internal.main(param)
+    def test_requirements():
+        try:
+            pkg_resources.require(open('requirements.txt', mode='r'))
+        except DistributionNotFound:
+            return False
+        except VersionConflict:
+            return False
+        else:
+            return True
+
+
     if not test_requirements():
-        input("cant install requirements"+ endl)
-        exit()
+        back = list(pip_sources.items())
+        while not test_url(pip_source_name, pip_source):
+            if not back:
+                input("no valid pip source" + endl)
+                exit()
+            pip_source_name, pip_source = back.pop(0)
+
+        print('use pypi source [%s]' % pip_source_name)
+        param = ['install', '-r', 'requirements.txt', '-i', pip_source, '--trusted-host', urlsplit(pip_source).netloc]
+        if hasattr(pip, 'main'):
+            pip.main(param)
+        else:
+            pip._internal.main(param)
+        if not test_requirements():
+            input("cant install requirements" + endl)
+            exit()
 
 from FFxivPythonTrigger.memory.res import kernel32, structure
 from FFxivPythonTrigger.memory import process, memory
@@ -57,15 +72,7 @@ from json import dumps
 import _thread
 import socket
 import time
-import argparse
 import ctypes
-import sys
-
-parser = argparse.ArgumentParser(description='using to inject FFxivPythonTrigger to a game process')
-parser.add_argument('-p', '--pid', type=int, nargs='?', default=None, metavar='PID', help='pid of process to inject')
-parser.add_argument('-n', '--pName', nargs='?', default="ffxiv_dx11.exe", metavar='Process Name', help='name of process find to inject')
-parser.add_argument('-e', '--entrance', nargs='?', default="Entrance.py", metavar='File Name', help='entrance file of FFxivPythonTrigger')
-args = parser.parse_args(sys.argv[1:])
 
 try:
     is_admin = ctypes.windll.shell32.IsUserAnAdmin()
