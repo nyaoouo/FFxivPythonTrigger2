@@ -9,7 +9,8 @@ FFxivPythonTrigger
 注意事项
 ---
 > * 使用本工具有导致账号遭封禁的风险
-> * 随缘支持随缘更新出问题请提供相关log（默认位置为根目录`InjectErr.log`或是`AppData/Core/log_xxxxxxx.txt`）
+> * 随缘支持随缘更新
+> * 出问题请提供相关log（默认位置为根目录`InjectErr.log`或是`AppData/Core/log_xxxxxxx.txt`）
 > * 仅处理最新版本的技术问题（出问题请先尝试更新）
 
 食用方式
