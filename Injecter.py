@@ -1,6 +1,10 @@
 import argparse
 import sys
 
+endl = "\n<press enter to exit>"
+if sys.version_info < (3, 9):
+    input("please use python environment >=3.9" + endl)
+    exit()
 parser = argparse.ArgumentParser(description='using to inject FFxivPythonTrigger to a game process')
 parser.add_argument('-p', '--pid', type=int, nargs='?', default=None, metavar='PID', help='pid of process to inject')
 parser.add_argument('-n', '--pName', nargs='?', default="ffxiv_dx11.exe", metavar='Process Name', help='name of process find to inject')
@@ -22,7 +26,6 @@ if not args.skip_requirement_check:
         '豆瓣(douban)': 'http://pypi.douban.com/simple/',
         '清华大学': 'https://pypi.tuna.tsinghua.edu.cn/simple',
     }
-    endl = "\n<press enter to exit>"
 
 
     def test_url(name, url):

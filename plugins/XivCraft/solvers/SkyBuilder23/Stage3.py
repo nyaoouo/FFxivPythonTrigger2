@@ -1,8 +1,8 @@
 import time
 
 from FFxivPythonTrigger.Logger import debug
-from plugins.XivCraft.simulator.Craft import Craft, CheckUnpass
-from plugins.XivCraft.simulator.Status import DEFAULT_STATUS
+from ...simulator.Craft import Craft, CheckUnpass
+from ...simulator.Status import DEFAULT_STATUS
 
 durReq = 21
 cpReq = 131

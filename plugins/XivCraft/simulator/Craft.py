@@ -164,6 +164,9 @@ class Craft(object):
         self.merge_effects()
         return self
 
+    def simple_str(self):
+        return f"{self.recipe}{self.player}:{self.current_progress}/{self.current_quality}/{self.current_durability}/{self.current_cp}"
+
     def __str__(self):
         return """********** round {round} **********
 player:\t{player}

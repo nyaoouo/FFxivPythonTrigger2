@@ -1,9 +1,10 @@
 import time
+import random
 from traceback import format_exc
 
 from FFxivPythonTrigger.Logger import debug
-from plugins.XivCraft.simulator.Craft import Craft, CheckUnpass
-from plugins.XivCraft.simulator.Status import DEFAULT_STATUS
+from ...simulator.Craft import Craft, CheckUnpass
+from ...simulator.Status import DEFAULT_STATUS
 
 AllowBuffs = {
     ('阔步', '阔步'),
@@ -24,14 +25,15 @@ def allowSkills(craft):
     elif '观察' in craft.effects and craft.status.name not in SpecialStatus:
         return ['注视加工']
     if craft.current_cp < 0: return ans
-    if craft.current_cp >= craft.get_skill_cost('精修') and craft.current_durability <= craft.recipe.max_durability - 30:
-        ans.append('精修')
-    if craft.current_cp > 150 and '掌握' not in craft.effects and '改革' not in craft.effects and '阔步' not in craft.effects:
-        ans.append('掌握')
-    for buff, name in AllowBuffs:
-        if name not in craft.effects and craft.current_cp >= craft.get_skill_cost(buff) + 7:
-            ans.append(buff)
-    if '改革' in craft.effects or craft.current_cp < 80 or craft.status.name in SpecialStatus:
+    if '阔步' not in craft.effects or craft.effects['阔步'].param != 1:
+        if craft.current_cp >= craft.get_skill_cost('精修') and craft.current_durability <= craft.recipe.max_durability - 30:
+            ans.append('精修')
+        if craft.current_cp > 150 and '掌握' not in craft.effects and '改革' not in craft.effects and '阔步' not in craft.effects:
+            ans.append('掌握')
+        for buff, name in AllowBuffs:
+            if name not in craft.effects and craft.current_cp >= craft.get_skill_cost(buff) + 7:
+                ans.append(buff)
+    if '改革' in craft.effects or craft.current_cp < 60 or craft.status.name in SpecialStatus:
         to_add = list()
         if '观察' in craft.effects:
             to_add.append('注视加工')
@@ -50,7 +52,7 @@ def allowSkills(craft):
 
 
 def try_solve(craft: Craft, timeLimit=None):
-    best = None
+    best = (craft,[])
     best_un_finish = None
     best_start_with = None
     best_start_with_l = 0
@@ -66,7 +68,8 @@ def try_solve(craft: Craft, timeLimit=None):
         t_craft, t_history = queue.pop(0)
         if best_start_with is not None and t_history[:best_start_with_l] != best_start_with:
             continue
-        for skill in allowSkills(t_craft):
+        skills=allowSkills(t_craft)
+        for skill in skills:
             try:
                 try:
                     tt_craft = t_craft.clone()
@@ -86,7 +89,7 @@ def try_solve(craft: Craft, timeLimit=None):
                 if tt_craft.current_durability >= 1 and (best_un_finish is None or tt_craft.current_quality > best_un_finish[0].current_quality):
                     best_un_finish = new_data
                     l = len(new_data[1])
-                    c = (l // 4)# + 1
+                    c = (l // 4) + 1
                     if l > 8:
                         best_start_with = new_data[1][:c]
                         best_start_with_l = c
@@ -100,14 +103,18 @@ TIME_LIMIT = 8
 class Stage3:
     def __init__(self):
         self.queue = []
+        self.is_first = True
 
     def is_finished(self, craft, prev_skill=None):
+        if self.is_first:
+            debug("solver bfs", "try to solve:\n%s" % craft.simple_str())
+            self.is_first = False
         if not bool(self.queue) or craft.status.name in SpecialStatus:
             start = time.perf_counter()
             ans = try_solve(craft, TIME_LIMIT)
-            if ans is not None:
+            if ans[1]:
                 debug("solver bfs", "new plan in {:.2f}s:{}({})".format(time.perf_counter() - start, ans[1], ans[0].current_quality))
-                self.queue = ans[1] if time.perf_counter() - start < TIME_LIMIT else ans[1][:3]
+                self.queue = ans[1]  if time.perf_counter() - start < TIME_LIMIT else ans[1][:4]
         return not bool(self.queue)
 
     def deal(self, craft, prev_skill=None):

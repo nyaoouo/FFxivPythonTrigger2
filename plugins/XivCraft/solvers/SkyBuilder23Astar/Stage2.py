@@ -8,7 +8,7 @@ class Stage2:
     def deal(self, craft, prev_skill=None):
         if prev_skill == '专心加工:fail':
             self.count += 1
-        if craft.craft_round >= 25 or craft.current_cp < 300 or self.count >= 2:
+        if craft.craft_round >= 25 or craft.current_cp < 300 or self.count > 2:
             return 'terminate'
         if craft.status == "高效":
             if not '掌握' in craft.effects:

@@ -152,7 +152,8 @@ class ByregotsBlessing(Skill):
         return 100 + (0 if "内静" not in craft.effects else craft.effects["内静"].param - 1) * 20
 
     def after_use(self, craft):
-        del craft.effects["内静"]
+        if "内静" in craft.effects:
+            del craft.effects["内静"]
 
 
 class PreciseTouch(Skill):
