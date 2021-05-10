@@ -65,6 +65,12 @@ class CarefulObservation(Effect):
     def after_round(self, craft, used_skill):
         if craft.current_progress >= craft.recipe.max_difficulty:
             craft.current_progress = craft.recipe.max_difficulty - 1
+            del craft.effects[self.name]
+        else:
+            super(CarefulObservation, self).after_round(craft, used_skill)
+            # self.param -= 1
+            # if not self.param and self.name in craft.effects:
+            #     del craft.effects[self.name]
 
 
 class MuscleMemory(Effect):
