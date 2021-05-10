@@ -47,4 +47,14 @@ FFxivPythonTrigger
 > ACTLogLines| 对接ACT获取 logline 并且产生相关事件（未完成）
 > SendKeys| 提供对本游戏传递按键的接口
 
+常见问题
+---
+>> 如何启动默认加载插件：
+>>* 打开[Entrance.py](Entrance.py)，解除该插件的注译
+> 
+>>遇到`WinApi err code:5/6/299/etc.`
+>>* 注入器调用api问题，目前未找到妥当解决方法，未来或重构注入器
+> 
+>>想到继续补充
+
 >以下略
