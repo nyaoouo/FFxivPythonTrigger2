@@ -44,7 +44,7 @@ def allowSkills(craft):
         for skill in to_add:
             if craft.current_durability > craft.get_skill_durability(skill) and craft.current_cp >= craft.get_skill_cost(skill):
                 ans.append(skill)
-    if not ('改革' in craft.effects and craft.effects['改革'].param == 1) and ('阔步' in craft.effects and craft.effects['阔步'].param == 1):
+    if not (('改革' in craft.effects and craft.effects['改革'].param == 1) or ('阔步' in craft.effects and craft.effects['阔步'].param == 1)):
         ans.append('观察')
     return ans
 
