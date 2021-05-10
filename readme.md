@@ -57,5 +57,8 @@ FFxivPythonTrigger
  
 >如何多开注入：
 >* 注入器支援 -p 参数指定pid e.g.`python Injecter.py -p 12345`
- 
+
+>如何回报问题：
+> * 提issue
+> * Q群1046750894
 想到继续补充
