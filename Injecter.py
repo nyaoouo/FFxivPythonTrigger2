@@ -6,10 +6,10 @@ from pkg_resources import DistributionNotFound
 pip_source_name = "default"
 pip_source = "https://pypi.python.org/simple"
 pip_sources = {
-    '阿里云': 'http://mirrors.aliyun.com/pypi/simple/',
-    # '中国科技大学': 'https://pypi.mirrors.ustc.edu.cn/simple/',
-    '豆瓣(douban)': 'http://pypi.douban.com/simple/',
-    '清华大学': 'https://pypi.tuna.tsinghua.edu.cn/simple/',
+    '阿里云': 'http://mirrors.aliyun.com/pypi/simple',
+    # '中国科技大学': 'https://pypi.mirrors.ustc.edu.cn/simple',
+    '豆瓣(douban)': 'http://pypi.douban.com/simple',
+    '清华大学': 'https://pypi.tuna.tsinghua.edu.cn/simple',
 }
 endl = "\n<press enter to exit>"
 
@@ -18,16 +18,20 @@ def test_url(name, url):
     try:
         return urllib.request.urlopen(url, timeout=5).getcode() == 200
     except (HTTPError, URLError) as error:
-        print('Data of [%s] not retrieved because %s\nURL: [%s]', name, error, url)
+        print('Data of [%s] not retrieved because %s\nURL: [%s]'%(name, error, url))
     except socket.timeout:
-        print('socket timed out - URL [%s]', url)
+        print('socket timed out - URL [%s]'%url)
     return False
 
+def test_requirements():
+    try:
+        pkg_resources.require(open('requirements.txt', mode='r'))
+    except DistributionNotFound:
+        return False
+    else:
+        return True
 
-try:
-    pkg_resources.require(open('requirements.txt', mode='r'))
-except DistributionNotFound:
-
+if not test_requirements():
     back = list(pip_sources.items())
     while not test_url(pip_source_name, pip_source):
         if not back:
@@ -41,6 +45,9 @@ except DistributionNotFound:
         pip.main(param)
     else:
         pip._internal.main(param)
+    if not test_requirements():
+        input("cant install requirements"+ endl)
+        exit()
 
 from FFxivPythonTrigger.memory.res import kernel32, structure
 from FFxivPythonTrigger.memory import process, memory
