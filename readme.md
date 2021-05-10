@@ -46,6 +46,7 @@ FFxivPythonTrigger
 > [XivCraft](plugins/XivCraft)| 生产规划
 > ACTLogLines| 对接ACT获取 logline 并且产生相关事件（未完成）
 > SendKeys| 提供对本游戏传递按键的接口
+> Markings| 提供游戏标点的接口
 
 常见问题
 ---

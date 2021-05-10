@@ -29,7 +29,8 @@ try:
         # "XivCombo",  # 连击绑定（一键系列）
         # "XivCraft",  # 生产规划器
         # "ACTLogLines",  # act接口
-        # "SendKeys"  # 按键发送
+        # "SendKeys",  # 按键发送
+        # "Markings",  # 标点功能
     ])
     start()
 except Exception:
