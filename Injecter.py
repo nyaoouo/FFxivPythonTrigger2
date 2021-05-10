@@ -2,13 +2,13 @@ import urllib.request
 from urllib.error import HTTPError, URLError
 import pkg_resources, pip
 from pkg_resources import DistributionNotFound
-
+from urllib.parse import urlsplit
 pip_source_name = "default"
 pip_source = "https://pypi.python.org/simple"
 pip_sources = {
-    '阿里云': 'http://mirrors.aliyun.com/pypi/simple',
+    '阿里云': 'http://mirrors.aliyun.com/pypi/simple/',
     # '中国科技大学': 'https://pypi.mirrors.ustc.edu.cn/simple',
-    '豆瓣(douban)': 'http://pypi.douban.com/simple',
+    '豆瓣(douban)': 'http://pypi.douban.com/simple/',
     '清华大学': 'https://pypi.tuna.tsinghua.edu.cn/simple',
 }
 endl = "\n<press enter to exit>"
@@ -18,7 +18,7 @@ def test_url(name, url):
     try:
         return urllib.request.urlopen(url, timeout=5).getcode() == 200
     except (HTTPError, URLError) as error:
-        print('Data of [%s] not retrieved because %s\nURL: [%s]'%(name, error, url))
+        print('Data of [%s] not retrieved because %s'%(name, error))
     except socket.timeout:
         print('socket timed out - URL [%s]'%url)
     return False
@@ -40,7 +40,7 @@ if not test_requirements():
         pip_source_name, pip_source = back.pop(0)
 
     print('use pypi source [%s]' % pip_source_name)
-    param = ['install', '-r', 'requirements.txt', '-i', pip_source]
+    param = ['install', '-r', 'requirements.txt', '-i', pip_source,'--trusted-host',urlsplit(pip_source).netloc]
     if hasattr(pip, 'main'):
         pip.main(param)
     else:
