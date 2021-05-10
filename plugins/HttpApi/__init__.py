@@ -37,7 +37,7 @@ class HttpApiPlugin(PluginBase):
     def unregister_post_route(self, path):
         if path not in self.routes:
             raise Exception("%s is not registered" % path)
-        _logger.debug("[%s] is unregistered")
+        _logger.debug("[%s] is unregistered"%path)
         del self.routes[path]
 
     async def post_route(self, request: web.Request):
