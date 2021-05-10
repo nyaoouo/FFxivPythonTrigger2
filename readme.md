@@ -55,6 +55,9 @@ FFxivPythonTrigger
 >>遇到`WinApi err code:5/6/299/etc.`
 >>* 注入器调用api问题，目前未找到妥当解决方法，未来或重构注入器
 > 
->>想到继续补充
+>>如何多开注入：
+>>* 注入器支援 -p 参数指定pid e.g.`python Injecter.py -p 12345`
+> 
+>想到继续补充
 
 >以下略
