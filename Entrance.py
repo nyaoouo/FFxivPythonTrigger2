@@ -11,7 +11,7 @@ Logger.print_log_level = Logger.DEBUG
 try:
     register_module("SocketLogger")
 
-    # core
+    "core"
     register_modules([
         "HttpApi",
         "ChatLog",
@@ -20,7 +20,8 @@ try:
         "Command",
     ])
 
-    # functions
+    "functions"
+    "delete the '#' in front of each line to register as a default load plugin"
     register_modules([
         # "MoPlus",  # 鼠标功能增强
         # "ActorQuery",  # actor 查询
