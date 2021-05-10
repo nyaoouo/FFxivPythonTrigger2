@@ -16,8 +16,7 @@ FFxivPythonTrigger
 ---
 > * 需求环境：python 3.9.0+ x64 windows 版本
 > * 安装py环境，官网：[https://www.python.org/](https://www.python.org/)
-> * 安装程序依赖 `pip install -r requirements.txt`
-> _** 注入器自带依赖检测、安装，无需特意手动安装依赖_
+> * 安装程序依赖 `pip install -r requirements.txt` _** 注入器自带依赖检测、安装，无需特意手动安装依赖_
 > * 运行injecter.py注入游戏
 > * 游戏内操作相关请参阅：[Command插件](plugins/Command)
 > * 注意：版本初首次需要纯净注入，后续无需
