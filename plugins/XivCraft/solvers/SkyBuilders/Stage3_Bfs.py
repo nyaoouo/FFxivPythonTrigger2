@@ -10,6 +10,7 @@ AllowBuffs = {'阔步', '改革', '俭约', }
 SpecialStatus = {"高品质", "结实", "高效"}
 
 
+
 def allowSkills(craft):
     remainCp = craft.current_cp - cpReq
     ans = list()
@@ -89,6 +90,8 @@ class StageEnd:
         self.queue = ['阔步', '改革', '观察', '注视加工', '阔步', '比尔格的祝福', '制作'][:]
 
     def deal(self, craft, prev_skill=None):
+        if len(self.queue)==1 and craft.current_quality<58000:
+            return 'terminate'
         return self.queue.pop(0)
 
     def is_finished(self, craft, prev_skill=None):

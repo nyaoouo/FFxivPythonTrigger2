@@ -125,6 +125,8 @@ class StageEnd:
         self.queue = ['制作']
 
     def deal(self, craft, prev_skill=None):
+        if len(self.queue)==1 and craft.current_quality<58000:
+            return 'terminate'
         return self.queue.pop(0)
 
     def is_finished(self, craft, prev_skill=None):
