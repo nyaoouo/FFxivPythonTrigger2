@@ -48,9 +48,13 @@ def try_solve(craft: Craft, timeLimit=None):
     best = (craft, [])
     queue = [(craft, [])]
     start = time.perf_counter()
+    last_print = start
     while queue:
         if timeLimit is not None and time.perf_counter() - start > timeLimit:
             return best
+        if time.perf_counter() > last_print + 1:
+            last_print = time.perf_counter()
+            debug("solver bfs", "plan in {:.2f}s:{}({})".format(last_print - start, best[1], best[0].current_quality))
         t_craft, t_history = queue.pop(0)
         for skill in allowSkills(t_craft):
             try:

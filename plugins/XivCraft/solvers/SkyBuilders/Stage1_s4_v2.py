@@ -52,7 +52,7 @@ class Stage1:
             if '掌握' not in craft.effects: return '掌握'
             if craft.recipe.max_durability-craft.current_durability >= 30: return '精修'
             if '俭约' not in craft.effects: return '长期俭约'
-        if craft.clone().use_skill('制作').current_durability <= 0:
+        if craft.current_durability <= craft.get_skill_durability('制作'):
             return '精修'
         if not process_finish and (craft.status == "高進捗" or '崇敬' in craft.effects):
             for s in '制作', '模范制作', '高速制作':

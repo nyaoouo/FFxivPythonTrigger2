@@ -22,7 +22,7 @@ class SkyBuilders(Solver):
         if USE_ASTAR:
             self_choose_stages += [Stage3_Astar.Stage3, Stage3_Astar.StageEnd]
         else:
-            self_choose_stages += [Stage3_Bfs.Stage3, Stage3_Bfs.StageEnd]
+            self_choose_stages += [Stage3_Bfs.Stage3, Stage3_Astar.Stage3, Stage3_Astar.StageEnd]
         self.process_stages = [s() for s in self_choose_stages]
 
     def process(self, craft, used_skill=None) -> str:
