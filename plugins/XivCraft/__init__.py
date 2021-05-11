@@ -178,8 +178,13 @@ class XivCraft(PluginBase):
             self.logger.info("no solver found, please add a solver for this recipe")
 
     def craft_next(self, chat_log, regex_result):
+        if regex_result.group(1)!=api.XivMemory.actor_table.get_me().Name:
+            return
         sleep(0.5)
-        skill = Manager.skills[regex_result.group(2) + ('' if regex_result.group(3) != "失败" else ':fail')]()
+        try:
+            skill = Manager.skills[regex_result.group(2) + ('' if regex_result.group(3) != "失败" else ':fail')]()
+        except KeyError:
+            return
         craft = self.get_current_craft()
         if skill == "观察":
             craft.add_effect("观察", 1)
