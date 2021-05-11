@@ -36,23 +36,27 @@ class Stage1:
         if craft.status == "長持続":
             if not process_finish and '崇敬' not in craft.effects: return '崇敬'
             if craft.current_cp > 400:
-                if '俭约' not in craft.effects: return '俭约'
                 if '掌握' not in craft.effects: return '掌握'
+                if '俭约' not in craft.effects: return '俭约'
         if craft.status == "高品质":
             if craft.current_durability > 10:
-                return '集中加工' if craft.effects['内静'].param < 10 else progess_skill(craft, '集中制作')
+                if craft.effects['内静'].param < 10:
+                    return '集中加工'
+                else:
+                    return progess_skill(craft, '集中制作')
             return '秘诀'
         if craft.status == "高效":
-            if not '掌握' in craft.effects: return '掌握'
+            if '掌握' not in craft.effects: return '掌握'
             if craft.current_durability < 20: return '精修'
-            if '俭约' not in craft.effects: return '长期俭约'
+            if craft.current_cp > 350 and '俭约' not in craft.effects: return '长期俭约'
         if craft.clone().use_skill('制作').current_durability <= 0:
             return '精修'
         if not process_finish and (craft.status == "高進捗" or '崇敬' in craft.effects):
             for s in '制作', '模范制作', '高速制作':
                 if is_process_finished(craft.clone().use_skill(s)):
                     return progess_skill(craft, s)
-        if process_finish or '崇敬' not in craft.effects:
+            return progess_skill(craft, '高速制作')
+        if craft.effects['内静'].param < 8:
             return "仓促" if '俭约' in craft.effects else '俭约加工'
         else:
-            return '高速制作'
+            return '崇敬'

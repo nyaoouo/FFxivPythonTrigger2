@@ -13,8 +13,8 @@ class SkyBuilders(Solver):
         super().__init__(craft, logger)
         self.stage = 0
         if craft.recipe.status_flag == 0b111100011:
-            self_choose_stages = [Stage1_s4.Stage1, Stage2_s4.Stage2]
-            #self_choose_stages = [Stage1_s4_v2.Stage1]
+            #self_choose_stages = [Stage1_s4.Stage1, Stage2_s4.Stage2]
+            self_choose_stages = [Stage1_s4_v2.Stage1]
         else:
             self_choose_stages = [Stage1_s23.Stage1, Stage2_s23.Stage2]
         if USE_ASTAR:

@@ -1,5 +1,4 @@
 import time
-import random
 from traceback import format_exc
 
 from FFxivPythonTrigger.Logger import debug
@@ -66,7 +65,7 @@ def try_solve(craft: Craft, timeLimit=None):
             last_print = time.perf_counter()
             debug("solver bfs", "plan in {:.2f}s:{}({})".format(last_print - start, best[1], best[0].current_quality))
         t_craft, t_history = queue.pop(0)
-        if best_start_with is not None and t_history[:best_start_with_l] != best_start_with:
+        if best_start_with is not None and len(t_history)>8 and t_history[:best_start_with_l] != best_start_with:
             continue
         skills=allowSkills(t_craft)
         for skill in skills:
@@ -90,7 +89,7 @@ def try_solve(craft: Craft, timeLimit=None):
                     best_un_finish = new_data
                     l = len(new_data[1])
                     c = (l // 4) + 1
-                    if l > 8:
+                    if l >= 8:
                         best_start_with = new_data[1][:c]
                         best_start_with_l = c
                 queue.append(new_data)
