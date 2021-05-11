@@ -31,7 +31,7 @@ class Stage1:
         process_finish = is_process_finished(craft)
         if prev_skill == '高速制作:fail':
             self.count += 1
-        if self.count > 4 or craft.craft_round >= 20 or craft.current_cp < 300:
+        if self.count > 4 or craft.craft_round >= 25 or craft.current_cp < 300:
             return 'terminate'
         if craft.status == "長持続":
             if not process_finish and '崇敬' not in craft.effects: return '崇敬'
