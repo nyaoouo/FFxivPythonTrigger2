@@ -4,6 +4,7 @@ import math
 
 class Observe(Effect):
     id = -99
+    use_rounds = False
     name = '观察'
 
 
