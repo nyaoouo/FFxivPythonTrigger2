@@ -3,7 +3,7 @@ from ctypes import *
 from traceback import format_exc
 from time import sleep
 
-from FFxivPythonTrigger import PluginBase, api
+from FFxivPythonTrigger import PluginBase, api, EventBase, process_event
 from FFxivPythonTrigger.AddressManager import AddressManager
 from FFxivPythonTrigger.SaintCoinach import realm
 from FFxivPythonTrigger.hook import Hook
@@ -38,6 +38,39 @@ registered_solvers = [
 ]
 
 callback = lambda ans: speaker.Speak(ans)
+
+
+class CraftStart(EventBase):
+    id = "craft_start"
+    name = "craft start"
+
+    def __init__(self, recipe: Models.Recipe, player: Models.Player, base_quality: int):
+        self.recipe = recipe
+        self.player = player
+        self.base_quality = base_quality
+
+    def __str__(self):
+        return f"CraftStart;{self.recipe};{self.player};{self.base_quality}"
+
+
+class CraftAction(EventBase):
+    id = "craft_action"
+    name = "craft action"
+
+    def __init__(self, craft: Craft.Craft, skill: Models.Skill):
+        self.craft = craft
+        self.skill = skill
+
+    def __str__(self):
+        return f"CraftAction;{self.skill.name}"
+
+
+class CraftEnd(EventBase):
+    id = "craft_end"
+    name = "craft end"
+
+    def __str__(self):
+        return "CraftEnd"
 
 
 class XivCraft(PluginBase):
@@ -132,6 +165,7 @@ class XivCraft(PluginBase):
         recipe, player = self.base_data = self.get_base_data()
         self.logger.info("start recipe:" + recipe.detail_str)
         craft = Craft.Craft(recipe=recipe, player=player, current_quality=self.base_quality.value)
+        process_event(CraftStart(recipe, player, self.base_quality.value))
         for solver in registered_solvers:
             if solver.suitable(craft):
                 self.solver = solver(craft=craft, logger=self.logger)
@@ -145,18 +179,20 @@ class XivCraft(PluginBase):
 
     def craft_next(self, chat_log, regex_result):
         sleep(0.5)
+        skill = Manager.skills[regex_result.group(2) + ('' if regex_result.group(3) != "失败" else ':fail')]()
+        craft = self.get_current_craft()
+        if skill == "观察":
+            craft.add_effect("观察", 1)
+            craft.merge_effects()
+        self.logger.debug(craft)
+        process_event(CraftAction(craft, skill))
         if self.solver is not None:
-            skill = Manager.skills[regex_result.group(2) + ('' if regex_result.group(3) != "失败" else ':fail')]()
-            craft = self.get_current_craft()
-            if skill == "观察":
-                craft.add_effect("观察", 1)
-                craft.merge_effects()
-            self.logger.debug(craft)
             ans = self.solver.process(craft, skill)
             self.logger.info("suggested skill '%s'" % ans)
             if ans and callback is not None: self.create_mission(callback, ans)
 
     def craft_end(self, chat_log, regex_result):
+        process_event(CraftEnd())
         self.solver = None
         self.logger.info("end craft")
 
