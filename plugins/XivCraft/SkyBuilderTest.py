@@ -1,3 +1,4 @@
+import math
 import random
 from time import time, perf_counter
 from typing import Type
@@ -30,7 +31,7 @@ class CustomRecipe(Recipe):
 def gen_random_status(craft):
     if craft.recipe.status_flag == 0b111100011:  # 4
         return random.choices(
-            [White, Blue, Red, Green, DeepBlue, Purple,],
+            [White, Blue, Red, Green, DeepBlue, Purple, ],
             [0.3663, 0.1493, 0.1206, 0.12, 0.1205, 0.1233],
         )[0]
     elif craft.recipe.status_flag == 0b1110011:  # 23
@@ -80,7 +81,7 @@ def calc_score(craft):
             return (Q - 6500) / (7700 - 6500) * (1100 - 370) + 370
         else:
             return (Q - 7700) / (8240 - 7700) * (1262 - 1100) + 1000
-    elif craft.recipe.status_flag== 0b1110011:  # 23
+    elif craft.recipe.status_flag == 0b1110011:  # 23
         if Q < 5800:
             return 0
         elif Q < 6500:
@@ -93,32 +94,56 @@ def calc_score(craft):
         return 0
 
 
-def SolverTest(recipe: Recipe, player: Player, solver: Type[Solver], rounds: int):
+def SolverTest(recipe: Recipe, player: Player, solver: Type[Solver], rounds: int, log_lv=3, **kwargs):
     craft = Craft(recipe, player)
     output_path = _storage.path / f'data_{int(time())}.txt'
-    success = 0
-    qualities = list()
+    records = list()
+
     for i in range(rounds):
-        _logger(f"Start testing round #{i+1}")
+        if log_lv > 2: _logger(f"Start testing round #{i + 1}")
         t_craft = craft.clone()
-        t_solver = solver(t_craft, _logger)
+        t_solver = solver(t_craft, _logger, **kwargs)
+        t_c_time = 0
+        t_s_time = 0
         history = list()
         prev_skill = None
+        case = "finish"
         while not t_craft.is_finished():
             c_start = perf_counter()
             t_stats = t_craft.status
             next_skill = t_solver.process(t_craft, prev_skill)
             c_time = perf_counter() - c_start
             if next_skill == "terminate" or next_skill == "":
+                case = next_skill if next_skill else "end"
                 break
             s_time = skill_time_cal(next_skill)
             prev_skill = use_skill(t_craft, next_skill)
+            t_c_time += c_time
+            t_s_time += s_time
             history.append([t_stats.name, prev_skill, c_time, s_time])
-        if t_craft.is_finished():
-            success += 1
-            qualities.append(t_craft.current_quality)
-        _logger(f"Round #{i+1} finished {'success' if t_craft.is_finished() else 'fail'} with quality {t_craft.current_quality}")
+        score = math.floor(calc_score(t_craft))
+        if log_lv > 1: _logger("Round #{} finished {} with quality {} ({})\n In {:2f}s calc time and {:2f}s skill time".format(
+            i + 1,
+            'success' if t_craft.is_finished() else 'fail',
+            t_craft.current_quality,
+            score,
+            t_c_time,
+            t_s_time
+        ))
+        records.append([t_craft.is_finished() and score > 0, (t_craft.current_cp, t_craft.current_quality), score, t_c_time, t_s_time, case])
         with open(output_path, 'a+') as f:
             f.write(dumps(history) + "\n")
-    qualities.sort(reverse=True)
-    _logger(f"Finished testing, {success} test pass in {rounds} with qualties:\n{qualities}")
+    success = 0
+    total_score = 0
+    total_skill_time = 0
+    total_calc_time = 0
+    for r in records:
+        if r[0]: success += 1
+        total_score += r[2]
+        total_calc_time += r[3]
+        total_skill_time += r[4]
+    if log_lv > 0: _logger(f"Finished testing, {success} test pass in {rounds} with qualties:\n"
+                           f"{sorted([r[1] for r in records if r[-1] != 'terminate'], reverse=True)}\n"
+                           f"total used calc time: {total_calc_time}s | total skill time: {total_skill_time}s\n"
+                           f"Excepted score per hour:{total_score / (total_calc_time + total_skill_time) * 3600}")
+    return [r[1] for r in records if r[-1] != 'terminate']
