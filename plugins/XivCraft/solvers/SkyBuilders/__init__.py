@@ -1,3 +1,4 @@
+from FFxivPythonTrigger import api
 from . import Stage1_s4, Stage1_s23, Stage2_s4, Stage2_s23, Stage3_Bfs, Stage3_Astar,Stage1_s4_v2
 from .. import Solver
 
@@ -7,6 +8,7 @@ USE_ASTAR = False
 class SkyBuilders(Solver):
     @staticmethod
     def suitable(craft):
+        if api.XivMemory.player_info.job!=10:return False
         return craft.recipe.status_flag == 0b1110011 or craft.recipe.status_flag == 0b111100011
 
     def __init__(self, craft, logger):
