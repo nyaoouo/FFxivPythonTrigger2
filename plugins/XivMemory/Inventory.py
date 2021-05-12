@@ -91,3 +91,11 @@ def get_pages_by_keys(*keys: str):
 def get_item_in_pages_by_key(item_id: Union[int, None], *keys: str):
     pages = get_pages_by_keys(*keys)
     return get_item_in_pages(item_id, pages)
+
+
+export = type('obj', (object,), {
+    'get_inventory': get_inventory,
+    'get_item_in_pages': get_item_in_pages,
+    'get_pages_by_keys': get_pages_by_keys,
+    'get_item_in_pages_by_key': get_item_in_pages_by_key,
+})

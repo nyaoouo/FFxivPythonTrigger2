@@ -12,7 +12,7 @@ class XivMemory(object):
     player_info = PlayerInfo.player_info
     targets = Targets.targets
     movement = Movement.movement
-    inventory = type()
+    inventory =Inventory.export
 
 
     @property
