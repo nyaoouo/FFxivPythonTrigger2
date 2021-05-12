@@ -132,6 +132,7 @@ class XivCraft(PluginBase):
         self._recipe = None
         self.solver = None
         self.base_data = None
+        self.name = None
         self.register_event("log_event", self.chat_log_processor.process)
 
     def get_base_data(self):
@@ -162,6 +163,8 @@ class XivCraft(PluginBase):
         )
 
     def craft_start(self, chat_log, regex_result):
+        self.name = api.XivMemory.actor_table.get_me().Name
+        if regex_result.group(1)!=self.name:return
         recipe, player = self.base_data = self.get_base_data()
         self.logger.info("start recipe:" + recipe.detail_str)
         craft = Craft.Craft(recipe=recipe, player=player, current_quality=self.base_quality.value)
@@ -178,8 +181,7 @@ class XivCraft(PluginBase):
             self.logger.info("no solver found, please add a solver for this recipe")
 
     def craft_next(self, chat_log, regex_result):
-        if regex_result.group(1)!=api.XivMemory.actor_table.get_me().Name:
-            return
+        if regex_result.group(1)!=self.name:return
         sleep(0.5)
         try:
             skill = Manager.skills[regex_result.group(2) + ('' if regex_result.group(3) != "失败" else ':fail')]()
@@ -189,6 +191,7 @@ class XivCraft(PluginBase):
         if skill == "观察":
             craft.add_effect("观察", 1)
             craft.merge_effects()
+        self.logger.debug(f"use skill:{skill.name}")
         self.logger.debug(craft)
         process_event(CraftAction(craft, skill))
         if self.solver is not None:
@@ -197,6 +200,7 @@ class XivCraft(PluginBase):
             if ans and callback is not None: self.create_mission(callback, ans)
 
     def craft_end(self, chat_log, regex_result):
+        if regex_result.group(1) != self.name: return
         process_event(CraftEnd())
         self.solver = None
         self.logger.info("end craft")

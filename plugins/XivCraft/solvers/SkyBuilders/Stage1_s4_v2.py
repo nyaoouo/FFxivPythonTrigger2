@@ -14,7 +14,8 @@ def is_inner_quiet_finished(craft):
 
 
 def progess_skill(craft, skill):
-    if craft.clone().use_skill(skill).is_finished():
+    temp=craft.clone().use_skill(skill)
+    if temp.is_finished():
         return '最终确认'
     else:
         return skill

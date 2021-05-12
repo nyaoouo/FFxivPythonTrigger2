@@ -286,7 +286,7 @@ class DelicateSynthesis(Skill):
 
 class IntensiveSynthesis(Skill):
     name = '集中制作'
-    _progress = 300
+    _progress = 400
     _durability = 10
     _cost = 6
 
