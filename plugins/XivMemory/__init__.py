@@ -1,5 +1,5 @@
 from FFxivPythonTrigger import PluginBase, Logger, memory
-from . import ActorTable, CombatData, PlayerInfo, Targets, AddressManager,Movement
+from . import ActorTable, CombatData, PlayerInfo, Targets, AddressManager,Movement,Inventory
 from . import struct
 
 _logger = Logger.Logger("XivMem")
@@ -12,6 +12,7 @@ class XivMemory(object):
     player_info = PlayerInfo.player_info
     targets = Targets.targets
     movement = Movement.movement
+    inventory = type()
 
 
     @property

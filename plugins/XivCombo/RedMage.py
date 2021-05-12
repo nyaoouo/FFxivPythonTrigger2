@@ -10,8 +10,12 @@ def single(me):
         if white and lv >= 10: return 7507
         return 7505 if lv >= 4 else 7503
     else:
-        if 1234 in effects: return 7510
-        if 1235 in effects: return 7511
+        if 1234 in effects and 1235 in effects:
+            return 7511 if white else 7510
+        if 1234 in effects:
+            return 7510
+        if 1235 in effects:
+            return 7511
         return 7503
 
 
@@ -46,7 +50,7 @@ def sword(me):
 
 
 combos = {
-    7510:single,  # 赤火炎
-    7509:multi,  # 散碎
-    7516:sword,  # 连攻
+    7510: single,  # 赤火炎
+    7509: multi,  # 散碎
+    7516: sword,  # 连攻
 }

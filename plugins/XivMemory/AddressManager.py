@@ -69,7 +69,13 @@ chat_log_addr = _am.get("chat log", scan_address, chat_log_sig, cmd_len=24)
 ##########
 # movement
 ##########
-movement_sig="48 8D 0D ? ? ? ? E8 ? ? ? ? BA ? ? ? ? 48 8D 0D ? ? ? ? 0F B6 D8"
-movement_addr = _am.get("movement", scan_address,movement_sig,cmd_len = 7)
+movement_sig = "48 8D 0D ? ? ? ? E8 ? ? ? ? BA ? ? ? ? 48 8D 0D ? ? ? ? 0F B6 D8"
+movement_addr = _am.get("movement", scan_address, movement_sig, cmd_len=7)
+
+##########
+# inventory
+##########
+inventory_ptr_sig = "4C 8B 0D ? ? ? ? 8B D9"
+inventory_ptr = _am.get("inventory ptr", scan_address, inventory_ptr_sig, cmd_len=7)
 
 _storage.save()
