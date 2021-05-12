@@ -65,7 +65,7 @@ def get_inventory():
         return _inventory[0]
 
 
-def get_item_in_pages(item_id: Union[int, None], pages: set[int]):
+def get_item_in_pages(item_id, pages: set[int]):
     pages = pages.copy()
     inventory = get_inventory()
     if inventory is not None:
@@ -73,7 +73,7 @@ def get_item_in_pages(item_id: Union[int, None], pages: set[int]):
             if page.type in pages:
                 pages.remove(page.type)
                 for item in page.get_items():
-                    if item.item_id and (item_id is None or item.item_id == item_id):
+                    if item.id and (item_id is None or item.id == item_id):
                         yield item
                 if not pages:
                     break
@@ -88,7 +88,7 @@ def get_pages_by_keys(*keys: str):
     return ans
 
 
-def get_item_in_pages_by_key(item_id: Union[int, None], *keys: str):
+def get_item_in_pages_by_key(item_id, *keys: str):
     pages = get_pages_by_keys(*keys)
     return get_item_in_pages(item_id, pages)
 
