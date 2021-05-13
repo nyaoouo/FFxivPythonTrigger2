@@ -64,7 +64,7 @@ class Stage1:
 
         if craft.status == "通常" and self.blueprint - self.blueprint_used and self.blueprint_used < 3:
             need_cnt = 0
-            if not process_finish and craft.status != "高進捗" and '崇敬' in craft.effects and not is_process_finished(craft.clone().use_skill('高速制作')):
+            if not process_finish and '崇敬' in craft.effects and not is_process_finished(craft.clone().use_skill('高速制作')):
                 need_cnt += 1
             if empty_dur >= 35 or ('掌握' not in craft.effects and empty_dur >= 5):
                 need_cnt += 1
