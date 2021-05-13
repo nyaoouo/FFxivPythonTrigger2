@@ -8,7 +8,7 @@ USE_ASTAR = False
 class SkyBuilders(Solver):
     @staticmethod
     def suitable(craft):
-        if api.XivMemory.player_info.job != 10: return False
+        # if api.XivMemory.player_info.job != 10: return False
         return craft.recipe.status_flag == 0b1110011 or craft.recipe.status_flag == 0b111100011
 
     def __init__(self, craft, logger):
