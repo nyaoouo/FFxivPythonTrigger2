@@ -142,25 +142,24 @@ try:
     else:
         input("application_path not found" + endl)
         exit()
-    wdir = os.path.abspath('.')
-    err_path = os.path.join(wdir, 'InjectErr.log').replace("\\", "\\\\")
+    err_path = os.path.join(application_path, 'InjectErr.log').replace("\\", "\\\\")
     shellcode = f"""
-    import sys
-    from os import chdir
-    from traceback import format_exc
-    init_modules = sys.modules.copy()
-    try:
-        sys.path={dumps(sys.path)}
-        chdir("{application_path}")
-        exec(open("{args.entrance}",encoding='utf-8').read())
-    except:
-        with open("{err_path}", "w+") as f:
-            f.write(format_exc())
-    finally:
-        for key in sys.modules.keys():
-            if key not in init_modules:
-                del sys.modules[key]
-    """
+import sys
+from os import chdir
+from traceback import format_exc
+init_modules = sys.modules.copy()
+try:
+    sys.path={dumps(sys.path)}
+    chdir("{application_path}")
+    exec(open("{args.entrance}",encoding='utf-8').read())
+except:
+    with open("{err_path}", "w+") as f:
+        f.write(format_exc())
+finally:
+    for key in sys.modules.keys():
+        if key not in init_modules:
+            del sys.modules[key]
+"""
 
     shellcode = shellcode.encode('utf-8')
 
