@@ -11,7 +11,9 @@ parser.add_argument('-n', '--pName', nargs='?', default="ffxiv_dx11.exe", metava
 parser.add_argument('-e', '--entrance', nargs='?', default="Entrance.py", metavar='File Name', help='entrance file of FFxivPythonTrigger')
 parser.add_argument('-sr', dest='skip_requirement_check', action='store_const', const=True, default=False, help='sum the integers')
 args = parser.parse_args(sys.argv[1:])
+
 if not args.skip_requirement_check:
+    print("checking for requirements....")
     import urllib.request
     from urllib.error import HTTPError, URLError
     import pkg_resources, pip
@@ -105,9 +107,9 @@ if not handler:
 python_version = "python{0}{1}.dll".format(sys.version_info.major, sys.version_info.minor)
 python_lib = process.module_from_name(python_version).filename
 
-print("found python library at :%s" % python_lib)
+print("Found python library at :%s" % python_lib)
 
-print("trying to inject python environment into game...")
+print("Trying to inject python environment into game...")
 # Find or inject python module
 python_module = process.module_from_name(python_version, handler)
 if python_module:
@@ -117,18 +119,18 @@ else:
     if not python_lib_h:
         input("inject failed" + endl)
         exit()
-print("inject python environment success")
+print("Inject python environment success")
 
 local_handle = kernel32.GetModuleHandleW(python_version)
 
 dif = python_lib_h - local_handle
 funcs = {k: dif + kernel32.GetProcAddress(local_handle, k) for k in [b'Py_InitializeEx', b'PyRun_SimpleString', b'Py_FinalizeEx']}
-print("search calling address success")
+print("Search calling address success")
 
 param_addr = memory.allocate_memory(4, handler)
 memory.write_memory(ctypes.c_int, param_addr, 1, handler)
 process.start_thread(funcs[b'Py_InitializeEx'], param_addr, handler)
-print("initialize ingame python environment success")
+print("Initialize ingame python environment success")
 application_path = ""
 if getattr(sys, 'frozen', False):
     application_path = os.path.dirname(sys.executable)
@@ -159,14 +161,14 @@ finally:
 
 shellcode = shellcode.encode('utf-8')
 
-print("shellcode generated, starting to inject shellcode...")
+print("Shellcode generated, starting to inject shellcode...")
 shellcode_addr = memory.allocate_memory(len(shellcode), handler)
 written = ctypes.c_ulonglong(0)
 memory.write_bytes(shellcode_addr, shellcode, handler=handler)
 _thread.start_new_thread(process.start_thread, (funcs[b'PyRun_SimpleString'], shellcode_addr,), {'handler': handler})
-print("shellcode injected, FFxivPythonTrigger should be started in a few seconds")
-
-print("waiting for initialization...")
+print("Shellcode injected, FFxivPythonTrigger should be started in a few seconds")
+print("Everything should be ready in a second. If it is not completed within a period of time, please check the log files.")
+print("Waiting for initialization...")
 HOST, PORT = "127.0.0.1", 3520
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 while True:
