@@ -130,7 +130,7 @@ def SolverTest(recipe: Recipe, player: Player, solver: Type[Solver], rounds: int
             t_c_time,
             t_s_time
         ))
-        records.append([t_craft.is_finished() and score > 0, (t_craft.current_cp, t_craft.current_quality), score, t_c_time, t_s_time, case])
+        records.append([t_craft.is_finished() and score > 0, (t_craft.current_cp+t_craft.current_durability*2, t_craft.current_quality), score, t_c_time, t_s_time, case])
         if log_lv > 0:
             with open(output_path, 'a+') as f:
                 f.write(dumps(history) + "\n")

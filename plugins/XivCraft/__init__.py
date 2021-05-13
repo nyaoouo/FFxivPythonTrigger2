@@ -10,7 +10,7 @@ from FFxivPythonTrigger.hook import Hook
 from FFxivPythonTrigger.memory import read_ushort, scan_pattern, read_memory, scan_address
 from FFxivPythonTrigger.memory.StructFactory import OffsetStruct, PointerStruct
 from .simulator import Models, Manager, Craft
-from .solvers import SkyBuilder23Astar as SkyBuilder23, JustDoIt, MacroCraft, SkyBuilder4Astar, SkyBuilders
+from .solvers import JustDoIt, MacroCraft, SkyBuilders
 import win32com.client
 
 speaker = win32com.client.Dispatch("SAPI.SpVoice")
@@ -33,8 +33,6 @@ registered_solvers = [
     JustDoIt.JustDoIt,
     MacroCraft.MacroCraft,
     SkyBuilders.SkyBuilders,
-    # SkyBuilder23.SkyBuilder23,
-    # SkyBuilder4Astar.SkyBuilder4,
 ]
 
 callback = lambda ans: speaker.Speak(ans)
