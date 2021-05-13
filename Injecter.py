@@ -129,30 +129,33 @@ param_addr = memory.allocate_memory(4, handler)
 memory.write_memory(ctypes.c_int, param_addr, 1, handler)
 process.start_thread(funcs[b'Py_InitializeEx'], param_addr, handler)
 print("initialize ingame python environment success")
-
+application_path = ""
+if getattr(sys, 'frozen', False):
+    application_path = os.path.dirname(sys.executable)
+elif __file__:
+    application_path = os.path.dirname(__file__)
+else:
+    input("application_path not found" + endl)
+    exit()
 wdir = os.path.abspath('.')
 err_path = os.path.join(wdir, 'InjectErr.log').replace("\\", "\\\\")
-shellcode = """
+shellcode = f"""
 import sys
 from os import chdir
 from traceback import format_exc
 init_modules = sys.modules.copy()
 try:
-    sys.path=%s
-    chdir(sys.path[0])
-    exec(open("%s",encoding='utf-8').read())
+    sys.path={dumps(sys.path)}
+    chdir("{application_path}")
+    exec(open("{args.entrance}",encoding='utf-8').read())
 except:
-    with open("%s", "w+") as f:
+    with open("{err_path}", "w+") as f:
         f.write(format_exc())
 finally:
     for key in sys.modules.keys():
         if key not in init_modules:
             del sys.modules[key]
-""" % (
-    dumps(sys.path),
-    args.entrance,
-    err_path
-)
+"""
 
 shellcode = shellcode.encode('utf-8')
 
