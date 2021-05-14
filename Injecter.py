@@ -113,7 +113,7 @@ python_module = process.module_from_name(python_version, handler)
 if python_module:
     python_lib_h = python_module.lpBaseOfDll
 else:
-    python_lib_h = process.inject_dll(bytes(python_lib, 'ascii'), handler)
+    python_lib_h = process.inject_dll(bytes(python_lib, 'utf-8'), handler)
     if not python_lib_h:
         input("inject failed" + endl)
         exit()
