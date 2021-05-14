@@ -95,10 +95,10 @@ class Stage1:
             self.blueprint_used += 1
 
         #####
-        # 分数太低建议倒掉
+        # 分数太低或者內静没了建议倒掉
         #####
         s = self.score(craft)
-        if s < 400:
+        if s < 400 or craft.effects['内静'].param < 2:
             return 'terminate'
 
         # if self.count > 4 or self.count2 > 2 or craft.current_cp < 300:
