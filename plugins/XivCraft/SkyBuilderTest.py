@@ -130,7 +130,9 @@ def SolverTest(recipe: Recipe, player: Player, solver: Type[Solver], rounds: int
             t_c_time,
             t_s_time
         ))
-        records.append([t_craft.is_finished() and score > 0, (t_craft.current_cp+t_craft.current_durability*2, t_craft.current_quality), score, t_c_time, t_s_time, case])
+        records.append(
+            [t_craft.is_finished() and score > 0, [t_craft.current_cp + t_craft.current_durability * 2, t_craft.current_quality], score, t_c_time,
+             t_s_time, case])
         if log_lv > 0:
             with open(output_path, 'a+') as f:
                 f.write(dumps(history) + "\n")
@@ -143,8 +145,9 @@ def SolverTest(recipe: Recipe, player: Player, solver: Type[Solver], rounds: int
         total_score += r[2]
         total_calc_time += r[3]
         total_skill_time += r[4]
+    d = [r[1] + [r[2]] for r in records if r[-1] != 'terminate']
     if log_lv > 0: _logger(f"Finished testing, {success} test pass in {rounds} with qualties:\n"
-                           f"{sorted([r[1] for r in records if r[-1] != 'terminate'], reverse=True)}\n"
+                           f"{sorted(d, key=lambda x: x[-1], reverse=True)}\n"
                            f"total used calc time: {total_calc_time}s | total skill time: {total_skill_time}s\n"
                            f"Excepted score per hour:{total_score / (total_calc_time + total_skill_time) * 3600}")
-    return [r[1] for r in records if r[-1] != 'terminate']
+    return d

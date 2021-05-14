@@ -1,5 +1,8 @@
+from FFxivPythonTrigger.Logger import debug
 from plugins.XivCraft.simulator import Manager
 from FFxivPythonTrigger import api
+from plugins.XivCraft.simulator.Craft import Craft
+import math
 
 
 def is_process_finished(craft):
@@ -27,8 +30,25 @@ class Stage1:
         self.blueprint_used = 0
         self.count = 0
         self.count2 = 0
+        self.process_calc_base = None
+
+    def score(self, craft):
+        waste_not_score = 0 if "俭约" not in craft.effects else craft.effects["俭约"].param * 3
+        manipulation_score = 0 if '掌握' not in craft.effects else craft.effects['掌握'].param * 5
+        s = craft.current_durability * 2 + craft.current_cp
+        s += waste_not_score + manipulation_score
+        if not is_process_finished(craft):
+            s -= math.ceil((craft.recipe.max_difficulty - craft.current_progress) / self.process_calc_base) * 10
+        if craft.effects['内静'].param < 8:
+            s -= (8 - craft.effects['内静'].param) * 10
+        return s
 
     def is_finished(self, craft, prev_skill=None):
+        if self.process_calc_base is None:
+            temp = Craft(craft.recipe, craft.player)
+            temp.add_effect('崇敬', 9)
+            temp.merge_effects()
+            self.process_calc_base = temp.use_skill('高速制作').current_progress // 2
         return is_process_finished(craft) and is_inner_quiet_finished(craft)
 
     def deal(self, craft, prev_skill=None):
@@ -39,9 +59,12 @@ class Stage1:
             self.count2 += 1
         elif prev_skill == '设计变动':
             self.blueprint_used += 1
-
-        if self.count > 4 or self.count2 > 2 or craft.current_cp < 300:
+        s = self.score(craft)
+        # debug('solvers1', s)
+        if s < 400:
             return 'terminate'
+        # if self.count > 4 or self.count2 > 2 or craft.current_cp < 300:
+        #     return 'terminate'
 
         if craft.status == "長持続":
             if not process_finish and '崇敬' not in craft.effects: return '崇敬'

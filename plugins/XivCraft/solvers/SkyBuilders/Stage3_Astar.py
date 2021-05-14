@@ -11,7 +11,7 @@ AllowBuffs = {
     ('俭约', '俭约'),
     # ('长期俭约', '俭约')
 }
-SpecialStatus = {"高品质", "结实", "高效"}
+SpecialStatus = {"高品质", "结实", "高效", "長持続"}
 
 
 def allowSkills(craft):
@@ -89,7 +89,7 @@ def try_solve(craft: Craft, timeLimit=None):
                     best_un_finish = new_data
                     l = len(new_data[1])
                     c = (l // 4) + 1
-                    if l >= 8:
+                    if l > 9:
                         best_start_with = new_data[1][:c]
                         best_start_with_l = c
                 queue.append(new_data)
@@ -113,7 +113,7 @@ class Stage3:
             ans = try_solve(craft, TIME_LIMIT)
             if ans[1]:
                 debug("solver astar", "new plan in {:.2f}s:{}({})".format(time.perf_counter() - start, ans[1], ans[0].current_quality))
-                self.queue = ans[1] # if time.perf_counter() - start < TIME_LIMIT else ans[1][:4]
+                self.queue = ans[1]  # if time.perf_counter() - start < TIME_LIMIT else ans[1][:4]
         return not bool(self.queue)
 
     def deal(self, craft, prev_skill=None):
@@ -125,7 +125,7 @@ class StageEnd:
         self.queue = ['制作']
 
     def deal(self, craft, prev_skill=None):
-        if len(self.queue)==1 and craft.current_quality<58000:
+        if len(self.queue) == 1 and craft.current_quality < 58000:
             return 'terminate'
         return self.queue.pop(0)
 

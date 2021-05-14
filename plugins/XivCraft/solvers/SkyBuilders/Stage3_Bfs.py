@@ -7,7 +7,7 @@ from ...simulator.Status import DEFAULT_STATUS
 durReq = 21
 cpReq = 131
 AllowBuffs = {'阔步', '改革', '俭约', }
-SpecialStatus = {"高品质", "结实", "高效"}
+SpecialStatus = {"高品质", "结实", "高效","長持続"}
 
 
 
@@ -83,7 +83,7 @@ class Stage3:
             if ans[1]:
                 self.queue = ans[1]
                 debug("solver bfs", "new plan in {:.2f}s:{}({})".format(time.perf_counter() - start, self.queue, ans[0].current_quality))
-        return not bool(self.queue)
+        return len(self.queue)<3
 
     def deal(self, craft, prev_skill=None):
         return self.queue.pop(0)
