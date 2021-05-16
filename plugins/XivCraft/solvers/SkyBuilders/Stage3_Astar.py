@@ -40,7 +40,7 @@ def allowSkills(craft):
             to_add.append('坯料加工')
             if '俭约' not in craft.effects:
                 to_add.append('俭约加工')
-        if craft.current_cp < 80:
+        if craft.current_cp < 80 and '内静' in craft.effects:
             to_add.append('比尔格的祝福')
         for skill in to_add:
             if craft.current_durability > craft.get_skill_durability(skill) and craft.current_cp >= craft.get_skill_cost(skill):
@@ -106,6 +106,8 @@ class Stage3:
         self.prev_skill = None
 
     def is_finished(self, craft, prev_skill=None):
+        if craft.current_quality >= craft.recipe.max_quality:
+            return True
         if self.is_first:
             debug("solver astar", "try to solve:\n%s" % craft.simple_str())
             self.is_first = False

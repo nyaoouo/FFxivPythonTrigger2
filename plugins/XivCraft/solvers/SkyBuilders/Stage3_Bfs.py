@@ -57,7 +57,7 @@ def allowSkills(craft):
     return ans  # 返回答案
 
 
-def try_solve(craft: Craft, timeLimit=None):
+def try_solve(craft: Craft, line_to_finish, timeLimit=None):
     # 一个传统的bfs
     best = (craft, [])  # 目前最佳项 第一个坑是数据，第二个是历史
     queue = [(craft, [])]  # 待办事项
@@ -81,6 +81,7 @@ def try_solve(craft: Craft, timeLimit=None):
             tt_craft.status = DEFAULT_STATUS()
             new_data = (tt_craft, t_history + [skill])  # 往上一坨都是模拟使用技能然后组成一个新的事项
             if tt_craft.current_durability >= durReq and tt_craft.current_quality > best[0].current_quality:
+                if best[0].current_quality >= line_to_finish: return new_data  # 如果高于斩杀线就直接返回
                 best = new_data  # 如果品质高点就存best
             queue.append(new_data)  # 把数据塞进去待办事项
     return best
@@ -94,15 +95,24 @@ class Stage3:
     def __init__(self):
         self.queue = []
         self.prev_skill = None
+        self.line_to_finish = None
 
     def is_finished(self, craft, prev_skill=None):
+        if self.line_to_finish is None:
+            temp = Craft(craft.recipe, craft.player)
+            temp.add_effect('内静', 11)
+            temp.merge_effects()
+            for s in ['阔步', '改革', '观察', '注视加工', '阔步', '比尔格的祝福', '制作']:
+                temp.use_skill(s)
+            self.line_to_finish = temp.recipe.max_quality - temp.current_quality
+            debug("solver bfs", f"the line to finish is {self.line_to_finish}")
         if not bool(self.queue) or craft.status.name in SpecialStatus or prev_skill != self.prev_skill:
             start = time.perf_counter()
-            ans = try_solve(craft, 8)
+            ans = try_solve(craft, self.line_to_finish, 8)
             if ans[1]:
                 self.queue = ans[1]
                 debug("solver bfs", "new plan in {:.2f}s:{}({})".format(time.perf_counter() - start, self.queue, ans[0].current_quality))
-        return len(self.queue) < 3  # 这里是为了配合后续astar，让它有一点调整空间
+        return len(self.queue) < 3 or craft.current_quality >= self.line_to_finish  # 这里是为了配合后续astar，让它有一点调整空间，同时如果高于斩杀线就直接下一步
 
     def deal(self, craft, prev_skill=None):
         self.prev_skill = self.queue.pop(0)
@@ -114,6 +124,7 @@ class StageEnd:
     一个弃用了的斩杀模块
     现在都接入astar了
     """
+
     def __init__(self):
         self.queue = ['阔步', '改革', '观察', '注视加工', '阔步', '比尔格的祝福', '制作'][:]
 
