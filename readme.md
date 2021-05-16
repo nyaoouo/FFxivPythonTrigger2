@@ -33,7 +33,7 @@ FFxivPythonTrigger
 > ChatLog| 读取聊天框信息，产生 chatlog 事件（todo:产生聊天框信息）
 > XivMemory| 提供对于 FFXIV 相关内存操作的接口
 > XivMagic| 提供对于 FFXIV 相关函数调用的接口
-> XivNetwork| 产生网络相关事件
+> XivNetwork| 产生网络相关事件（未完成）
 > [Command](plugins/Command)| 处理游戏内指令，并提供基础内核操作指令
 > ---
 > 功能插件：
