@@ -4,7 +4,7 @@ from typing import Optional
 
 from FFxivPythonTrigger.Logger import Logger
 
-from .Structs import ServerActionEffect1, ServerActionEffect8, ServerActionEffect16
+from .Structs import ServerActionEffect1, ServerActionEffect8, ServerActionEffect16, ServerMessageHeader
 from .Structs import ServerActionEffect24, ServerActionEffect32, ServerActionEffectHeader
 from .Structs import ServerActionEffectDisplayType,NetworkEventBase as EventBase
 
@@ -20,35 +20,35 @@ a32_size = sizeof(ServerActionEffect32)
 
 def get_event1(msg_time: datetime, raw_msg: bytearray) -> Optional[EventBase]:
     if len(raw_msg) < a1_size:
-        _logger.warning(f"message is too short to parse as ServerActionEffect1 [{raw_msg.hex()}]")
+        _logger.warning(f"message is too short to parse as ServerActionEffect1 {len(raw_msg)}/{a1_size} [{raw_msg.hex()}]")
     else:
         return get_event(msg_time, ServerActionEffect1.from_buffer(raw_msg), 1)
 
 
 def get_event8(msg_time: datetime, raw_msg: bytearray) -> Optional[EventBase]:
     if len(raw_msg) < a8_size:
-        _logger.warning(f"message is too short to parse as ServerActionEffect8 [{raw_msg.hex()}]")
+        _logger.warning(f"message is too short to parse as ServerActionEffect8 {len(raw_msg)}/{a8_size} [{raw_msg.hex()}]")
     else:
         return get_event(msg_time, ServerActionEffect8.from_buffer(raw_msg), 8)
 
 
 def get_event16(msg_time: datetime, raw_msg: bytearray) -> Optional[EventBase]:
     if len(raw_msg) < a16_size:
-        _logger.warning(f"message is too short to parse as ServerActionEffect16 [{raw_msg.hex()}]")
+        _logger.warning(f"message is too short to parse as ServerActionEffect16 {len(raw_msg)}/{a16_size} [{raw_msg.hex()}]")
     else:
         return get_event(msg_time, ServerActionEffect16.from_buffer(raw_msg), 16)
 
 
 def get_event24(msg_time: datetime, raw_msg: bytearray) -> Optional[EventBase]:
     if len(raw_msg) < a24_size:
-        _logger.warning(f"message is too short to parse as ServerActionEffect24 [{raw_msg.hex()}]")
+        _logger.warning(f"message is too short to parse as ServerActionEffect24 {len(raw_msg)}/{a24_size} [{raw_msg.hex()}]")
     else:
         return get_event(msg_time, ServerActionEffect24.from_buffer(raw_msg), 24)
 
 
 def get_event32(msg_time: datetime, raw_msg: bytearray) -> Optional[EventBase]:
     if len(raw_msg) < a32_size:
-        _logger.warning(f"message is too short to parse as ServerActionEffect32 [{raw_msg.hex()}]")
+        _logger.warning(f"message is too short to parse as ServerActionEffect32 {len(raw_msg)}/{a32_size} [{raw_msg.hex()}]")
     else:
         return get_event(msg_time, ServerActionEffect32.from_buffer(raw_msg), 32)
 
