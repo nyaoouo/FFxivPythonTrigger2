@@ -17,6 +17,7 @@ try:
         "ChatLog",
         "XivMemory",
         "XivMagic",
+        # "XivNetwork",
         "Command",
     ])
 
