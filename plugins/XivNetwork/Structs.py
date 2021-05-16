@@ -38,6 +38,8 @@ class ServerActorControlCategory:
     Targetable = 54
     DirectorUpdate = 109
     LimitBreak = 505
+    JobChange = 5
+    EffectRemove = 21
 
 
 class ServerActionEffectDisplayType:
