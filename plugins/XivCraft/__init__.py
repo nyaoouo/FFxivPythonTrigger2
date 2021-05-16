@@ -47,7 +47,7 @@ class CraftStart(EventBase):
         self.player = player
         self.base_quality = base_quality
 
-    def __str__(self):
+    def text(self):
         return f"CraftStart;{self.recipe};{self.player};{self.base_quality}"
 
 
@@ -59,7 +59,7 @@ class CraftAction(EventBase):
         self.craft = craft
         self.skill = skill
 
-    def __str__(self):
+    def text(self):
         return f"CraftAction;{self.skill.name}"
 
 
@@ -67,7 +67,7 @@ class CraftEnd(EventBase):
     id = "craft_end"
     name = "craft end"
 
-    def __str__(self):
+    def text(self):
         return "CraftEnd"
 
 

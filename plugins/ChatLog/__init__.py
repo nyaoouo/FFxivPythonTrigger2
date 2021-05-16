@@ -45,7 +45,7 @@ class ChatLogEvent(EventBase):
         self.message = chat_log.text
         self.chat_log = chat_log
 
-    def __str__(self):
+    def text(self):
         return "{}\t{}\t{}\t{}".format(self.time, self.channel_id, self.player or 'n/a', self.message)
 
     def get_dict(self):

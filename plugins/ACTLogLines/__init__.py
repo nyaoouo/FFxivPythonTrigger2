@@ -10,7 +10,7 @@ class ACTLogEvent(EventBase):
     def __init__(self, raw: str):
         self.raw = raw
 
-    def __str__(self):
+    def text(self):
         return self.raw
 
 

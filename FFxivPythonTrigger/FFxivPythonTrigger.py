@@ -31,6 +31,12 @@ class EventBase(object):
     id = 0
     name = "unnamed event"
 
+    def text(self):
+        return ""
+
+    def __str__(self):
+        return f"<{self.name}>{self.text()}"
+
 
 class EventCallback(object):
     def __init__(self, plugin, call):
@@ -180,6 +186,9 @@ def _process_event(event: EventBase):
     # _logger.debug("process event [%s]"%event.id)
     if event.id in _events:
         for callback in _events.get(event.id).copy():
+            callback.call(event)
+    if '*' in _events:
+        for callback in _events.get('*').copy():
             callback.call(event)
 
 
