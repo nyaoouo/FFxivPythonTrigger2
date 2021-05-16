@@ -93,9 +93,10 @@ class Stage3:
 
     def __init__(self):
         self.queue = []
+        self.prev_skill = None
 
     def is_finished(self, craft, prev_skill=None):
-        if not bool(self.queue) or craft.status.name in SpecialStatus:
+        if not bool(self.queue) or craft.status.name in SpecialStatus or prev_skill != self.prev_skill:
             start = time.perf_counter()
             ans = try_solve(craft, 8)
             if ans[1]:
@@ -104,7 +105,8 @@ class Stage3:
         return len(self.queue) < 3  # 这里是为了配合后续astar，让它有一点调整空间
 
     def deal(self, craft, prev_skill=None):
-        return self.queue.pop(0)
+        self.prev_skill = self.queue.pop(0)
+        return self.prev_skill
 
 
 class StageEnd:

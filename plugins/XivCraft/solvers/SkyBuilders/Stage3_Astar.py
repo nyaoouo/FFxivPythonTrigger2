@@ -103,12 +103,13 @@ class Stage3:
     def __init__(self):
         self.queue = []
         self.is_first = True
+        self.prev_skill = None
 
     def is_finished(self, craft, prev_skill=None):
         if self.is_first:
             debug("solver astar", "try to solve:\n%s" % craft.simple_str())
             self.is_first = False
-        if not bool(self.queue) or craft.status.name in SpecialStatus:
+        if not bool(self.queue) or craft.status.name in SpecialStatus or prev_skill != self.prev_skill:
             start = time.perf_counter()
             ans = try_solve(craft, TIME_LIMIT)
             if ans[1]:
@@ -117,7 +118,8 @@ class Stage3:
         return not bool(self.queue)
 
     def deal(self, craft, prev_skill=None):
-        return self.queue.pop(0)
+        self.prev_skill = self.queue.pop(0)
+        return self.prev_skill
 
 
 class StageEnd:
