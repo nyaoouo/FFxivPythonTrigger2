@@ -13,6 +13,7 @@ def get_data(data):
 
 
 class _OffsetStruct(Structure):
+    _pack_ = 1
     raw_fields: Dict[str, Tuple[any, int]] = None
 
     def get_data(self):
