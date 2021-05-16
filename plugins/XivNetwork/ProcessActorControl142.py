@@ -4,7 +4,7 @@ from typing import Optional
 
 from FFxivPythonTrigger.Logger import Logger
 
-from .Structs import ServerActorControlCategory, ServerActorControl142,NetworkEventBase
+from .Structs import ServerActorControlCategory, ServerActorControl142, NetworkEventBase
 
 _logger = Logger("XivNetwork/ProcessActorControl142")
 _unknown_category = set()
@@ -108,6 +108,33 @@ class TetherEvent(EventBase):
         return f"{hex(self.target_id)[2:]} was connected to {hex(self.source_id)[2:]} with type {self.type}"
 
 
+class JobChangeEvent(EventBase):
+    id = "network/actor_control/job_change"
+    name = "network job change event"
+
+    def __init__(self, raw_msg, msg_time, actor_id):
+        super().__init__(raw_msg, msg_time, actor_id)
+        self.actor_id = actor_id
+        self.to_job = raw_msg.param1
+
+    def text(self):
+        return f"{hex(self.actor_id)[2:]} change job to {self.to_job}"
+
+
+class EffectRemoveEvent(EventBase):
+    id = "network/actor_control/effect_remove"
+    name = "network effect remove event"
+
+    def __init__(self, raw_msg, msg_time, actor_id):
+        super().__init__(raw_msg, msg_time, actor_id)
+        self.target_id = actor_id
+        self.source_id = raw_msg.param3
+        self.effect_id = raw_msg.param1
+
+    def text(self):
+        return f"{hex(self.target_id)[2:]} remove effect [{self.effect_id}] from {hex(self.source_id)[2:]}"
+
+
 size = sizeof(ServerActorControl142)
 
 
@@ -133,7 +160,11 @@ def get_event(msg_time: datetime, raw_msg: bytearray) -> Optional[EventBase]:
     elif msg.category == ServerActorControlCategory.Targetable:
         return TargetableEvent(msg, msg_time, actor_id)
     elif msg.category == ServerActorControlCategory.Tether:
-        return
-    elif msg.category not in _unknown_category:
+        return TetherEvent(msg, msg_time, actor_id)
+    elif msg.category == ServerActorControlCategory.JobChange:
+        return JobChangeEvent(msg, msg_time, actor_id)
+    elif msg.category == ServerActorControlCategory.EffectRemove:
+        return EffectRemoveEvent(msg, msg_time, actor_id)
+    elif msg.category not in _unknown_category :
         _unknown_category.add(msg.category)
         _logger.debug(f"unknown actor control category: {msg.category} | {hex(msg.param1)} | {hex(msg.param2)} | {hex(msg.param3)} | {hex(msg.param4)}")
