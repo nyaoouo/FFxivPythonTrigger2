@@ -64,6 +64,9 @@ class BundleDecoder(object):
     def process_buffer(self):
         offset = 0
         while len(self._buffer) and offset < len(self._buffer):
+            if len(self._buffer)-offset <= header_size:
+                offset = self.reset_stream(offset)
+                continue
             header = FFXIVBundleHeader.from_buffer(self._buffer[offset:])
             if header.magic0 != 0x41a05252 and header.magic0 and header.magic1 and header.magic2 and header.magic3:
                 raw = self._buffer[offset:offset + header_size].hex()
@@ -88,7 +91,7 @@ class BundleDecoder(object):
             try:
                 msg_offset = 0
                 msg_time = min_datetime + timedelta(milliseconds=ntohll(header.epoch))
-                #_logger.debug(f"{header.msg_count} in {header.length} long")
+                # _logger.debug(f"{header.msg_count} in {len(message)} long [{bytearray(header).hex()}]")
                 for i in range(header.msg_count):
                     msg_len = int.from_bytes(message[msg_offset:msg_offset + 2], byteorder='little')
                     self.messages.append((msg_time, message[msg_offset:msg_offset + msg_len]))
@@ -106,7 +109,7 @@ class BundleDecoder(object):
 
     def reset_stream(self, offset: int) -> int:
         try:
-            ans=self._buffer.index(MAGIC_NUMBER, offset)
+            ans = self._buffer.index(MAGIC_NUMBER, offset)
             return ans
         except ValueError:
             self._buffer.clear()

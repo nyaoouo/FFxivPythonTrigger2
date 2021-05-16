@@ -55,6 +55,8 @@ class XivNetwork(PluginBase):
             return
         header = ServerMessageHeader.from_buffer(msg)
         # self.logger.debug(msg_time,hex(header.msg_type),msg.hex())
+        if is_send:
+            return
         if header.msg_type in processors:
             event = processors[header.msg_type](msg_time, msg)
             if event is not None:
