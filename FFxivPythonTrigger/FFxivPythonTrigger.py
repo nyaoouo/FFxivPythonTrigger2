@@ -144,7 +144,10 @@ def reload_module(module):
     module_name = module.__name__
     for sub_module in list(sys.modules.keys()):
         if sub_module.startswith(module_name):
-            reload(import_module(sub_module))
+            try:
+                reload(import_module(sub_module))
+            except ModuleNotFoundError:
+                continue
     for plugin in register_module(import_module(module_name)):
         plugin.p_start()
 

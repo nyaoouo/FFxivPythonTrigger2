@@ -19,7 +19,9 @@ class XivMagic(PluginBase):
     name = "XivMagic"
 
     async def text_command_handler(self, request: web.Request):
-        DoTextCommand.do_text_command(await request.text())
+        cmd=await request.text()
+        DoTextCommand.do_text_command(cmd)
+        self.logger.debug("text_command_handler",cmd)
         return web.json_response({'msg': 'success'})
 
     async def use_item_handler(self, request: web.Request):
@@ -27,9 +29,10 @@ class XivMagic(PluginBase):
             item_id = int(await request.text())
         except ValueError:
             return web.json_response({'msg': 'Value Error'})
-        paths = request.path.split('/')
+        paths = request.path.strip('/').split('/')
         if len(paths) > 1 and paths[1] == 'hq':
             item_id += 1000000
+        self.logger.debug("use_item_handler",item_id)
         DoAction.use_item(item_id)
         return web.json_response({'msg': 'success'})
 
@@ -43,6 +46,6 @@ class XivMagic(PluginBase):
     def _start(self):
         self.api_class.echo_msg("magic started")
 
-    def _unload(self):
+    def _onunload(self):
         api.HttpApi.unregister_post_route('command')
         api.HttpApi.unregister_post_route('useitem')
