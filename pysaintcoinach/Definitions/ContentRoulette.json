@@ -1,0 +1,96 @@
+{
+  "sheet": "ContentRoulette",
+  "defaultColumn": "Name",
+  "definitions": [
+    {
+      "name": "Name"
+    },
+    {
+      "index": 1,
+      "name": "Category"
+    },
+    {
+      "index": 3,
+      "name": "Description"
+    },
+    {
+      "index": 4,
+      "name": "DutyType"
+    },
+    {
+      "index": 8,
+      "name": "IsInDutyFinder"
+    },
+    {
+      "index": 9,
+      "name": "OpenRule",
+      "converter": {
+        "type": "link",
+        "target": "ContentRouletteOpenRule"
+      }
+    },
+    {
+      "index": 11,
+      "name": "RequiredLevel"
+    },
+    {
+      "index": 13,
+      "name": "ItemLevel{Required}"
+    },
+    {
+      "index": 15,
+      "name": "Icon",
+      "converter": {
+        "type": "icon"
+      }
+    },
+    {
+      "index": 16,
+      "name": "ContentRouletteRoleBonus",
+      "converter": {
+        "type": "link",
+        "target": "ContentRouletteRoleBonus"
+      }
+    },
+    {
+      "index": 17,
+      "name": "Reward{TomeA}"
+    },
+    {
+      "index": 18,
+      "name": "Reward{TomeB}"
+    },
+    {
+      "index": 19,
+      "name": "Reward{TomeC}"
+    },
+    {
+      "index": 22,
+      "name": "SortKey"
+    },
+    {
+      "index": 24,
+      "name": "ContentMemberType",
+      "converter": {
+        "type": "link",
+        "target": "ContentMemberType"
+      }
+    },
+    {
+      "index": 34,
+      "name": "RequireAllDuties"
+    },
+    {
+      "index": 36,
+      "name": "ContentRouletteOpenRule"
+    },
+    {
+      "index": 37,
+      "name": "InstanceContent",
+      "converter": {
+        "type": "link",
+        "target": "InstanceContent"
+      }
+    }
+  ]
+}

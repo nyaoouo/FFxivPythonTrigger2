@@ -1,0 +1,216 @@
+{
+  "sheet": "InstanceContent",
+  "definitions": [
+    {
+      "name": "InstanceContentType",
+      "converter": {
+        "type": "link",
+        "target": "InstanceContentType"
+      }
+    },
+    {
+      "index": 1,
+      "name": "WeekRestriction"
+    },
+    {
+      "index": 2,
+      "name": "TimeLimit{min}"
+    },
+    {
+      "index": 4,
+      "name": "BGM",
+      "converter": {
+        "type": "link",
+        "target": "BGM"
+      }
+    },
+    {
+      "index": 5,
+      "name": "WinBGM",
+      "converter": {
+        "type": "link",
+        "target": "BGM"
+      }
+    },
+    {
+      "index": 6,
+      "name": "Cutscene",
+      "converter": {
+        "type": "link",
+        "target": "Cutscene"
+      }
+    },
+    {
+      "index": 7,
+      "name": "LGBEventRange"
+    },
+    {
+      "index": 8,
+      "name": "Order"
+    },
+    {
+      "index": 9,
+      "name": "Colosseum",
+      "converter": {
+        "type": "link",
+        "target": "Colosseum"
+      }
+    },
+    {
+      "index": 11,
+      "name": "InstanceContentTextData{Boss}{Start}",
+      "converter": {
+        "type": "link",
+        "target": "InstanceContentTextData"
+      }
+    },
+    {
+      "index": 12,
+      "name": "InstanceContentTextData{Boss}{End}",
+      "converter": {
+        "type": "link",
+        "target": "InstanceContentTextData"
+      }
+    },
+    {
+      "index": 13,
+      "name": "BNpcBase{Boss}",
+      "converter": {
+        "type": "link",
+        "target": "BNpcBase"
+      }
+    },
+    {
+      "index": 14,
+      "name": "InstanceContentTextData{Objective}{Start}",
+      "converter": {
+        "type": "link",
+        "target": "InstanceContentTextData"
+      }
+    },
+    {
+      "index": 15,
+      "name": "InstanceContentTextData{Objective}{End}",
+      "converter": {
+        "type": "link",
+        "target": "InstanceContentTextData"
+      }
+    },
+    {
+      "index": 16,
+      "name": "SortKey"
+    },
+    {
+      "index": 17,
+      "name": "InstanceClearExp"
+    },
+    {
+      "index": 19,
+      "name": "NewPlayerBonusA"
+    },
+    {
+      "index": 20,
+      "name": "FinalBossCurrencyC"
+    },
+    {
+      "index": 22,
+      "name": "FinalBossCurrencyA"
+    },
+    {
+      "index": 23,
+      "name": "FinalBossCurrencyB"
+    },
+    {
+      "index": 24,
+      "name": "NewPlayerBonusB"
+    },
+    {
+      "index": 25,
+      "type": "repeat",
+      "count": 5,
+      "definition": {
+        "type": "group",
+        "members": [
+          {
+            "name": "BossExp"
+          }
+        ]
+      }
+    },
+    {
+      "index": 30,
+      "type": "repeat",
+      "count": 5,
+      "definition": {
+        "type": "group",
+        "members": [
+          {
+            "name": "BossCurrencyA"
+          }
+        ]
+      }
+    },
+    {
+      "index": 35,
+      "type": "repeat",
+      "count": 5,
+      "definition": {
+        "type": "group",
+        "members": [
+          {
+            "name": "BossCurrencyB"
+          }
+        ]
+      }
+    },
+    {
+      "index": 40,
+      "type": "repeat",
+      "count": 5,
+      "definition": {
+        "type": "group",
+        "members": [
+          {
+            "name": "BossCurrencyC"
+          }
+        ]
+      }
+    },
+    {
+      "index": 46,
+      "name": "InstanceClearGil"
+    },
+    {
+      "index": 47,
+      "name": "InstanceContentRewardItem",
+      "converter": {
+        "type": "link",
+        "target": "InstanceContentRewardItem"
+      }
+    },
+    {
+      "index": 49,
+      "name": "FinalBossExp"
+    },
+    {
+      "index": 50,
+      "name": "InstanceContentBuff",
+      "converter": {
+        "type": "link",
+        "target": "InstanceContentBuff"
+      }
+    },
+    {
+      "index": 51,
+      "name": "ReqInstance",
+      "converter": {
+        "type": "link",
+        "target": "InstanceContent"
+      }
+    },
+    {
+      "index": 53,
+      "name": "PartyCondition"
+    }
+  ]
+}

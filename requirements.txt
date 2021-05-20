@@ -1,0 +1,15 @@
+aiohttp==3.7.4.post0
+async-timeout==3.0.1
+attrs==20.3.0
+certifi==2020.12.5
+chardet==4.0.0
+idna==2.10
+multidict==5.1.0
+pycparser==2.20
+typing-extensions==3.7.4.3
+urllib3==1.26.4
+yarl==1.6.3
+Pillow ~= 8.2
+construct ~= 2.9.45
+PyYAML ~= 5.1
+pywin32

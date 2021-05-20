@@ -1,0 +1,234 @@
+{
+  "sheet": "ContentFinderCondition",
+  "defaultColumn": "Name",
+  "definitions": [
+    {
+      "name": "ShortCode"
+    },
+    {
+      "index": 1,
+      "name": "TerritoryType",
+      "converter": {
+        "type": "link",
+        "target": "TerritoryType"
+      }
+    },
+    {
+      "index": 2,
+      "name": "ContentLinkType"
+    },
+    {
+      "index": 3,
+      "name": "Content",
+      "converter": {
+        "type": "complexlink",
+        "links": [
+          {
+            "when": {
+              "key": "ContentLinkType",
+              "value": 1
+            },
+            "sheet": "InstanceContent"
+          },
+          {
+            "when": {
+              "key": "ContentLinkType",
+              "value": 2
+            },
+            "sheet": "PartyContent"
+          },
+          {
+            "when": {
+              "key": "ContentLinkType",
+              "value": 3
+            },
+            "sheet": "PublicContent"
+          },
+          {
+            "when": {
+              "key": "ContentLinkType",
+              "value": 4
+            },
+            "sheet": "GoldSaucerContent"
+          },
+          {
+            "when": {
+              "key": "ContentLinkType",
+              "value": 5
+            },
+            "sheet": "QuestBattle"
+          }
+        ]
+      }
+    },
+    {
+      "index": 4,
+      "name": "PvP"
+    },
+    {
+      "index": 8,
+      "name": "AcceptClassJobCategory",
+      "converter": {
+        "type": "link",
+        "target": "ClassJobCategory"
+      }
+    },
+    {
+      "index": 9,
+      "name": "ContentMemberType",
+      "converter": {
+        "type": "link",
+        "target": "ContentMemberType"
+      }
+    },
+    {
+      "index": 13,
+      "name": "UnlockQuest",
+      "converter": {
+        "type": "link",
+        "target": "Quest"
+      }
+    },
+    {
+      "index": 15,
+      "name": "ClassJobLevel{Required}"
+    },
+    {
+      "index": 16,
+      "name": "ClassJobLevel{Sync}"
+    },
+    {
+      "index": 17,
+      "name": "ItemLevel{Required}"
+    },
+    {
+      "index": 18,
+      "name": "ItemLevel{Sync}"
+    },
+    {
+      "index": 20,
+      "name": "AllowUndersized"
+    },
+    {
+      "index": 21,
+      "name": "AllowReplacement"
+    },
+    {
+      "index": 23,
+      "name": "AllowExplorerMode"
+    },
+    {
+      "index": 28,
+      "name": "HighEndDuty"
+    },
+    {
+      "index": 32,
+      "name": "DutyRecorderAllowed"
+    },
+    {
+      "index": 37,
+      "name": "Name"
+    },
+    {
+      "index": 38,
+      "name": "NameShort"
+    },
+    {
+      "index": 39,
+      "name": "ContentType",
+      "converter": {
+        "type": "link",
+        "target": "ContentType"
+      }
+    },
+    {
+      "index": 40,
+      "name": "TransientKey"
+    },
+    {
+      "index": 41,
+      "name": "Transient",
+      "converter": {
+        "type": "complexlink",
+        "links": [
+          {
+            "when": {
+              "key": "TransientKey",
+              "value": 6
+            },
+            "sheet": "ContentFinderConditionTransient"
+          },
+          {
+            "when": {
+              "key": "TransientKey",
+              "value": 7
+            },
+            "sheet": "ContentFinderConditionTransient"
+          }
+        ]
+      }
+    },
+    {
+      "index": 42,
+      "name": "SortKey"
+    },
+    {
+      "index": 43,
+      "name": "Image",
+      "converter": {
+        "type": "icon"
+      }
+    },
+    {
+      "index": 44,
+      "name": "Icon",
+      "converter": {
+        "type": "icon"
+      }
+    },
+    {
+      "index": 46,
+      "name": "LevelingRoulette"
+    },
+    {
+      "index": 48,
+      "name": "Level50/60/70Roulette"
+    },
+    {
+      "index": 49,
+      "name": "MSQRoulette"
+    },
+    {
+      "index": 50,
+      "name": "GuildHestRoulette"
+    },
+    {
+      "index": 51,
+      "name": "ExpertRoulette"
+    },
+    {
+      "index": 52,
+      "name": "TrialRoulette"
+    },
+    {
+      "index": 53,
+      "name": "DailyFrontlineChallenge"
+    },
+    {
+      "index": 54,
+      "name": "Level80Roulette"
+    },
+    {
+      "index": 55,
+      "name": "MentorRoulette"
+    },
+    {
+      "index": 61,
+      "name": "AllianceRoulette"
+    },
+    {
+      "index": 63,
+      "name": "NormalRaidRoulette"
+    }
+  ]
+}

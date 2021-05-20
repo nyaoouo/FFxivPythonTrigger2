@@ -1,0 +1,13 @@
+{
+  "sheet": "UIColor",
+  "defaultColumn": "UIForeground",
+  "definitions": [
+    {
+      "name": "UIForeground"
+    },
+    {
+      "index": 1,
+      "name": "UIGlow"
+    }
+  ]
+}
