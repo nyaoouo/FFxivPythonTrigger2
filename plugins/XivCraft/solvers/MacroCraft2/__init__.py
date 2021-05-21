@@ -174,14 +174,15 @@ class MacroCraft(Solver):
         key = get_key(craft)
         _logger.debug("macro used:[%s]" % macro_pairing[key].name)
         self.runner = macro_pairing[key].macro.get_runner()
+        self.param = get_params(craft,None)
 
     def process(self, craft, used_skill=None) -> str:
         if self.runner is None: return ''
-        params = get_params(craft,used_skill)
+        self.param = get_params(craft, None)|get_params(craft,used_skill)
         try:
-            cmd, arg, wait = self.runner.next(params)
+            cmd, arg, wait = self.runner.next(self.param)
             while cmd != "ac":
-                cmd, arg, wait = self.runner.next(params)
+                cmd, arg, wait = self.runner.next(self.param)
         except MacroFinish:
             self.runner = None
             return ''
