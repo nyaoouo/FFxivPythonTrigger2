@@ -1,90 +1,71 @@
 import re
-from typing import Union
+from typing import Union, Optional
 import time
 
 line_regex = re.compile(r"^/(?P<command>\S+)\s+(?P<args>\S.*)$")
-if_statement_regex = re.compile(r'^\[(?P<statement>.+)]\s+(?P<arg>[^|]+)$')
-if_else_statement_regex = re.compile(r'^\[(?P<statement>.+)]\s+(?P<arg>[^|]+)\s+\|\s+(?P<arg2>.*)$')
+if_statement_regex = re.compile(r'^\[(?P<statement>.+)]\s+(?P<arg>.+)$')
 find_wait_regex = re.compile(r"(?P<args>\S.*?)(?:\s+<wait\.(?P<wait>\d+(?:\.\d+)?)>)?$")
-
-output_format = '/{command} {arg}'
-
-
-class MacroLine(object):
-    def get_output(self, params: dict[str, any]) -> tuple[str, str, float]: pass
-
-
-def find_wait(arg: str):
-    temp = find_wait_regex.search(arg)
-    return temp.group('args'), temp.group('wait')
-
-
-class CommonMacroLine(MacroLine):
-    def __init__(self, command, arg):
-        self.command = command
-        self.arg, sleep = find_wait(arg)
-        self.sleep = float(sleep) if sleep else 0
-
-    def get_output(self, params: dict[str, any]) -> tuple[str, str, float]:
-        return self.command, self.arg.format(**params), self.sleep
-
-
-class IfMacroLine(MacroLine):
-    def __init__(self, command: str, statement: str, arg: str):
-        self.command = command
-        self.statement = statement
-        self.arg, sleep = find_wait(arg)
-        self.sleep = float(sleep) if sleep else 0
-
-    def get_output(self, params: dict[str, any]) -> tuple[str, str, float]:
-        if eval(self.statement, None, params):
-            return self.command, self.arg.format(**params), self.sleep
-        else:
-            return '', '', -1
-
-
-class IfElseMacroLine(MacroLine):
-    def __init__(self, command: str, statement: str, arg: str, arg2: str):
-        self.command = command
-        self.statement = statement
-        self.arg, sleep = find_wait(arg)
-        self.sleep = float(sleep) if sleep else 0
-        self.arg2, sleep = find_wait(arg2)
-        self.sleep2 = float(sleep) if sleep else 0
-
-    def get_output(self, params: dict[str, any]) -> tuple[str, str, float]:
-        if eval(self.statement, None, params):
-            return self.command, self.arg.format(**params), self.sleep
-        else:
-            return self.command, self.arg2.format(**params), self.sleep2
-
-
-class LabelMacroLine(MacroLine):
-    def __init__(self, arg):
-        self.arg = arg
-
-
-def line_parse(line: str) -> Union[MacroLine, None]:
-    line = line.split("#")[0].strip()
-    temp = line_regex.match(line)
-    if not temp: return
-    command = temp.group('command')
-    args = temp.group('args')
-    if command == "label":
-        return LabelMacroLine(args)
-    temp = if_statement_regex.match(args)
-    if temp:
-        return IfMacroLine(command, temp.group('statement'), temp.group('arg'))
-    else:
-        temp = if_else_statement_regex.match(args)
-        if temp:
-            return IfElseMacroLine(command, temp.group('statement'), temp.group('arg'), temp.group('arg2'))
-        else:
-            return CommonMacroLine(command, args)
 
 
 class MacroFinish(Exception):
     pass
+
+
+class MacroArg(object):
+    def __init__(self, raw_str: str):
+        temp = find_wait_regex.search(raw_str)
+        raw_str, self.wait = temp.group('args'), float(temp.group('wait') if temp.group('wait') is not None else 0)
+        self.use_eval = raw_str.startswith("*") and raw_str.endswith("*")
+        self.raw_str = raw_str.strip("*") if self.use_eval else raw_str
+
+    def __str__(self):
+        return self.raw_str
+
+    def get_output(self, params: dict[str, any]) -> tuple[str, float]:
+        if self.use_eval:
+            return eval(self.raw_str, None, params).strip(), self.wait
+        else:
+            return self.raw_str.format(**params).strip(), self.wait
+
+
+class IfMacroArg(object):
+    def __init__(self, statement: str, raw_str: str):
+        self.statement = statement
+        self.arg = MacroArg(raw_str)
+
+    def __str__(self):
+        return str(self.arg)
+
+    def get_output(self, params: dict[str, any]) -> Optional[tuple[str, float]]:
+        if eval(self.statement, None, params):
+            return self.arg.get_output(params)
+
+
+class MacroLine(object):
+    args: list[Union[MacroArg, IfMacroArg]]
+    cmd: str
+
+    def __init__(self, cmd: str, args: str):
+        self.cmd = cmd
+        self.args = []
+        for raw_arg in args.split('|'):
+            temp = if_statement_regex.match(raw_arg.strip())
+            self.args.append(IfMacroArg(temp.group('statement'), temp.group('arg')) if temp else MacroArg(raw_arg))
+
+    def get_label(self):
+        return str(self.args[0])
+
+    def get_output(self, params: dict[str, any]) -> tuple[str, str, float]:
+        for arg in self.args:
+            ans = arg.get_output(params)
+            if ans is not None:
+                return self.cmd, ans[0], ans[1]
+        return "", "", 0
+
+
+def line_parse(line: str) -> Optional[MacroLine]:
+    temp = line_regex.match(line.split("#")[0].strip())
+    if temp: return MacroLine(temp.group('command'), temp.group('args'))
 
 
 class Macro(object):
@@ -92,10 +73,13 @@ class Macro(object):
         self.macros = list()
         self.labels = dict()
         for line in macro_str.split("\n"):
-            macro = line_parse(line)
-            if type(macro) == LabelMacroLine:
-                self.labels[macro.arg] = len(self.macros)
-                macro = None
+            macro = None
+            temp = line_regex.match(line.split("#")[0].strip())
+            if temp:
+                if temp.group('command') == "label":
+                    self.labels[temp.group('args').strip()] = len(self.macros)
+                else:
+                    macro = MacroLine(temp.group('command'), temp.group('args'))
             self.macros.append(macro)
 
     def get_runner(self):
@@ -108,8 +92,8 @@ class MacroRunner(object):
         self.macros = macros
         self.labels = labels
 
-    def get_output(self, line: int, param):
-        return self.macros[line].get_output(param) if self.macros[line] is not None else ("", "", -1.0)
+    def get_output(self, line: int, param) -> tuple[str, str, float]:
+        return self.macros[line].get_output(param) if self.macros[line] is not None else ("", "", 0)
 
     def next(self, param) -> tuple[str, str, float]:
         if self.current_line >= len(self.macros):
@@ -128,6 +112,10 @@ class MacroRunner(object):
                 self.current_line = int(arg)
             cmd, arg, sleep_t = self.next(param)
             return cmd, arg, sleep_t + sleep
+        elif cmd.startswith("set_") and len(cmd) > 4:
+            param[cmd.split("_", 1)[1]] = arg
+            cmd, arg, sleep_t = self.next(param)
+            return cmd, arg, sleep_t + sleep
         return cmd, arg, sleep
 
     def run(self, param, call):
@@ -143,19 +131,24 @@ class MacroRunner(object):
 if __name__ == '__main__':
     command = """
 #a test macro
-/ac happy
+/say start!
 /play [status=="happy"] game <wait.1>
-/eat [money>10] sandwiches <wait.1.5> | cup cake # an if else statement for common command
-/jmp [status=="happy"] a | b # an if else statement for jump
+/eat [money>10] sandwiches <wait.1.5> | cup cake
+/jmp [status=="happy"] a | [status=="boring"] b | d
 /label a
-/ac {status}:laugh
+/say {status}:laugh
 /jmp c
 /label b
-/ac {status}:cry
+/say {status}:cry
+/jmp c
+/label d
+/say *f"{status}:play game"*
 /jmp c
 /label c
 /ac end
 """
+    output_format = '/{command} {arg}'
     o = lambda command, arg: print(output_format.format(arg=arg, command=command))
     Macro(command).get_runner().run({'status': 'happy', 'money': 9}, o)
     Macro(command).get_runner().run({'status': 'sad', 'money': 15}, o)
+    Macro(command).get_runner().run({'status': 'boring', 'money': 15}, o)
