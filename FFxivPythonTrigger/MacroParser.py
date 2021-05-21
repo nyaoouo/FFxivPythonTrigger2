@@ -23,7 +23,7 @@ class MacroArg(object):
 
     def get_output(self, params: dict[str, any]) -> tuple[str, float]:
         if self.use_eval:
-            return eval(self.raw_str, None, params).strip(), self.wait
+            return eval(self.raw_str, None, params), self.wait
         else:
             return self.raw_str.format(**params).strip(), self.wait
 
@@ -133,8 +133,9 @@ if __name__ == '__main__':
 #a test macro
 /say start!
 /play [status=="happy"] game <wait.1>
-/eat [money>10] sandwiches <wait.1.5> | cup cake
-/jmp [status=="happy"] a | [status=="boring"] b | d
+/set_money *money*2*
+/eat [money>20] sandwiches <wait.1.5> | cup cake
+/jmp [status=="happy"] a | [status=="sad"] b | d
 /label a
 /say {status}:laugh
 /jmp c
@@ -143,6 +144,8 @@ if __name__ == '__main__':
 /jmp c
 /label d
 /say *f"{status}:play game"*
+/set_status happy!!
+/say {status} now!
 /jmp c
 /label c
 /ac end
@@ -150,5 +153,7 @@ if __name__ == '__main__':
     output_format = '/{command} {arg}'
     o = lambda command, arg: print(output_format.format(arg=arg, command=command))
     Macro(command).get_runner().run({'status': 'happy', 'money': 9}, o)
+    print()
     Macro(command).get_runner().run({'status': 'sad', 'money': 15}, o)
+    print()
     Macro(command).get_runner().run({'status': 'boring', 'money': 15}, o)
