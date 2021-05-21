@@ -1,5 +1,7 @@
 #CraftMacro:[Name]:71半成品
 #CraftMacro:[UsedTime]:16
+#CraftMacro:[MinAttr]:1618/2761/194
+#CraftMacro:[RecipeName]:沙柚木木材,深金块,石金块,乌钢石,硬泥岩砥石,斯剑虎革,白麻布,白麻线,植物成长剂9型,石金附魔墨水,红色火药,油橄榄油
 /ac 闲静 <wait.3>
 /ac 长期俭约 <wait.2>
 /ac 坯料加工 <wait.3>
