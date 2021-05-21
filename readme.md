@@ -5,6 +5,7 @@ FFxivPythonTrigger
 --
 > * FFxivPythonTrigger 是一个以 python 编写，提供基于事件回调触发其他事件的触发器框架
 > * 你可以选择用任何你熟悉的语言编写插件 —— 只要最后可以对接上 python 的接口
+> * 更多请参阅[开发指南](FFxivPythonTrigger)
 
 注意事项
 ---
@@ -53,12 +54,15 @@ FFxivPythonTrigger
 >* 打开[Entrance.py](Entrance.py)，解除该插件的注译
  
 >遇到`WinApi err code:5/6/299/etc.`
->* 注入器调用api问题，目前未找到妥当解决方法，未来或重构注入器
+> * ~~注入器调用api问题，目前未找到妥当解决方法，未来或重构注入器~~
+> * 请尝试安装较低版本的pywin32，比如说 `pywin32==228`
  
 >如何多开注入：
->* 注入器支援 -p 参数指定pid e.g.`python Injecter.py -p 12345`
+> * 注入器支援 -p 参数指定pid e.g.`python Injecter.py -p 12345`
+> * 目前关于多开还有一些端口问题需要自行处理
 
 >如何回报问题：
 > * 提issue
 > * Q群1046750894
+> 
 想到继续补充
