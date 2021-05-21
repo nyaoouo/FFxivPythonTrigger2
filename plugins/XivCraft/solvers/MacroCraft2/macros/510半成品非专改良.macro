@@ -1,0 +1,29 @@
+#CraftMacro:[Name]:510半成品非专家
+#CraftMacro:[UsedTime]:66
+#CraftMacro:[MinAttr]:2572/2826/637
+#CraftMacro:[RecipeName]:银山毛榉木材,硬铝锭,白夜结晶板,袋狮革,栀子染布,4级刚力之幻水,4级巧力之幻水,4级耐力之幻水,4级智力之幻水,4级意力之幻水
+/ac 坚信 <wait.3>
+/ac 掌握 <wait.2>
+/ac 崇敬 <wait.2>
+/ac 坯料制作 <wait.3>
+/ac 内静 <wait.2>
+/ac 制作 <wait.3>
+/ac 俭约加工 <wait.3>
+/ac 改革 <wait.2>
+/ac 俭约加工 <wait.3>
+/ac 俭约加工 <wait.3>
+/ac 俭约加工 <wait.3>
+/ac 俭约加工 <wait.3>
+/ac 掌握 <wait.2>
+/ac 俭约加工 <wait.3>
+/ac 俭约加工 <wait.3>
+/ac 俭约加工 <wait.3>
+/ac 加工 <wait.3>
+/ac 阔步 <wait.2>
+/ac 改革 <wait.2>
+/ac 观察 <wait.3>
+/ac 注视加工 <wait.3>
+/ac [status!="最高品质"] 阔步 <wait.2>
+/ac 比尔格的祝福 <wait.3>
+/ac 制作 <wait.3>
+/echo Craft finished
