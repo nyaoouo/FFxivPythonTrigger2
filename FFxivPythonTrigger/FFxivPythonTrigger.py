@@ -91,6 +91,8 @@ class PluginBase(object):
         for name in self._apis:
             api.unregister(name)
         self._onunload()
+        for mission in self._missions:
+            mission.join(-1)
         self.storage.save()
 
     def _onunload(self):
