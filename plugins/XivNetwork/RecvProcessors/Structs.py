@@ -38,6 +38,7 @@ class ServerActorControlCategory:
     UpdateEffect = 22
     Targetable = 54
     DirectorUpdate = 109
+    SetTargetSign = 502
     LimitBreak = 505
     JobChange = 5
     EffectRemove = 21
@@ -232,10 +233,7 @@ ServerActorControl144 = OffsetStruct({
 
 ServerActorGauge = OffsetStruct({
     'header': ServerMessageHeader,
-    'param1': c_uint,
-    'param2': c_uint,
-    'param3': c_uint,
-    'param4': c_uint,
+    'buffer': c_ubyte*16,
 })
 
 ServerStatusEffectAddEntry = OffsetStruct({
@@ -334,7 +332,7 @@ ServerUpdateHpMpTp = OffsetStruct({
     'header': ServerMessageHeader,
     'current_hp': c_uint,
     'current_mp': c_ushort,
-    'unk0': c_ushort,
+    'current_tp': c_ushort,
 })
 
 ServerWaymark = OffsetStruct({

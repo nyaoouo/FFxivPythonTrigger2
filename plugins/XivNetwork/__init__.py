@@ -5,8 +5,21 @@ from FFxivPythonTrigger.AddressManager import AddressManager
 from FFxivPythonTrigger.hook import Hook
 from FFxivPythonTrigger.memory import BASE_ADDR, scan_pattern
 from .BundleDecoder import BundleDecoder
-from plugins.XivNetwork.RecvProcessors.Structs import ServerMessageHeader
+from .RecvProcessors.Structs import ServerMessageHeader, RecvNetworkEventBase
 from .RecvProcessors import processors
+
+
+class UnknownOpcodeEvent(RecvNetworkEventBase):
+    id = "network/unknown"
+    name = "network unknown event"
+
+    def __init__(self, raw_msg, msg_time, header):
+        super().__init__(raw_msg, msg_time)
+        self.header = header
+        self.opcode = header.msg_type
+
+    def text(self):
+        return f"{self.opcode}:{self.raw_msg[sizeof(ServerMessageHeader):].hex()}"
 
 
 class WebActionHook(Hook):
@@ -49,27 +62,23 @@ class XivNetwork(PluginBase):
     def recv_data(self, data):
         if self.recv_decoder.store_data(data):
             while self.recv_decoder.messages:
-                self.process_msg(*self.recv_decoder.get_next_message(), False)
+                self.process_recv_msg(*self.recv_decoder.get_next_message())
 
     def send_data(self, data):
         if self.send_decoder.store_data(data):
             while self.send_decoder.messages:
-                self.process_msg(*self.send_decoder.get_next_message(), True)
+                self.process_send_msg(*self.send_decoder.get_next_message())
 
-    def process_msg(self, msg_time, msg, is_send):
-        if len(msg) < sizeof(ServerMessageHeader):
-            return
+    def process_recv_msg(self, msg_time, msg):
+        if len(msg) < sizeof(ServerMessageHeader): return
         header = ServerMessageHeader.from_buffer(msg)
         # self.logger.debug(msg_time,hex(header.msg_type),msg.hex())
-        if is_send:
-            return
-        if header.msg_type in processors:
-            event = processors[header.msg_type](msg_time, msg)
-            if event is not None:
-                process_event(event)
-        elif header.msg_type not in _unknown_opcode:
-            _unknown_opcode.add(header.msg_type)
-            self.logger.debug(f"unknown opcode {hex(header.msg_type)} [{header.get_data()}]")
+        event = processors[header.msg_type](msg_time, msg) if header.msg_type in processors else None
+        if event is None: event = UnknownOpcodeEvent(msg, msg_time, header)
+        process_event(event)
+
+    def process_send_msg(self, msg_time, msg):
+        pass
 
     def _start(self):
         self.send_hook1.enable()
