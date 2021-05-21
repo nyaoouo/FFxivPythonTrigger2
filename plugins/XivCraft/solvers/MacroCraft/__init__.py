@@ -72,6 +72,7 @@ class MacroCraft(Solver):
                 runner = macro.get_runner()
                 size = 0
                 m_name = (tags['Name'] if 'Name' in tags else tags['_file'])
+                ignore_quality = tags['IgnoreQuality'] if "IgnoreQuality" in tags else False
                 arg = None
                 while True:
                     try:
@@ -83,7 +84,7 @@ class MacroCraft(Solver):
                             cmd, arg, wait = runner.next(default_params)
                         t_craft.use_skill(arg.strip('"'), check_mode=True)
                         if t_craft.is_finished():
-                            if t_craft.current_quality >= t_craft.recipe.max_quality:
+                            if t_craft.current_quality >= t_craft.recipe.max_quality or ignore_quality:
                                 macro_pairing[key] = macro, m_name
                                 _logger.debug('macro [%s] paired' % m_name)
                                 break
@@ -123,7 +124,12 @@ class MacroCraft(Solver):
 
     def process(self, craft, used_skill=None) -> str:
         if self.runner is None: return ''
-        params = {'status': craft.status, 'prev': used_skill}
+        params = {
+            'craft': craft,
+            'status': craft.status,
+            'prev': used_skill,
+            'effect': lambda name: 0 if name not in craft.effects else craft.effects[name].param,
+        }
         try:
             cmd, arg, wait = self.runner.next(params)
             while cmd != "ac":
