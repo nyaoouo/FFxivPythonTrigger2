@@ -7,6 +7,7 @@ if sys.version_info < (3, 9):
     exit()
 parser = argparse.ArgumentParser(description='using to inject FFxivPythonTrigger to a game process')
 parser.add_argument('-p', '--pid', type=int, nargs='?', default=None, metavar='PID', help='pid of process to inject')
+parser.add_argument('-o', '--port', type=int, nargs='?', default=3520, metavar='Port', help='port of the socket logger')
 parser.add_argument('-n', '--pName', nargs='?', default="ffxiv_dx11.exe", metavar='Process Name', help='name of process find to inject')
 parser.add_argument('-e', '--entrance', nargs='?', default="Entrance.py", metavar='File Name', help='entrance file of FFxivPythonTrigger')
 parser.add_argument('-sr', dest='skip_requirement_check', action='store_const', const=True, default=False, help='sum the integers')
@@ -141,27 +142,24 @@ else:
 
 err_path = os.path.join(application_path, 'InjectErr.log').replace("\\", "\\\\")
 sys.path.insert(0, application_path)
-shellcode = """
+shellcode = f"""
 import sys
-from os import chdir
+from os import chdir,environ
 from traceback import format_exc
 init_modules = sys.modules.copy()
 try:
-    sys.path=%s
+    environ['FptSocketPort']="{args.port}"
+    sys.path={dumps(sys.path)}
     chdir(sys.path[0])
-    exec(open("%s",encoding='utf-8').read())
+    exec(open("{args.entrance}",encoding='utf-8').read())
 except:
-    with open("%s", "w+") as f:
+    with open("{err_path}", "w+") as f:
         f.write(format_exc())
 finally:
     for key in sys.modules.keys():
         if key not in init_modules:
             del sys.modules[key]
-""" % (
-    dumps(sys.path),
-    args.entrance,
-    err_path
-)
+"""
 
 shellcode = shellcode.encode('utf-8')
 
@@ -172,8 +170,8 @@ memory.write_bytes(shellcode_addr, shellcode, handler=handler)
 _thread.start_new_thread(process.start_thread, (funcs[b'PyRun_SimpleString'], shellcode_addr,), {'handler': handler})
 print("shellcode injected, FFxivPythonTrigger should be started in a few seconds")
 print("Everything should be ready in a second. If it is not completed within a period of time, please check the log files.")
-print("waiting for initialization...")
-HOST, PORT = "127.0.0.1", 3520
+print(f"waiting for connect at port {args.port}...")
+HOST, PORT = "127.0.0.1", args.port
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 while True:
     try:
