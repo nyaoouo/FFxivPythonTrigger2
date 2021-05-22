@@ -64,8 +64,6 @@ class MacroContainer(object):
         return True
 
     def pair(self, craft):
-        if not self.attr_pair(craft.player):
-            return "attr not pair"
         if self.step_safe_check < 0:
             return
         size = 0
