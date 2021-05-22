@@ -8,6 +8,7 @@ if sys.version_info < (3, 9):
 parser = argparse.ArgumentParser(description='using to inject FFxivPythonTrigger to a game process')
 parser.add_argument('-p', '--pid', type=int, nargs='?', default=None, metavar='PID', help='pid of process to inject')
 parser.add_argument('-o', '--port', type=int, nargs='?', default=3520, metavar='Port', help='port of the socket logger')
+parser.add_argument('-d', '--dataDir', type=str, nargs='?', default="AppData", metavar='Directory', help='directory of fpt data')
 parser.add_argument('-n', '--pName', nargs='?', default="ffxiv_dx11.exe", metavar='Process Name', help='name of process find to inject')
 parser.add_argument('-e', '--entrance', nargs='?', default="Entrance.py", metavar='File Name', help='entrance file of FFxivPythonTrigger')
 parser.add_argument('-sr', dest='skip_requirement_check', action='store_const', const=True, default=False, help='sum the integers')
@@ -149,6 +150,7 @@ from traceback import format_exc
 init_modules = sys.modules.copy()
 try:
     environ['FptSocketPort']="{args.port}"
+    environ['FptDataDir']="{args.dataDir}"
     sys.path={dumps(sys.path)}
     chdir(sys.path[0])
     exec(open("{args.entrance}",encoding='utf-8').read())
