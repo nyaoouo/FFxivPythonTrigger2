@@ -107,10 +107,12 @@ if pid is None:
                 if not handler:  # if cant open process,skip
                     black_list_pid.append(pid)
                     print(f"can't open process {pid}")
+                    pid = None
                     continue
                 if process.module_from_name(python_version, handler):  # if the process is already injected by python, skip
                     black_list_pid.append(pid)
                     print(f"process {pid} has been injected")
+                    pid = None
                     continue
                 break
         check_time += 1
