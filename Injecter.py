@@ -88,6 +88,7 @@ if not is_admin:
     exit()
 
 pid = args.pid
+check_time = 0
 if pid is None:
     print("start searching for game process [%s]..." % args.pName)
     while pid is None:
@@ -95,9 +96,10 @@ if pid is None:
             if args.pName in p.szExeFile.decode(locale.getpreferredencoding()).lower():
                 pid = p.th32ProcessID
                 break
+        check_time +=1
         time.sleep(1)
 print("game process pid: %s" % pid)
-
+if check_time:time.sleep(3)
 handler = kernel32.OpenProcess(structure.PROCESS.PROCESS_ALL_ACCESS.value, False, pid)
 if not handler:
     input("could not open process" + endl)
