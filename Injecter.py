@@ -87,40 +87,47 @@ if not is_admin:
     ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
     exit()
 
-pid = args.pid
-check_time = 0
-if pid is None:
-    print("start searching for game process [%s]..." % args.pName)
-    while pid is None:
-        for p in process.list_processes():
-            if args.pName in p.szExeFile.decode(locale.getpreferredencoding()).lower():
-                pid = p.th32ProcessID
-                break
-        check_time +=1
-        time.sleep(1)
-print("game process pid: %s" % pid)
-if check_time:time.sleep(3)
-handler = kernel32.OpenProcess(structure.PROCESS.PROCESS_ALL_ACCESS.value, False, pid)
-if not handler:
-    input("could not open process" + endl)
-    exit()
-
 # find the python library
 python_version = "python{0}{1}.dll".format(sys.version_info.major, sys.version_info.minor)
 python_lib = process.module_from_name(python_version).filename
-
 print("found python library at :%s" % python_lib)
 
-print("trying to inject python environment into game...")
-# Find or inject python module
-python_module = process.module_from_name(python_version, handler)
-if python_module:
-    python_lib_h = python_module.lpBaseOfDll
+pid = args.pid
+check_time = 0
+handler = None
+
+if pid is None:
+    print("start searching for game process [%s]..." % args.pName)
+    black_list_pid = list()
+    while pid is None:
+        for p in process.list_processes():
+            if args.pName in p.szExeFile.decode(locale.getpreferredencoding()).lower() and p.th32ProcessID not in black_list_pid:
+                pid = p.th32ProcessID
+                handler = kernel32.OpenProcess(structure.PROCESS.PROCESS_ALL_ACCESS.value, False, pid)
+                if not handler:  # if cant open process,skip
+                    black_list_pid.append(pid)
+                    print(f"can't open process {pid}")
+                    continue
+                if process.module_from_name(python_version, handler):  # if the process is already injected by python, skip
+                    black_list_pid.append(pid)
+                    print(f"process {pid} has been injected")
+                    continue
+                break
+        check_time += 1
+        time.sleep(1)
 else:
-    python_lib_h = process.inject_dll(bytes(python_lib, 'utf-8'), handler)
-    if not python_lib_h:
-        input("inject failed" + endl)
+    handler = kernel32.OpenProcess(structure.PROCESS.PROCESS_ALL_ACCESS.value, False, pid)
+    if not handler:
+        input(f"could not open process {pid}" + endl)
         exit()
+
+print("game process pid: %s" % pid)
+if check_time: time.sleep(3)
+
+python_lib_h = process.inject_dll(bytes(python_lib, 'utf-8'), handler)
+if not python_lib_h:
+    input("inject failed" + endl)
+    exit()
 print("inject python environment success")
 
 local_handle = kernel32.GetModuleHandleW(python_version)
