@@ -11,7 +11,7 @@ parser.add_argument('-o', '--port', type=int, nargs='?', default=3520, metavar='
 parser.add_argument('-d', '--dataDir', type=str, nargs='?', default="AppData", metavar='Directory', help='directory of fpt data')
 parser.add_argument('-n', '--pName', nargs='?', default="ffxiv_dx11.exe", metavar='Process Name', help='name of process find to inject')
 parser.add_argument('-e', '--entrance', nargs='?', default="Entrance.py", metavar='File Name', help='entrance file of FFxivPythonTrigger')
-parser.add_argument('-sr', dest='skip_requirement_check', action='store_const', const=True, default=False, help='sum the integers')
+parser.add_argument('-sr', dest='skip_requirement_check', action='store_const', const=True, default=False, help='skip the requirement check')
 args = parser.parse_args(sys.argv[1:])
 if not args.skip_requirement_check:
     import urllib.request
