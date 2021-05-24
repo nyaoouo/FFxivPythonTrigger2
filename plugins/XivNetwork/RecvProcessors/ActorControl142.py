@@ -27,11 +27,11 @@ class DotEvent(RecvEventBase):
     def __init__(self, raw_msg, msg_time, actor_id):
         super().__init__(raw_msg, msg_time, actor_id)
         self.target_id = actor_id
-        self.buff_id = raw_msg.param1
+        #self.buff_id = raw_msg.param1
         self.damage = raw_msg.param3
 
     def text(self):
-        return f"{hex(self.target_id)[2:]} gains {self.damage} damage by debuff:{self.buff_id}"
+        return f"{hex(self.target_id)[2:]} gains {self.damage} damage over time"
 
 
 class HotEvent(DotEvent):
@@ -39,7 +39,7 @@ class HotEvent(DotEvent):
     name = "network actor hot event"
 
     def text(self):
-        return f"{hex(self.target_id)[2:]} gains {self.damage} heal by buff:{self.buff_id}"
+        return f"{hex(self.target_id)[2:]} gains {self.damage} heal over time"
 
 
 class DeathEvent(RecvEventBase):
