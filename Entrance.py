@@ -18,7 +18,8 @@ try:
         "HttpApi",
         "XivMemory",
         "XivMagic",
-        # "XivNetwork",
+        "CombatMonitor",
+        "XivNetwork",
     ])
 
     "functions"
