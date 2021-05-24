@@ -2,7 +2,7 @@ from ctypes import sizeof
 from threading import Lock
 from traceback import format_exc
 from typing import Optional
-from zlib import decompress, MAX_WBITS
+from zlib import decompress, MAX_WBITS,error
 from socket import ntohl
 from datetime import datetime, timedelta, timezone
 
@@ -39,7 +39,7 @@ def decompress_message(header: FFXIVBundleHeader, buffer: bytearray, offset: int
         return None
     try:
         return bytearray(decompress(buffer[offset + header_size + 2:offset + header.length], wbits=-MAX_WBITS))
-    except Exception:
+    except error:
         _logger.error("Decompression error:\n", format_exc())
 
 
@@ -109,7 +109,7 @@ class BundleDecoder(object):
 
     def reset_stream(self, offset: int) -> int:
         try:
-            ans = self._buffer.index(MAGIC_NUMBER, offset)
+            ans = self._buffer.index(MAGIC_NUMBER, offset+1)
             return ans
         except ValueError:
             self._buffer.clear()
