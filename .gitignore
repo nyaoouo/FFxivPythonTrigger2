@@ -1,5 +1,6 @@
 ignore/
 AppData/
+AppData2/
 .idea/
 Test*.py
 Debug*.py
