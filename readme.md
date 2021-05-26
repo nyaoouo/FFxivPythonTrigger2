@@ -36,7 +36,7 @@ FFxivPythonTrigger
 > [XivMemory](plugins/XivMemory)| 提供对于 FFXIV 相关内存操作的接口
 > [XivMagic](plugins/XivMagic)| 提供对于 FFXIV 相关函数调用的接口
 > [XivNetwork](plugins/XivNetwork)| 产生网络相关事件
-> [CombatMonitor](plugins/CombatMonitor)| 提供战斗分析功能
+> [CombatMonitor](plugins/CombatMonitor)| 提供战斗分析功能（伤害分析相关）
 > [Command](plugins/Command)| 处理游戏内指令，并提供基础内核操作指令
 > ---
 > 功能插件：
