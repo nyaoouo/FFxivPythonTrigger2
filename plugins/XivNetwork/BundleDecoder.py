@@ -2,13 +2,13 @@ from ctypes import sizeof
 from threading import Lock
 from traceback import format_exc
 from typing import Optional
-from zlib import decompress, MAX_WBITS,error
+from zlib import decompress, compress, MAX_WBITS, error
 from socket import ntohl
 from datetime import datetime, timedelta, timezone
 
 from FFxivPythonTrigger.Logger import Logger
 
-from plugins.XivNetwork.RecvProcessors.Structs import FFXIVBundleHeader
+from plugins.XivNetwork.Structs import FFXIVBundleHeader
 
 _logger = Logger("XivNetwork/BundleDecoder")
 
@@ -27,6 +27,8 @@ def ntohll(host):
 
 header_size = sizeof(FFXIVBundleHeader)
 
+t = list()
+
 
 def decompress_message(header: FFXIVBundleHeader, buffer: bytearray, offset: int) -> Optional[bytearray]:
     if header.encoding == 0x0000 or header.encoding == 0x0001:
@@ -41,6 +43,49 @@ def decompress_message(header: FFXIVBundleHeader, buffer: bytearray, offset: int
         return bytearray(decompress(buffer[offset + header_size + 2:offset + header.length], wbits=-MAX_WBITS))
     except error:
         _logger.error("Decompression error:\n", format_exc())
+
+
+def compress_message(header: FFXIVBundleHeader, message: bytearray):
+    if header.encoding == 0x0000 or header.encoding == 0x0001:
+        return message
+    elif header.encoding == 0x0101 or header.encoding == 0x0100:
+        return bytearray(compress(message)[2:])
+    else:
+        _logger.error("Unknown encoding type:", hex(header.encoding))
+        return None
+
+
+def extract_single(raw: bytearray):
+    if len(raw) < header_size: return
+    header = FFXIVBundleHeader.from_buffer(raw)
+    if header.magic0 != 0x41a05252 and header.magic0 and header.magic1 and header.magic2 and header.magic3:
+        _logger.error("[single] Invalid magic # in header:", raw[:header_size])
+        return
+    if header.length > len(raw):
+        _logger.error(f"[single] Invalid msg length({len(raw)}/{header.length})")
+        return
+    message_raw = decompress_message(header, raw, 0)
+    if message_raw is None or not len(message_raw): return
+    try:
+        messages = list()
+        msg_offset = 0
+        for i in range(header.msg_count):
+            msg_len = int.from_bytes(message_raw[msg_offset:msg_offset + 4], byteorder='little')
+            messages.append(message_raw[msg_offset:msg_offset + msg_len])
+            msg_offset += msg_len
+        return header, messages
+    except Exception:
+        _logger.error("[single] Split message error:\n", format_exc())
+        return
+
+
+def pack_single(header: FFXIVBundleHeader, messages: list[bytearray]):
+    new_raw_message = bytearray()
+    for m in messages:new_raw_message += m
+    new_msg = compress_message(header,new_raw_message)
+    if new_msg is None:return
+    header.header_size=len(new_msg)
+    return bytearray(header)+new_msg
 
 
 class BundleDecoder(object):
@@ -64,7 +109,7 @@ class BundleDecoder(object):
     def process_buffer(self):
         offset = 0
         while len(self._buffer) and offset < len(self._buffer):
-            if len(self._buffer)-offset <= header_size:
+            if len(self._buffer) - offset <= header_size:
                 offset = self.reset_stream(offset)
                 continue
             header = FFXIVBundleHeader.from_buffer(self._buffer[offset:])
@@ -93,7 +138,7 @@ class BundleDecoder(object):
                 msg_time = min_datetime + timedelta(milliseconds=ntohll(header.epoch))
                 # _logger.debug(f"{header.msg_count} in {len(message)} long [{bytearray(header).hex()}]")
                 for i in range(header.msg_count):
-                    msg_len = int.from_bytes(message[msg_offset:msg_offset + 2], byteorder='little')
+                    msg_len = int.from_bytes(message[msg_offset:msg_offset + 4], byteorder='little')
                     self.messages.append((msg_time, message[msg_offset:msg_offset + msg_len]))
                     msg_offset += msg_len
             except Exception:
@@ -109,7 +154,7 @@ class BundleDecoder(object):
 
     def reset_stream(self, offset: int) -> int:
         try:
-            ans = self._buffer.index(MAGIC_NUMBER, offset+1)
+            ans = self._buffer.index(MAGIC_NUMBER, offset + 1)
             return ans
         except ValueError:
             self._buffer.clear()

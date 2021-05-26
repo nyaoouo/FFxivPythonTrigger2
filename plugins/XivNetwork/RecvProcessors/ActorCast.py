@@ -4,7 +4,7 @@ from typing import Optional
 
 from FFxivPythonTrigger.Logger import Logger
 
-from .Structs import ServerActorCast,RecvNetworkEventBase
+from ..Structs import ServerActorCast,RecvNetworkEventBase
 
 _logger = Logger("XivNetwork/ProcessActorCast")
 size = sizeof(ServerActorCast)

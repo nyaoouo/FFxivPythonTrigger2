@@ -4,9 +4,9 @@ from typing import Optional
 
 from FFxivPythonTrigger.Logger import Logger
 
-from .Structs import ServerActionEffect1, ServerActionEffect8, ServerActionEffect16
-from .Structs import ServerActionEffect24, ServerActionEffect32, ServerActionEffectHeader
-from .Structs import ServerActionEffectDisplayType, RecvNetworkEventBase as EventBase
+from ..Structs import ServerActionEffect1, ServerActionEffect8, ServerActionEffect16
+from ..Structs import ServerActionEffect24, ServerActionEffect32, ServerActionEffectHeader
+from ..Structs import ServerActionEffectDisplayType, RecvNetworkEventBase as EventBase
 
 _logger = Logger("XivNetwork/ProcessAbility")
 

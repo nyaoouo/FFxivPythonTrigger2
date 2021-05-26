@@ -4,7 +4,7 @@ from typing import Optional
 
 from FFxivPythonTrigger.Logger import Logger
 
-from .Structs import ServerUpdateHpMpTp,RecvNetworkEventBase
+from ..Structs import ServerUpdateHpMpTp,RecvNetworkEventBase
 
 _logger = Logger("XivNetwork/ProcessActorUpdateHpMpTp")
 size = sizeof(ServerUpdateHpMpTp)

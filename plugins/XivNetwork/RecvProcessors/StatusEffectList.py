@@ -4,7 +4,7 @@ from typing import Optional
 
 from FFxivPythonTrigger.Logger import Logger
 
-from .Structs import ServerStatusEffectList, ServerStatusEffectList2, ServerBossStatusEffectList, RecvNetworkEventBase
+from ..Structs import ServerStatusEffectList, ServerStatusEffectList2, ServerBossStatusEffectList, RecvNetworkEventBase
 
 _logger = Logger("XivNetwork/ProcessStatusEffectListEffect")
 size = sizeof(ServerStatusEffectList)

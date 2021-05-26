@@ -4,7 +4,7 @@ from typing import Optional
 
 from FFxivPythonTrigger.Logger import Logger
 
-from .Structs import ServerActorControlCategory, ServerActorControl143, RecvNetworkEventBase
+from ..Structs import ServerActorControlCategory, ServerActorControl143, RecvNetworkEventBase
 
 _logger = Logger("XivNetwork/ProcessActorControl143")
 _unknown_category = set()
