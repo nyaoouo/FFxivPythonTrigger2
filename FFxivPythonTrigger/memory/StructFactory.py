@@ -7,6 +7,8 @@ from . import read_pointer_shift, memory
 def get_data(data):
     if isinstance(data, _OffsetStruct):
         return {k: get_data(v) for k, v in data.get_item()}
+    if isinstance(data, _EnumStruct):
+        return data.value()
     if isinstance(data, Array):
         return [get_data(i) for i in data]
     return data
@@ -54,12 +56,10 @@ def OffsetStruct(fields: dict, full_size: int = None) -> Type[_OffsetStruct]:
         if full_size > current_size:
             pad_size = full_size - current_size
             set_fields.append(("_padding_%s" % padding_count, c_byte * pad_size))
-
-    class OffsetStruct(_OffsetStruct):
-        raw_fields = fields
-        _fields_ = set_fields
-
-    return OffsetStruct
+    return type("OffsetStruct", (_OffsetStruct,), {
+        'raw_fields': fields,
+        '_fields_': set_fields,
+    })
 
 
 class _PointerStruct(c_void_p):
@@ -76,8 +76,21 @@ class _PointerStruct(c_void_p):
 
 
 def PointerStruct(i_d_type: any, *i_shifts: int) -> Type[_PointerStruct]:
-    class PointerStruct(_PointerStruct):
-        shifts = i_shifts
-        d_type = i_d_type
+    return type("PointerStruct", (_PointerStruct,), {
+        'shifts': i_shifts,
+        'd_type': i_d_type,
+    })
 
-    return PointerStruct
+
+class _EnumStruct(Structure):
+    _data: dict
+
+    def value(self):
+        return self._data.get(self.raw_value)
+
+
+def EnumStruct(raw_type: any, enum_data) -> Type[_EnumStruct]:
+    return type("EnumStruct", (_EnumStruct,), {
+        '_data': enum_data,
+        '_fields_': [('raw_value', raw_type)],
+    })
