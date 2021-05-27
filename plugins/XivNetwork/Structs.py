@@ -63,7 +63,7 @@ class FFXIVBundleHeader(OffsetStruct({
     'magic1': c_uint,
     'magic2': c_uint,
     'magic3': c_uint,
-    '_epoch': c_ulonglong,
+    'epoch': c_ulonglong,
     'length': c_ushort,
     'unk1': c_ushort,
     'unk2': c_ushort,
@@ -73,9 +73,10 @@ class FFXIVBundleHeader(OffsetStruct({
     'unk4': c_ushort,
     'unk5': c_ushort,
 })):
-    @property
-    def epoch(self):
-        return (ntohl(self._epoch & 0xFFFFFFFF) << 32) + ntohl(self._epoch >> 32)
+    pass
+    # @property
+    # def epoch(self):
+    #     return (ntohl(self._epoch & 0xFFFFFFFF) << 32) + ntohl(self._epoch >> 32)
 
 
 ServerMessageHeader = OffsetStruct({

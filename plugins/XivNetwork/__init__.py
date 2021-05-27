@@ -1,12 +1,13 @@
+import time
 from ctypes import *
 from traceback import format_exc
 
-from FFxivPythonTrigger import PluginBase, process_event
+from FFxivPythonTrigger import PluginBase, process_event, api
 from FFxivPythonTrigger.AddressManager import AddressManager
 from FFxivPythonTrigger.hook import Hook
 from FFxivPythonTrigger.memory import scan_pattern
 from .BundleDecoder import BundleDecoder, extract_single, pack_single
-from .Structs import ServerMessageHeader, RecvNetworkEventBase, SendNetworkEventBase
+from .Structs import ServerMessageHeader, RecvNetworkEventBase, SendNetworkEventBase, FFXIVBundleHeader
 from .RecvProcessors import processors as recv_processors
 from .SendProcessors import processors as send_processors
 
@@ -32,6 +33,7 @@ send_events_classes = dict()
 
 
 class WebActionHook(Hook):
+    socket = None
     argtypes = [c_int64, POINTER(c_ubyte), c_int]
     restype = c_int
 
@@ -42,6 +44,14 @@ send_sig = "48 83 EC ? 48 8B 49 ? 45 33 C9 FF 15 ? ? ? ? 85 C0"
 recv_sig = "48 83 EC ? 48 8B 49 ? 45 33 C9 FF 15 ? ? ? ? 83 F8 ?"
 
 header_size = sizeof(ServerMessageHeader)
+
+msg_header_keys = {
+    'login_user_id': None,
+    'unk1': None,
+    'unk2': None,
+    'unk3': None,
+    'unk4': None,
+}
 
 
 class XivNetwork(PluginBase):
@@ -55,15 +65,26 @@ class XivNetwork(PluginBase):
 
         class SendHook(WebActionHook):
             def hook_function(_self, socket, buffer, size):
+                _self.socket = socket
                 new_data = self.makeup_data(bytearray(buffer[:size]))
+                #self.logger('>',new_data.hex())
                 size = len(new_data)
                 new_data = (c_ubyte * size).from_buffer(new_data)
                 success_size = _self.original(socket, new_data, size)
                 if success_size: self.create_mission(self.send_data, bytearray(new_data[:success_size]).copy())
                 return success_size
 
+            def send(_self, data: bytearray):
+                #self.logger('*', data.hex())
+                size = len(data)
+                new_data = (c_ubyte * size).from_buffer(data)
+                success_size = _self.original(_self.socket, new_data, size)
+                if success_size: self.create_mission(self.send_data, bytearray(new_data[:success_size]).copy())
+                return success_size
+
         class RecvHook(WebActionHook):
             def hook_function(_self, socket, buffer, size):
+                _self.socket = socket
                 success_size = _self.original(socket, buffer, size)
                 if success_size: self.create_mission(self.recv_data, bytearray(buffer[:success_size]).copy())
                 return success_size
@@ -77,6 +98,7 @@ class XivNetwork(PluginBase):
         self.register_api('XivNetwork', type('obj', (object,), {
             'register_makeup': self.register_makeup,
             'unregister_makeup': self.unregister_makeup,
+            'send_messages': self.send_messages,
         }))
 
     def register_makeup(self, opcode: int, call: callable):
@@ -98,11 +120,12 @@ class XivNetwork(PluginBase):
             new_messages = []
             for msg in messages:
                 if len(msg) >= header_size:
-                    opcode = ServerMessageHeader.from_buffer(msg).msg_type
-                    if opcode in self.makeups:
-                        for call in self.makeups[opcode]:
+                    msg_header = ServerMessageHeader.from_buffer(msg)
+                    if msg_header.msg_type in self.makeups:
+                        for call in self.makeups[msg_header.msg_type]:
                             try:
-                                msg = call(msg)
+                                msg_header2, msg2 = call(msg_header, msg[header_size:])
+                                msg = bytearray(msg_header2) + msg2
                             except Exception:
                                 self.logger.error("error in makeup data:\n", format_exc())
                 new_messages.append(msg)
@@ -118,8 +141,10 @@ class XivNetwork(PluginBase):
                 self.process_recv_msg(*self.recv_decoder.get_next_message())
 
     def send_data(self, data):
+        #self.logger("in1")
         if self.send_decoder.store_data(data):
             while self.send_decoder.messages:
+                #self.logger("out1")
                 self.process_send_msg(*self.send_decoder.get_next_message())
 
     def process_recv_msg(self, msg_time, msg):
@@ -131,23 +156,39 @@ class XivNetwork(PluginBase):
                 (RecvRawEvent,),
                 {'id': f'network/recv_{header.msg_type}'}
             )
-        process_event(recv_events_classes[header.msg_type](msg, msg_time, header))
+        process_event(recv_events_classes[header.msg_type](msg[header_size:], msg_time, header))
         event = recv_processors[header.msg_type](msg_time, msg) if header.msg_type in recv_processors else None
         if event is not None: process_event(event)
 
     def process_send_msg(self, msg_time, msg):
+        #self.logger(len(msg),msg.hex())
         if len(msg) < header_size: return
         header = ServerMessageHeader.from_buffer(msg)
         # self.logger(header.msg_type,msg[:24].hex())
+        for key in msg_header_keys.keys():
+            msg_header_keys[key] = getattr(header, key)
         if header.msg_type not in send_events_classes:
             send_events_classes[header.msg_type] = type(
                 f"NetworkSend{header.msg_type}RawEvent",
                 (SendRawEvent,),
                 {'id': f'network/send_{header.msg_type}'}
             )
-        process_event(send_events_classes[header.msg_type](msg, msg_time, header))
+        process_event(send_events_classes[header.msg_type](msg[header_size:], msg_time, header))
         event = send_processors[header.msg_type](msg_time, msg) if header.msg_type in send_processors else None
         if event is not None: process_event(event)
+
+    def send_messages(self, messages: list[tuple[int, bytearray]]):
+        me = api.XivMemory.actor_table.get_me()
+        me_id = me.id if me is not None else 0
+        self.send_hook1.send(pack_single(None, [
+            bytearray(ServerMessageHeader(
+                msg_length=len(msg)+header_size,
+                actor_id=me_id,
+                msg_type=opcode,
+                sec=int(time.time()),
+                **msg_header_keys,
+            )) + msg for opcode, msg in messages
+        ]))
 
     def _start(self):
         self.send_hook1.enable()
