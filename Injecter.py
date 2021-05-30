@@ -164,7 +164,7 @@ try:
     environ['FptDataDir']="{args.dataDir}"
     sys.path={dumps(sys.path)}
     chdir(sys.path[0])
-    exec(open("{args.entrance}",encoding='utf-8').read())
+    __import__("{args.entrance.rstrip('.py')}")
 except:
     with open("{err_path}", "w+") as f:
         f.write(format_exc())

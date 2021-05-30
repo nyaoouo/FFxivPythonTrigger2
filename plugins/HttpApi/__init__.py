@@ -3,8 +3,6 @@ from aiohttp import web
 import asyncio
 import traceback
 
-_logger = Logger.Logger("HttpApi")
-
 default_host = "127.0.0.1"
 default_port = 2019
 command = "@HttpApi"
@@ -33,13 +31,13 @@ class HttpApiPlugin(PluginBase):
     def register_post_route(self, path, controller):
         if path in self.routes:
             raise Exception("%s is already registered" % path)
-        _logger.debug("[%s] is registered as a new api" % path)
+        self.logger.debug("[%s] is registered as a new api" % path)
         self.routes[path] = controller
 
     def unregister_post_route(self, path):
         if path not in self.routes:
             raise Exception("%s is not registered" % path)
-        _logger.debug("[%s] is unregistered" % path)
+        self.logger.debug("[%s] is unregistered" % path)
         del self.routes[path]
 
     async def post_route(self, request: web.Request):
@@ -51,13 +49,13 @@ class HttpApiPlugin(PluginBase):
                 res = await self.routes[paths[0]](request)
             except Exception:
                 res = web.json_response({'msg': 'server error occurred', 'trace': traceback.format_exc(), 'code': 500}, status=500)
-        _logger.debug("request:%s ; response: %s" % (request, res))
+        self.logger.debug("request:%s ; response: %s" % (request, res))
         return res
 
     async def _stop_server(self):
         await self.runner.shutdown()
         await self.runner.cleanup()
-        _logger.info("HttpApi server closed")
+        self.logger.info("HttpApi server closed")
         self.work = False
 
     def stop_server(self):
@@ -75,7 +73,7 @@ class HttpApiPlugin(PluginBase):
         port = self.server_config.setdefault('port', default_port)
         self.storage.save()
         await web.TCPSite(self.runner, host, port).start()
-        _logger.info("HttpApi Server started on http://%s:%s" % (host, port))
+        self.logger.info("HttpApi Server started on http://%s:%s" % (host, port))
         self.work = True
         while self.work:
             await asyncio.sleep(1)
