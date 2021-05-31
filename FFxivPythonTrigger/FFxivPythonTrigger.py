@@ -103,16 +103,18 @@ class PluginBase(object):
 
 
 def _log_writer() -> None:
-    if _log_write_buffer and _log_lock.acquire(False):
+    if _log_lock.acquire(False):
         with open(_log_path, 'a+') as fo:
             while _log_write_buffer:
                 fo.write(str(_log_write_buffer.pop(0)))
                 fo.write('\n')
         _log_lock.release()
 
+
 def log_writer() -> None:
     if _log_write_buffer:
-        append_missions(Mission("log_writer", -1, log_writer))
+        append_missions(Mission("log_writer", -1, _log_writer))
+
 
 def register_modules(modules: list) -> None:
     for module in modules:
