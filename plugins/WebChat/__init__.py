@@ -108,7 +108,7 @@ class WebChat(PluginBase):
         self.loop.create_task(self._stop_server())
 
     def _onunload(self):
-        api.command.unregister(command, self.process_command)
+        api.command.unregister(command)
         if self.work:
             self.stop_server()
 
