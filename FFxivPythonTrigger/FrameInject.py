@@ -1,11 +1,14 @@
 from traceback import format_exc
 from typing import List, Tuple
+from time import perf_counter
+from inspect import getfile,getsourcelines
 
 from .Logger import Logger
 from .hook import Hook
 from ctypes import *
 
 _logger = Logger("Frame Inject")
+MISSION_TIME_LIMIT = 0.05
 
 
 class FrameInjectHook(Hook):
@@ -26,17 +29,24 @@ class FrameInjectHook(Hook):
 
     argtypes = [c_void_p, c_void_p]
 
+    def call(self, call, *args, **kwargs):
+        start = perf_counter()
+        call(*args, **kwargs)
+        use = perf_counter() - start
+        if use > MISSION_TIME_LIMIT:
+            _logger.warning("used {:.2}s in a frame mission (limit:{:.2}s): {}:{}".format(use, MISSION_TIME_LIMIT, getfile(call), getsourcelines(call)[1]))
+
     def hook_function(self, *oargs):
         try:
             while self._once_works:
                 try:
                     c, a, k = self._once_works.pop(0)
-                    c(*a, **k)
+                    self.call(c, *a, **k)
                 except Exception:
                     _logger.error("error in frame call:\n" + format_exc())
             for c, v in self._continue_works.copy().items():
                 try:
-                    c(*v[0], **v[1])
+                    self.call(c, *v[0], **v[1])
                 except Exception:
                     del self._continue_works[c]
                     _logger.error("error in frame call, continue work will be removed:\n" + format_exc())
