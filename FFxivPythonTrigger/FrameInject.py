@@ -47,7 +47,7 @@ class FrameInjectHook(Hook):
                     _logger.error("error in frame call:\n" + format_exc())
             for c, v in self._continue_works.copy().items():
                 try:
-                    self.call(c, *v[1], **v[2])
+                    self.call(c, *v[0], **v[1])
                 except Exception:
                     del self._continue_works[c]
                     _logger.error("error in frame call, continue work will be removed:\n" + format_exc())
