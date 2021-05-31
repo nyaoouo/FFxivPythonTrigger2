@@ -10,24 +10,24 @@ def byte_get_bit(byte: int, start: int, length: int):
 RedMageGauge = OffsetStruct({
     'white_mana': (c_ubyte, 0),
     'black_mana': (c_ubyte, 1),
-})
+},16)
 WarriorGauge = OffsetStruct({
     'beast': (c_ubyte, 0)
-})
+},16)
 GunbreakerGauge = OffsetStruct({
     'cartridges': (c_ubyte, 0),
     'continuationMilliseconds': (c_ushort, 2),  # Is 15000 if and only if continuationState is not zero.
     'continuationState': (c_ubyte, 4)
-})
+},16)
 DarkKnightGauge = OffsetStruct({
     'blood': (c_ubyte, 0),
     'darksideTimer': (c_ushort, 2),
     'darkArt': (c_ubyte, 4),
     'shadowTimer': (c_ushort, 6),
-})
+},16)
 PaladinGauge = OffsetStruct({
     'oath': (c_ubyte, 0),
-})
+},16)
 
 
 class BardGauge(OffsetStruct({
@@ -35,7 +35,7 @@ class BardGauge(OffsetStruct({
     'songProcs': (c_ubyte, 2),
     'soulGauge': (c_ubyte, 3),
     'songType': (c_ubyte, 4)
-})):
+},16)):
     class Song(object):
         none = 0
         ballad = 5  # Mage's Ballad.
@@ -48,7 +48,7 @@ class DancerGauge(OffsetStruct({
     'esprit': (c_ubyte, 1),
     'step': (c_ubyte * 4, 2),
     'currentStep': (c_ubyte, 6)
-})):
+},16)):
     class Step(object):
         none = 0
         emboite = 1  # red
@@ -61,7 +61,7 @@ class DragoonGauge(OffsetStruct({
     'blood_or_life_ms': (c_ushort, 0),
     'stance': (c_ubyte, 2),  # 0 = None, 1 = Blood, 2 = Life
     'eyesAmount': (c_ubyte, 3),
-})):
+},16)):
     @property
     def bloodMilliseconds(self):
         return self.blood_or_life_ms if self.stance == 1 else 0
@@ -75,12 +75,12 @@ NinjaGauge = OffsetStruct({
     'hutonMilliseconds': (c_uint, 0),
     'ninkiAmount': (c_ubyte, 4),
     'hutonCount': (c_ubyte, 5),
-})
+},16)
 
 ThaumaturgeGauge = OffsetStruct({
     'umbralMilliseconds': (c_ushort, 2),  # Number of ms left in umbral fire/ice.
     'umbralStacks': (c_ubyte, 4),  # Positive = Umbral Fire Stacks, Negative = Umbral Ice Stacks.
-})
+},16)
 
 
 class BlackMageGauge(OffsetStruct({
@@ -90,7 +90,7 @@ class BlackMageGauge(OffsetStruct({
     'umbralHearts': (c_ubyte, 5),
     'foulCount': (c_ubyte, 6),
     'enochain_state': (c_ubyte, 7),
-})):
+},16)):
     @property
     def enochain_active(self):
         return byte_get_bit(self.enochain_state, 0, 1)
@@ -104,11 +104,11 @@ WhiteMageGauge = OffsetStruct({
     'lilyMilliseconds': (c_ushort, 2),
     'lilyStacks': (c_ubyte, 4),
     'bloodlilyStacks': (c_ubyte, 5),
-})
+},16)
 
 ArcanistGauge = OffsetStruct({
     'aetherflowStacks': (c_ubyte, 4),
-})
+},16)
 
 
 class SummonerGauge(OffsetStruct({
@@ -116,7 +116,7 @@ class SummonerGauge(OffsetStruct({
     'ReturnSummon': (c_ubyte, 2),
     'ReturnSummonGlam': (c_ubyte, 3),
     'stacks': (c_ubyte, 4),
-})):
+},16)):
     @property
     def aetherflowStacks(self):
         return byte_get_bit(self.stacks, 0, 2)
@@ -136,29 +136,29 @@ ScholarGauge = OffsetStruct({
     'fairyMilliseconds': (c_ushort, 4),  # Seraph time left ms.
     'fairyStatus': (c_ubyte, 6)
     # Varies depending on which fairy was summoned, during Seraph/Dissipation: 6 - Eos, 7 - Selene, else 0.
-})
+},16)
 
 PuglistGauge = OffsetStruct({
     'lightningMilliseconds': (c_ushort, 0),
     'lightningStacks': (c_ubyte, 2),
-})
+},16)
 MonkGauge = OffsetStruct({
     'lightningMilliseconds': (c_ushort, 0),
     'lightningStacks': (c_ubyte, 2),
     'chakraStacks': (c_ubyte, 3),
-})
+},16)
 MachinistGauge = OffsetStruct({
     'overheatMilliseconds': (c_ushort, 0),
     'batteryMilliseconds': (c_ushort, 2),
     'heat': (c_ubyte, 4),
     'battery': (c_ubyte, 5)
-})
+},16)
 
 
 class AstrologianGauge(OffsetStruct({
     'heldCard': (c_ubyte, 4),
     'arcanums': (c_ubyte * 3, 5),
-})):
+},16)):
     class Card(object):
         none = 0
         balance = 1
@@ -178,7 +178,7 @@ class AstrologianGauge(OffsetStruct({
 class SamuraiGauge(OffsetStruct({
     'kenki': (c_ubyte, 4),
     'sen_bits': (c_ubyte, 5)
-})):
+},16)):
     @property
     def snow(self):
         return (self.sen_bits & 1) != 0
