@@ -24,9 +24,9 @@ class AttrContainer(object):
         self.attrs[name] = obj
 
     def unregister(self, name):
-        if name not in self.attrs:
-            raise AttributeNotFoundException(name)
-        del self.attrs[name]
+        if name in self.attrs:
+            del self.attrs[name]
+
 
     def __getitem__(self, name):
         if name not in self.attrs:
