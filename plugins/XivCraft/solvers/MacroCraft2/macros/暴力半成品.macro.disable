@@ -1,0 +1,7 @@
+#CraftMacro:[Name]:暴力半成品
+#CraftMacro:[UsedTime]:11
+#CraftMacro:[IgnoreQuality]:1
+/ac 坚信 <wait.3>
+/ac 崇敬 <wait.2>
+/ac 坯料制作 <wait.3>
+/ac 模范制作 <wait.3>
