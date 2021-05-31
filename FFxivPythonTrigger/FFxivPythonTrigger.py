@@ -103,7 +103,7 @@ class PluginBase(object):
 
 
 def log_writer() -> None:
-    if _log_lock.acquire(False):
+    if _log_write_buffer and _log_lock.acquire(False):
         with open(_log_path, 'a+') as fo:
             while _log_write_buffer:
                 fo.write(str(_log_write_buffer.pop(0)))
