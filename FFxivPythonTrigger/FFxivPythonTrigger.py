@@ -92,7 +92,10 @@ class PluginBase(object):
             api.unregister(name)
         self._onunload()
         for mission in self._missions:
-            mission.join(-1)
+            try:
+                mission.join(-1)
+            except RuntimeError:
+                pass
         self.storage.save()
 
     def _onunload(self):
@@ -192,7 +195,7 @@ def unregister_event(event_id: any, callback: EventCallback):
 
 
 def process_event(event: EventBase):
-    frame_inject.register_once_call(_process_event, event)
+    append_missions(Mission("event", -1, _process_event,event))
 
 
 def _process_event(event: EventBase):
