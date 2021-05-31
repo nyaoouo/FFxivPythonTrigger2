@@ -4,6 +4,7 @@ from FFxivPythonTrigger import *
 from .DbCreator import get_con
 from time import time, perf_counter
 
+BREAK_TIME = 60
 UPDATE_PERIOD = 0.1
 
 insert_ability = """
@@ -49,6 +50,7 @@ class CombatMonitor(PluginBase):
         self.register_event('network/action_effect', self.ability_insert)
         self.register_event('network/actor_control/dot', self.dot_insert)
         self.register_event('network/actor_control/hot', self.hot_insert)
+        self.register_event('network/actor_control/director_update/initial_commence', self.set_min_time)
         self.register_api('CombatMonitor', type('obj', (object,), {
             'actor_dps': self.actor_dps,
             'actor_tdps': self.actor_tdps,
@@ -58,10 +60,13 @@ class CombatMonitor(PluginBase):
         self.ability_tag_data = list()
         self.last_id = 0
         self.last_update = perf_counter()
-        self._last_record_time = int(time() * 1000)
-        self.last_record_time = self._last_record_time
+        self._min_record_time = None
+        self.last_record_time = self._last_record_time = self.min_record_time = int(time() * 1000)
         self.dps_cache = dict()
         self.tdps_cache = dict()
+
+    def set_min_time(self,evt):
+        self.min_record_time = int(time() * 1000)
 
     def continue_work(self):
         current = perf_counter()
@@ -78,6 +83,9 @@ class CombatMonitor(PluginBase):
             c.executemany(insert_ability, ability_data)
             c.executemany(insert_ability_tag, ability_tag_data)
             self.conn.commit()
+        if self._min_record_time - BREAK_TIME > self.last_record_time:
+            self.min_record_time = self._min_record_time
+        self._min_record_time = None
         self.last_record_time = self._last_record_time
 
     def save_db(self):
@@ -102,6 +110,8 @@ class CombatMonitor(PluginBase):
     def ability_insert(self, evt):
         if evt.action_type != 'action': return
         timestamp = int(evt.time.timestamp() * 1000)
+        if self._min_record_time is None or self._min_record_time > timestamp:
+            self._min_record_time = timestamp
         if timestamp > self._last_record_time:
             self._last_record_time = timestamp
         if evt.source_id not in owners:
@@ -135,17 +145,27 @@ class CombatMonitor(PluginBase):
             self.ability_tag_data += ability_tag_data
 
     def dot_insert(self, evt):
+        timestamp = int(evt.time.timestamp() * 1000)
+        if self._min_record_time is None or self._min_record_time > timestamp:
+            self._min_record_time = timestamp
+        if timestamp > self._last_record_time:
+            self._last_record_time = timestamp
         with self.queue_lock:
-            self.ability_data.append((self.get_new_ability_id(), int(evt.time.timestamp() * 1000), None, evt.target_id, None, 'dot', evt.damage))
+            self.ability_data.append((self.get_new_ability_id(), timestamp, None, evt.target_id, None, 'dot', evt.damage))
 
     def hot_insert(self, evt):
+        timestamp = int(evt.time.timestamp() * 1000)
+        if self._min_record_time is None or self._min_record_time > timestamp:
+            self._min_record_time = timestamp
+        if timestamp > self._last_record_time:
+            self._last_record_time = timestamp
         with self.queue_lock:
-            self.ability_data.append((self.get_new_ability_id(), int(evt.time.timestamp() * 1000), None, evt.target_id, None, 'hot', evt.damage))
+            self.ability_data.append((self.get_new_ability_id(), timestamp, None, evt.target_id, None, 'hot', evt.damage))
 
     def get_period(self, period_sec: float, till: int = None):
         if till is None:
             till = self.last_record_time or period_sec * 1000
-        return int(till - (period_sec * 1000)), till
+        return max(self.min_record_time, int(till - (period_sec * 1000))), till
 
     def actor_dps(self, source_id, period_sec=60, till: int = None):
         key = (source_id, *self.get_period(period_sec, till))
