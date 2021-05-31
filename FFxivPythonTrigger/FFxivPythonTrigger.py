@@ -102,7 +102,7 @@ class PluginBase(object):
         pass
 
 
-def log_writer() -> None:
+def _log_writer() -> None:
     if _log_write_buffer and _log_lock.acquire(False):
         with open(_log_path, 'a+') as fo:
             while _log_write_buffer:
@@ -110,6 +110,9 @@ def log_writer() -> None:
                 fo.write('\n')
         _log_lock.release()
 
+def log_writer() -> None:
+    if _log_write_buffer:
+        append_missions(Mission("log_writer", -1, log_writer))
 
 def register_modules(modules: list) -> None:
     for module in modules:
@@ -286,7 +289,7 @@ frame_inject: FrameInject.FrameInjectHook
 
 _am = AddressManager.AddressManager(_storage.data.setdefault('address', dict()), _logger)
 frame_inject = FrameInject.FrameInjectHook(_am.get("frame_inject", **Sigs.frame_inject))
-frame_inject.register_continue_call(lambda: append_missions(Mission("log_writer", -1, log_writer)))
+frame_inject.register_continue_call(log_writer)
 frame_inject.enable()
 _storage.save()
 
