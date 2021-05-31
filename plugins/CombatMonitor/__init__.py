@@ -6,6 +6,7 @@ from time import time, perf_counter
 
 BREAK_TIME = 60
 UPDATE_PERIOD = 0.1
+MAX_TIME = 2000000000000
 
 insert_ability = """
 INSERT INTO `AbilityEvent`
@@ -61,7 +62,7 @@ class CombatMonitor(PluginBase):
         self.ability_tag_data = list()
         self.last_id = 0
         self.last_update = perf_counter()
-        self._min_record_time = None
+        self._min_record_time = MAX_TIME
         self.last_record_time = self._last_record_time = self.min_record_time = int(time() * 1000)
         self.dps_cache = dict()
         self.tdps_cache = dict()
@@ -76,9 +77,9 @@ class CombatMonitor(PluginBase):
         if not self.ability_data: return
 
         with self.time_set_lock:
-            if self._min_record_time is not None and self._min_record_time - BREAK_TIME > self.last_record_time:
+            if self._min_record_time < MAX_TIME and self._min_record_time - BREAK_TIME > self.last_record_time:
                 self.min_record_time = self._min_record_time
-            self._min_record_time = None
+            self._min_record_time = MAX_TIME
             self.last_record_time = self._last_record_time
 
         with self.queue_lock:
@@ -115,10 +116,8 @@ class CombatMonitor(PluginBase):
         if evt.action_type != 'action': return
         timestamp = int(evt.time.timestamp() * 1000)
         with self.time_set_lock:
-            if self._min_record_time is None or self._min_record_time > timestamp:
-                self._min_record_time = timestamp
-            if timestamp > self._last_record_time:
-                self._last_record_time = timestamp
+            self._min_record_time = min(timestamp, self._min_record_time)
+            self._last_record_time = max(timestamp, self._last_record_time)
         if evt.source_id not in owners:
             actor = api.XivMemory.actor_table.get_actor_by_id(evt.source_id)
             if actor is not None and actor.ownerId and actor.ownerId != 0xe0000000:
@@ -152,20 +151,16 @@ class CombatMonitor(PluginBase):
     def dot_insert(self, evt):
         timestamp = int(evt.time.timestamp() * 1000)
         with self.time_set_lock:
-            if self._min_record_time is None or self._min_record_time > timestamp:
-                self._min_record_time = timestamp
-            if timestamp > self._last_record_time:
-                self._last_record_time = timestamp
+            self._min_record_time = min(timestamp, self._min_record_time)
+            self._last_record_time = max(timestamp, self._last_record_time)
         with self.queue_lock:
             self.ability_data.append((self.get_new_ability_id(), timestamp, None, evt.target_id, None, 'dot', evt.damage))
 
     def hot_insert(self, evt):
         timestamp = int(evt.time.timestamp() * 1000)
         with self.time_set_lock:
-            if self._min_record_time is None or self._min_record_time > timestamp:
-                self._min_record_time = timestamp
-            if timestamp > self._last_record_time:
-                self._last_record_time = timestamp
+            self._min_record_time = min(timestamp,self._min_record_time)
+            self._last_record_time = max(timestamp,self._last_record_time)
         with self.queue_lock:
             self.ability_data.append((self.get_new_ability_id(), timestamp, None, evt.target_id, None, 'hot', evt.damage))
 
