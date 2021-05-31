@@ -6,8 +6,8 @@ from time import time
 
 insert_ability = """
 INSERT INTO `AbilityEvent`
-(`timestamp`,`source_id`,`target_id`,`ability_id`,`type`,`param`)
-VALUES (?,?,?,?,?,?)
+(`id`,`timestamp`,`source_id`,`target_id`,`ability_id`,`type`,`param`)
+VALUES (?,?,?,?,?,?,?)
 """
 insert_ability_tag = """
 INSERT INTO `AbilityTags`
@@ -30,7 +30,6 @@ WHERE
     (`timestamp` BETWEEN ? AND ?) AND
     (`type` = 'damage' OR `type` = 'dot');
 """
-select_max_timestamp = "SELECT Max(`timestamp`) FROM `AbilityEvent`"
 
 owners = dict()
 
@@ -43,6 +42,7 @@ class CombatMonitor(PluginBase):
         # self.conn = get_con(self.storage.path / 'data.db')
         self.conn = get_con()
         self.conn_lock = Lock()
+        self.id_lock = Lock()
         self.register_event('network/action_effect', self.ability_insert)
         self.register_event('network/actor_control/dot', self.dot_insert)
         self.register_event('network/actor_control/hot', self.hot_insert)
@@ -50,6 +50,8 @@ class CombatMonitor(PluginBase):
             'actor_dps': self.actor_dps,
             'actor_tdps': self.actor_tdps,
         }))
+        self.last_id = 0
+        self.last_record_time = int(time() * 1000)
 
     def save_db(self):
         with self.conn_lock:
@@ -63,55 +65,66 @@ class CombatMonitor(PluginBase):
         self.save_db()
         self.conn.close()
 
+    def get_new_ability_id(self):
+        with self.id_lock:
+            d_id = self.last_id
+            self.last_id += 1
+        return d_id
+
     def ability_insert(self, evt):
-        if evt.action_type == 'action':
-            timestamp = int(evt.time.timestamp() * 1000)
-            if evt.source_id not in owners:
-                actor = api.XivMemory.actor_table.get_actor_by_id(evt.source_id)
-                if actor is not None and actor.ownerId and actor.ownerId != 0xe0000000:
-                    owners[evt.source_id] = actor.ownerId
+        if evt.action_type != 'action': return
+        timestamp = int(evt.time.timestamp() * 1000)
+        if timestamp > self.last_record_time:
+            self.last_record_time = timestamp
+        if evt.source_id not in owners:
+            actor = api.XivMemory.actor_table.get_actor_by_id(evt.source_id)
+            if actor is not None and actor.ownerId and actor.ownerId != 0xe0000000:
+                owners[evt.source_id] = actor.ownerId
+            else:
+                owners[evt.source_id] = evt.source_id
+        source = owners[evt.source_id]
+        ability_data = list()
+        ability_tag_data = list()
+        for target_id, effects in evt.targets.items():
+            for effect in effects:
+                temp = effect.tags.copy()
+                if 'ability' in temp:
+                    action_type = 'damage'
+                    temp.remove('ability')
+                elif 'healing' in temp:
+                    action_type = 'healing'
+                    temp.remove('healing')
+                elif 'buff' in temp:
+                    action_type = 'buff'
+                    temp.remove('buff')
                 else:
-                    owners[evt.source_id] = evt.source_id
-            source = owners[evt.source_id]
-            with self.conn_lock:
-                c = self.conn.cursor()
-                for target_id, effects in evt.targets.items():
-                    for effect in effects:
-                        temp = effect.tags.copy()
-                        if 'ability' in temp:
-                            action_type = 'damage'
-                            temp.remove('ability')
-                        elif 'healing' in temp:
-                            action_type = 'healing'
-                            temp.remove('healing')
-                        elif 'buff' in temp:
-                            action_type = 'buff'
-                            temp.remove('buff')
-                        else:
-                            continue
-                        c.execute(insert_ability, (timestamp, source, target_id, evt.action_id, action_type, effect.param))
-                        record_id = c.lastrowid
-                        for tag in temp:
-                            c.execute(insert_ability_tag, (record_id, tag))
-                self.conn.commit()
+                    continue
+                d_id = self.get_new_ability_id()
+                ability_data.append((d_id, timestamp, source, target_id, evt.action_id, action_type, effect.param))
+                ability_tag_data += [(d_id, tag) for tag in temp]
+        with self.conn_lock:
+            c = self.conn.cursor()
+            c.executemany(insert_ability, ability_data)
+            c.executemany(insert_ability_tag, ability_tag_data)
+            self.conn.commit()
 
     def dot_insert(self, evt):
-        data = (int(evt.time.timestamp() * 1000), None, evt.target_id, None, 'dot', evt.damage)
+
+        data = (self.get_new_ability_id(), int(evt.time.timestamp() * 1000), None, evt.target_id, None, 'dot', evt.damage)
         with self.conn_lock:
             self.conn.cursor().execute(insert_ability, data)
             self.conn.commit()
 
     def hot_insert(self, evt):
-        data = (int(evt.time.timestamp() * 1000), None, evt.target_id, None, 'hot', evt.damage)
+        data = (self.get_new_ability_id(), int(evt.time.timestamp() * 1000), None, evt.target_id, None, 'hot', evt.damage)
         with self.conn_lock:
             self.conn.cursor().execute(insert_ability, data)
             self.conn.commit()
 
     def get_period(self, period_sec: float, till: int = None):
         if till is None:
-            till = self.conn.execute(select_max_timestamp).fetchone()[0] or period_sec * 1000
-        end_time = till
-        return int(end_time - (period_sec * 1000)), till
+            till = self.last_record_time or period_sec * 1000
+        return int(till - (period_sec * 1000)), till
 
     def actor_dps(self, source_id, period_sec=60, till: int = None):
         with self.conn_lock:

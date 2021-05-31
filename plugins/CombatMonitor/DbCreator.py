@@ -2,7 +2,7 @@ import sqlite3
 
 ability_table = '''
 CREATE TABLE IF NOT EXISTS `AbilityEvent` (
-`id` INTEGER PRIMARY KEY AUTOINCREMENT,
+`id` INTEGER PRIMARY KEY,
 `timestamp` INTEGER NOT NULL ,
 `source_id` INTEGER ,
 `target_id` INTEGER NOT NULL ,
