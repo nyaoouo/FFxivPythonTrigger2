@@ -2,14 +2,19 @@ import time
 from ctypes import *
 from traceback import format_exc
 
+from FFxivPythonTrigger.memory.res import kernel32
 from FFxivPythonTrigger import PluginBase, process_event, api
 from FFxivPythonTrigger.AddressManager import AddressManager
 from FFxivPythonTrigger.hook import Hook
 from FFxivPythonTrigger.memory import scan_pattern
+
+from .FindAddr2 import find_recv2, find_send2
 from .BundleDecoder import BundleDecoder, extract_single, pack_single
 from .Structs import ServerMessageHeader, RecvNetworkEventBase, SendNetworkEventBase, FFXIVBundleHeader
 from .RecvProcessors import processors as recv_processors
 from .SendProcessors import processors as send_processors
+
+WS_DLL_MODE = True
 
 
 class RecvRawEvent(RecvNetworkEventBase):
@@ -38,10 +43,17 @@ class WebActionHook(Hook):
     restype = c_int
 
 
+class WsDllHook(Hook):
+    socket = None
+    argtypes = [c_int64, POINTER(c_ubyte), c_int, c_int]
+    restype = c_int
+
+
 _unknown_opcode = set()
 
 send_sig = "48 83 EC ? 48 8B 49 ? 45 33 C9 FF 15 ? ? ? ? 85 C0"
 recv_sig = "48 83 EC ? 48 8B 49 ? 45 33 C9 FF 15 ? ? ? ? 83 F8 ?"
+sig2 = "40 53 48 83 EC ? 48 8B D9 48 8B 49 ? 48 83 F9 ? 74 ? 45 33 C9 FF 15 ? ? ? ?"
 
 header_size = sizeof(ServerMessageHeader)
 
@@ -67,7 +79,6 @@ class XivNetwork(PluginBase):
             def hook_function(_self, socket, buffer, size):
                 _self.socket = socket
                 new_data = self.makeup_data(bytearray(buffer[:size]))
-                #self.logger('>',new_data.hex())
                 size = len(new_data)
                 new_data = (c_ubyte * size).from_buffer(new_data)
                 success_size = _self.original(socket, new_data, size)
@@ -75,7 +86,7 @@ class XivNetwork(PluginBase):
                 return success_size
 
             def send(_self, data: bytearray):
-                #self.logger('*', data.hex())
+                # self.logger('*', data.hex())
                 size = len(data)
                 new_data = (c_ubyte * size).from_buffer(data)
                 success_size = _self.original(_self.socket, new_data, size)
@@ -91,7 +102,9 @@ class XivNetwork(PluginBase):
 
         am = AddressManager(self.storage.data, self.logger)
         self.recv_hook1 = RecvHook(am.get('recv', scan_pattern, recv_sig))
+        self.recv_hook2 = RecvHook(am.get('recv2', find_recv2, sig2))
         self.send_hook1 = SendHook(am.get('send', scan_pattern, send_sig))
+        self.send_hook2 = SendHook(am.get('send2', find_send2, sig2))
         self.storage.save()
 
         self.makeups = dict()
@@ -141,10 +154,10 @@ class XivNetwork(PluginBase):
                 self.process_recv_msg(*self.recv_decoder.get_next_message())
 
     def send_data(self, data):
-        #self.logger("in1")
+        # self.logger("in1")
         if self.send_decoder.store_data(data):
             while self.send_decoder.messages:
-                #self.logger("out1")
+                # self.logger("out1")
                 self.process_send_msg(*self.send_decoder.get_next_message())
 
     def process_recv_msg(self, msg_time, msg):
@@ -161,7 +174,7 @@ class XivNetwork(PluginBase):
         if event is not None: process_event(event)
 
     def process_send_msg(self, msg_time, msg):
-        #self.logger(len(msg),msg.hex())
+        # self.logger(len(msg),msg.hex())
         if len(msg) < header_size: return
         header = ServerMessageHeader.from_buffer(msg)
         # self.logger(header.msg_type,msg[:24].hex())
@@ -182,7 +195,7 @@ class XivNetwork(PluginBase):
         me_id = me.id if me is not None else 0
         self.send_hook1.send(pack_single(None, [
             bytearray(ServerMessageHeader(
-                msg_length=len(msg)+header_size,
+                msg_length=len(msg) + header_size,
                 actor_id=me_id,
                 msg_type=opcode,
                 sec=int(time.time()),
@@ -192,8 +205,12 @@ class XivNetwork(PluginBase):
 
     def _start(self):
         self.send_hook1.enable()
+        self.send_hook2.enable()
         self.recv_hook1.enable()
+        self.recv_hook2.enable()
 
     def _onunload(self):
         self.send_hook1.uninstall()
+        self.send_hook2.uninstall()
         self.recv_hook1.uninstall()
+        self.recv_hook2.uninstall()
