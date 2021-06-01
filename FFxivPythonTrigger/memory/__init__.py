@@ -11,6 +11,10 @@ def scan_pattern_base_module(regex_pattern: bytes) -> int:
     return pattern.scan_pattern_module(BASE_MODULE, regex_pattern)
 
 
+def scan_patterns_base_module(regex_pattern: bytes):
+    return pattern.scan_patterns_module(BASE_MODULE, regex_pattern)
+
+
 def scan_static_address_base_module(regex_pattern: bytes, cmd_len: int, ptr_idx: int = None):
     return pattern.scan_static_address_module(BASE_MODULE, regex_pattern, cmd_len, ptr_idx)
 
@@ -34,6 +38,10 @@ def scan_static_address_by_sig_base_module(ida_sig: str, cmd_len: int, ptr_idx: 
 
 def scan_pattern_by_sig_base_module(ida_sig: str):
     return scan_pattern_base_module(ida_sig_to_pattern(ida_sig))
+
+
+def scan_patterns_by_sig_base_module(ida_sig: str):
+    return scan_patterns_base_module(ida_sig_to_pattern(ida_sig))
 
 
 def read_pointer_shift(base, *shifts):
