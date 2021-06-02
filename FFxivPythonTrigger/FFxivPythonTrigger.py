@@ -92,7 +92,10 @@ class PluginBase(object):
             api.unregister(name)
         self._onunload()
         for mission in self._missions:
-            mission.join(-1)
+            try:
+                mission.join(-1)
+            except RuntimeError:
+                pass
         self.storage.save()
 
     def _onunload(self):
@@ -102,10 +105,18 @@ class PluginBase(object):
         pass
 
 
-def log_writer(log: Logger.Log) -> None:
-    with _log_lock, open(_log_path, 'a+') as fo:
-        fo.write(str(log))
-        fo.write('\n')
+def _log_writer() -> None:
+    if _log_lock.acquire(False):
+        with open(_log_path, 'a+') as fo:
+            while _log_write_buffer:
+                fo.write(str(_log_write_buffer.pop(0)))
+                fo.write('\n')
+        _log_lock.release()
+
+
+def log_writer() -> None:
+    if _log_write_buffer:
+        append_missions(Mission("log_writer", -1, _log_writer))
 
 
 def register_modules(modules: list) -> None:
@@ -184,7 +195,7 @@ def unregister_event(event_id: any, callback: EventCallback):
 
 
 def process_event(event: EventBase):
-    frame_inject.register_once_call(_process_event, event)
+    append_missions(Mission("event", -1, _process_event,event))
 
 
 def _process_event(event: EventBase):
@@ -221,7 +232,8 @@ def close():
 
 def append_missions(mission: Mission, guard=True):
     if _allow_create_missions:
-        if guard: _missions.append(mission)
+        if guard:
+            _missions.append(mission)
         mission.start()
         return True
     return False
@@ -268,7 +280,8 @@ _storage = Storage.ModuleStorage(Storage.BASE_PATH / STORAGE_DIRNAME)
 _logger = Logger.Logger(LOGGER_NAME)
 _log_path = _storage.path / LOG_FILE_FORMAT.format(int_time=int(time()))
 _log_lock = Lock()
-Logger.log_handler.add((Logger.DEBUG, log_writer))
+_log_write_buffer: List[Logger.Log] = list()
+Logger.log_handler.add((Logger.DEBUG, _log_write_buffer.append))
 atexit.register(close)
 
 _plugins: Dict[str, PluginBase] = dict()
@@ -281,6 +294,7 @@ frame_inject: FrameInject.FrameInjectHook
 
 _am = AddressManager.AddressManager(_storage.data.setdefault('address', dict()), _logger)
 frame_inject = FrameInject.FrameInjectHook(_am.get("frame_inject", **Sigs.frame_inject))
+frame_inject.register_continue_call(log_writer)
 frame_inject.enable()
 _storage.save()
 

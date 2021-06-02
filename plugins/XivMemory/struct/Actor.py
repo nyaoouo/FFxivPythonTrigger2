@@ -80,8 +80,8 @@ class Actor(OffsetStruct({
         return bool(a1 & 2 and a1 & 4 and ((a2 >> 11 & 1) <= 0 or a1 >= 128) and not a2 & 0xffffe7f7)
 
 
-class ActorTableNode(Structure):
-    _fields_ = [('main_actor', POINTER(Actor)), ('pet_actor', POINTER(Actor))]
+# class ActorTableNode(Structure):
+#     _fields_ = [('main_actor', POINTER(Actor)), ('pet_actor', POINTER(Actor))]
 
 # """the above hook is not used because of unknown bug when lots of actor is create/remove"""
 #

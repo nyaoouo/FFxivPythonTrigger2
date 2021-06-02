@@ -1,11 +1,11 @@
 from pathlib import Path
 from json import load, decoder, dumps
 from typing import Annotated, Union
-from os import getcwd
+from os import getcwd,environ
 from inspect import getmodule, stack
 from re import compile
 
-STORAGE_DIRNAME: Annotated[str, "the directory name where the storage will be"] = "AppData"
+STORAGE_DIRNAME: Annotated[str, "the directory name where the storage will be"] = environ.setdefault('FptDataDir',"AppData")
 DATA_FILENAME: Annotated[str, "the file name where json data will be stored"] = "data"
 MODULE_DIRNAME: Annotated[str, "the directory under base storage directory for modules"] = "Plugins"
 

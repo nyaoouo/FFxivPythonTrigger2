@@ -5,15 +5,22 @@ from FFxivPythonTrigger.memory.StructFactory import OffsetStruct
 from FFxivPythonTrigger import EventBase
 
 
-class RecvNetworkEventBase(EventBase):
+class NetworkEventBase(EventBase):
     id = "network"
     name = "network event"
-    is_send = False
 
     def __init__(self, raw_msg, msg_time):
         self.is_send = None
         self.raw_msg = raw_msg
         self.time = msg_time
+
+
+class SendNetworkEventBase(NetworkEventBase):
+    is_send = True
+
+
+class RecvNetworkEventBase(NetworkEventBase):
+    is_send = False
 
 
 class Waymark:
@@ -56,7 +63,7 @@ class FFXIVBundleHeader(OffsetStruct({
     'magic1': c_uint,
     'magic2': c_uint,
     'magic3': c_uint,
-    '_epoch': c_ulonglong,
+    'epoch': c_ulonglong,
     'length': c_ushort,
     'unk1': c_ushort,
     'unk2': c_ushort,
@@ -66,9 +73,10 @@ class FFXIVBundleHeader(OffsetStruct({
     'unk4': c_ushort,
     'unk5': c_ushort,
 })):
-    @property
-    def epoch(self):
-        return (ntohl(self._epoch & 0xFFFFFFFF) << 32) + ntohl(self._epoch >> 32)
+    pass
+    # @property
+    # def epoch(self):
+    #     return (ntohl(self._epoch & 0xFFFFFFFF) << 32) + ntohl(self._epoch >> 32)
 
 
 ServerMessageHeader = OffsetStruct({
@@ -103,8 +111,8 @@ ServerActionEffectHeader = OffsetStruct({
 
 ServerActionEffectEntry = OffsetStruct({
     'type': c_ubyte,
-    'param1':c_ubyte,
-    'param2':c_ubyte,
+    'param1': c_ubyte,
+    'param2': c_ubyte,
     'param3': c_ubyte,
     'param4': c_ubyte,
     'param5': c_ubyte,
@@ -140,7 +148,7 @@ ServerActionEffect16 = OffsetStruct({
     'header': ServerActionEffectHeader,
     'padding1': c_uint,
     'padding2': c_ushort,
-    'effects': ServerActionEffectEntry * 8* 16,
+    'effects': ServerActionEffectEntry * 8 * 16,
     'padding3': c_ushort,
     'padding4': c_uint,
     'target_id': c_ulonglong * 16,
@@ -233,7 +241,7 @@ ServerActorControl144 = OffsetStruct({
 
 ServerActorGauge = OffsetStruct({
     'header': ServerMessageHeader,
-    'buffer': c_ubyte*16,
+    'buffer': c_ubyte * 16,
 })
 
 ServerStatusEffectAddEntry = OffsetStruct({
@@ -260,7 +268,6 @@ ServerAddStatusEffect = OffsetStruct({
     'effects': ServerStatusEffectAddEntry * 4,
     # 'unk2': c_uint,
 })
-
 
 ServerPresetWaymark = OffsetStruct({
     'header': ServerMessageHeader,

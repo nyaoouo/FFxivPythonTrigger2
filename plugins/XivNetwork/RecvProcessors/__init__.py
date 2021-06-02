@@ -5,7 +5,7 @@ from .Opcodes import opcodes
 from . import AddStatusEffect, Ability, ActorCast, ActorControl142, StatusEffectList, ActorControl143
 from . import ActorControl144,ActorGauge,ActorUpdateHpMpTp
 
-_logger = Logger("XivNetwork/Processors")
+_logger = Logger("XivNetwork/RecvProcessors")
 
 _processors = {
     'StatusEffectList': StatusEffectList.get_event,
@@ -34,7 +34,7 @@ _processors = {
 }
 
 processors = dict()
-_opcodes = opcodes[FFxiv_Version]
+_opcodes = opcodes.setdefault(FFxiv_Version,dict())
 for k, p in _processors.items():
     if k not in _opcodes:continue
     _logger.debug(f"load opcode of [{k}]({hex(_opcodes[k])})")

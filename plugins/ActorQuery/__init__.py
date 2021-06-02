@@ -21,7 +21,7 @@ class ActorQuery(PluginBase):
             else:
                 select, query = ['Name'], args[0]
             select = select if select else ['Name']
-            data = [actor for i, actor, pet in api.XivMemory.actor_table.get_item() if eval(query)]
+            data = [actor for actor in api.XivMemory.actor_table.get_item() if eval(query)]
             data = [" ".join([str(getattr(d, i)) for i in select]) for d in data]
             api.Magic.echo_msg("found %s actor:" % len(data))
             for line in data:

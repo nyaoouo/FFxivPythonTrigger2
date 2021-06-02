@@ -13,12 +13,13 @@ try:
 
     "core"
     register_modules([
-        "HttpApi",
         "ChatLog",
+        "Command",
+        "HttpApi",
         "XivMemory",
         "XivMagic",
-        # "XivNetwork",
-        "Command",
+        "CombatMonitor",
+        "XivNetwork",
     ])
 
     "functions"

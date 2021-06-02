@@ -2,7 +2,6 @@ from re import compile
 from . import memory
 from .res import structure
 
-
 allowed_protections = [
     structure.MEMORY_PROTECTION.PAGE_EXECUTE_READ,
     structure.MEMORY_PROTECTION.PAGE_EXECUTE_READWRITE,
@@ -53,6 +52,18 @@ def scan_pattern_module(module, regex_pattern):
         page_address = next_page
 
     return found
+
+
+def scan_patterns_module(module, regex_pattern):
+    base_address = module.lpBaseOfDll
+    max_address = module.lpBaseOfDll + module.SizeOfImage
+    page_address = base_address
+
+    compile_pattern = compile(regex_pattern)
+    while page_address < max_address:
+        next_page, found = _scan_pattern_page(page_address, compile_pattern)
+        if found is not None: yield found
+        page_address = next_page if found is None else found + 1
 
 
 def scan_static_address_module(module, regex_pattern, cmd_len: int, ptr_idx: int = None):

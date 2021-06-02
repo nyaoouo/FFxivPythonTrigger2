@@ -1,9 +1,9 @@
 import socketserver
+import os
 from FFxivPythonTrigger import PluginBase
 from FFxivPythonTrigger import Logger
 
-default_host = "127.0.0.1"
-default_port = 3520
+
 
 connection_pool = []
 
@@ -52,10 +52,7 @@ class SocketLogger(PluginBase):
 
     def __init__(self):
         super(SocketLogger, self).__init__()
-        self.server_config = self.storage.data.setdefault('server', dict())
-        host = self.server_config.setdefault('host', default_host)
-        port = self.server_config.setdefault('port', default_port)
-        self.server = socketserver.ThreadingTCPServer((host, port), TcpServer)
+        self.server = socketserver.ThreadingTCPServer(("127.0.0.1", int(os.environ.setdefault('FptSocketPort',"3520"))), TcpServer)
         self.server.allow_reuse_address = True
         self.create_mission(self.server.serve_forever)
 

@@ -4,9 +4,9 @@ from typing import Optional
 
 from FFxivPythonTrigger.Logger import Logger
 
-from .Structs import ServerActionEffect1, ServerActionEffect8, ServerActionEffect16
-from .Structs import ServerActionEffect24, ServerActionEffect32, ServerActionEffectHeader
-from .Structs import ServerActionEffectDisplayType, RecvNetworkEventBase as EventBase
+from ..Structs import ServerActionEffect1, ServerActionEffect8, ServerActionEffect16
+from ..Structs import ServerActionEffect24, ServerActionEffect32, ServerActionEffectHeader
+from ..Structs import ServerActionEffectDisplayType, RecvNetworkEventBase as EventBase
 
 _logger = Logger("XivNetwork/ProcessAbility")
 
@@ -75,6 +75,7 @@ SWING_TYPES = {
 TYPE_HAVE_AMOUNT = {'ability', 'healing', 'power_drain', 'power_healing''tp_healing'}
 TYPE_HAVE_CRITICAL_DIRECT = {'ability', 'healing'}
 ABILITY_TYPE = {
+    0: {'unaspected'},
     1: {'physics', 'blow'},
     2: {'physics', 'slash'},
     3: {'physics', 'spur'},
@@ -93,7 +94,7 @@ class ActionEffect(object):
             self.tags = SWING_TYPES[effect_entry.type].copy()
             self.param = effect_entry.main_param
             if self.tags.intersection(TYPE_HAVE_AMOUNT):
-                if effect_entry.param5 == 4:
+                if effect_entry.param5 == 64:
                     self.param += effect_entry.param4 * 65535
                 if self.tags.intersection(TYPE_HAVE_CRITICAL_DIRECT):
                     if effect_entry.param1 & 1: self.tags.add('critical')
@@ -108,7 +109,7 @@ class ActionEffect(object):
             # self.tags.add(hex(self.raw_flag)[2:].zfill(8)+"-"+hex(self.raw_amount)[2:].zfill(8))
 
     def __str__(self):
-        return f"{self.param}{self.tags}"  # +str(self.raw_entry.get_data())
+        return f"{self.param}{self.tags}" + str(self.raw_entry.get_data())
 
 
 class RecvActionEffectEvent(EventBase):

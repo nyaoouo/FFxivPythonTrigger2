@@ -13,6 +13,7 @@ class Hook(object):
     argtypes: Annotated[List[any], "the argument types of hook function"] = []
     original: Annotated[callable, "the original function"]
     is_enabled: Annotated[bool, "is the hook enabled"]
+    IS_WIN_FUNC = False
 
     def hook_function(self, *args):
         """
@@ -29,7 +30,7 @@ class Hook(object):
         self.address = func_address
         self.is_enabled = False
         self.hook_info = EasyHook.HOOK_TRACE_INFO()
-        interface = CFUNCTYPE(self.restype, *self.argtypes)
+        interface = (WINFUNCTYPE if self.IS_WIN_FUNC else CFUNCTYPE)(self.restype, *self.argtypes)
 
         def _hook_function(*args):
             return self.hook_function(*args)
