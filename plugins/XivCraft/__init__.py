@@ -180,11 +180,11 @@ class XivCraft(PluginBase):
 
     def craft_next(self, chat_log, regex_result):
         if regex_result.group(1)!=self.name:return
-        sleep(0.5)
         try:
             skill = Manager.skills[regex_result.group(2) + ('' if regex_result.group(3) != "失败" else ':fail')]()
         except KeyError:
             return
+        sleep(0.5)
         craft = self.get_current_craft()
         if skill == "观察":
             craft.add_effect("观察", 1)
