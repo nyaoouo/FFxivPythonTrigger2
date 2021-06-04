@@ -138,10 +138,14 @@ class XivNetwork(PluginBase):
                         for call in self.makeups[msg_header.msg_type]:
                             try:
                                 msg_header2, msg2 = call(msg_header, msg[header_size:])
+                                if msg_header2 is None:
+                                    msg=None
+                                    break
                                 msg = bytearray(msg_header2) + msg2
                             except Exception:
                                 self.logger.error("error in makeup data:\n", format_exc())
-                new_messages.append(msg)
+                if msg is not None:
+                    new_messages.append(msg)
             new_data = pack_single(data_header, new_messages)
             return data if new_data is None else new_data
         except Exception:
