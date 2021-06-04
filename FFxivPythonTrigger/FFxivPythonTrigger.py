@@ -3,10 +3,10 @@ import os
 from pathlib import Path
 from queue import Queue
 from threading import Lock, Thread
-from time import time, sleep
+from time import time, sleep, perf_counter
 from traceback import format_exc
 from typing import List, Type, Dict, Set
-from inspect import isclass
+from inspect import isclass, getfile, getsourcelines
 import atexit
 from importlib import import_module, reload
 
@@ -67,12 +67,17 @@ class PluginBase(object):
         self.logger = Logger.Logger(self.name)
         self.storage = Storage.get_module_storage(self.name)
 
-    def create_mission(self, call, *args, **kwargs):
+    def create_mission(self, call, *args, limit_sec=0.5, **kwargs):
         def temp(*_args, **_kwargs):
+            start = perf_counter()
             try:
                 call(*_args, **_kwargs)
             except Exception:
                 self.logger.error("error occurred in mission:" + format_exc())
+            if limit_sec > 0:
+                used = perf_counter() - start
+                if used > limit_sec:
+                    self.logger.warning("[{}:{}] run for {:2f}s".format(getfile(call), getsourcelines(call)[1], used))
 
         with self._lock:
             mId = self._mission_count
@@ -91,7 +96,7 @@ class PluginBase(object):
         register_event(event_id, callback)
 
     def p_start(self):
-        self.create_mission(self._start)
+        self.create_mission(self._start, limit_sec=0)
 
     def p_unload(self):
         for event_id, callback in self._events:

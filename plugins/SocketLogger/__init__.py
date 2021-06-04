@@ -54,7 +54,7 @@ class SocketLogger(PluginBase):
         super(SocketLogger, self).__init__()
         self.server = socketserver.ThreadingTCPServer(("127.0.0.1", int(os.environ.setdefault('FptSocketPort',"3520"))), TcpServer)
         self.server.allow_reuse_address = True
-        self.create_mission(self.server.serve_forever)
+        self.create_mission(self.server.serve_forever,limit_sec=0)
 
     def _onunload(self):
         close()
