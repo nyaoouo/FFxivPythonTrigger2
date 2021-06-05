@@ -1,0 +1,30 @@
+#CraftMacro:[Name]:天钢+6二档
+#CraftMacro:[MinAttr]:0/2752/599
+#CraftMacro:[RecipeName]:最终改良用松木木材,最终改良用银制齿轮,最终改良用钨钢方板,最终改良用苍天石,最终改良用瞪羚革,最终改良用纻布,最终改良用圣水,最终改良用鲨油
+#CraftMacro:[IgnoreQuality]:True
+/ac 闲静 <wait.3>
+/ac 掌握 <wait.2>
+/ac 改革 <wait.2>
+/ac 俭约 <wait.2>
+/ac 坯料加工 <wait.3>
+/ac 坯料加工 <wait.3>
+/ac 坯料加工 <wait.3>
+/ac 坯料加工 <wait.3>
+/ac 阔步 <wait.2>
+/ac 改革 <wait.2>
+/ac 观察 <wait.3>
+/ac 注视加工 <wait.3>
+/ac [status!="最高品质"] 阔步 <wait.2>
+/ac 比尔格的祝福 <wait.3>
+/ac 掌握 <wait.2>
+/ac 崇敬 <wait.2>
+/ac 高速制作 <wait.3>
+/ac 高速制作 <wait.3>
+/ac 高速制作 <wait.3>
+/ac 高速制作 <wait.3>
+/ac 崇敬 <wait.2>
+/ac 高速制作 <wait.3>
+/ac 高速制作 <wait.3>
+/ac 高速制作 <wait.3>
+/ac 高速制作 <wait.3>
+/echo Craft finished <se.6>
