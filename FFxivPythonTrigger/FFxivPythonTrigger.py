@@ -67,7 +67,7 @@ class PluginBase(object):
         self.logger = Logger.Logger(self.name)
         self.storage = Storage.get_module_storage(self.name)
 
-    def create_mission(self, call, *args, limit_sec=0.5, **kwargs):
+    def create_mission(self, call, *args, limit_sec=0.1, **kwargs):
         def temp(*_args, **_kwargs):
             start = perf_counter()
             try:
