@@ -1,6 +1,8 @@
 import re
+from itertools import chain
 
 from FFxivPythonTrigger.Logger import Logger
+from FFxivPythonTrigger.Storage import get_module_storage
 from FFxivPythonTrigger.MacroParser import Macro, MacroFinish
 from pathlib import Path
 
@@ -9,6 +11,7 @@ from .. import Solver
 from ...simulator.Craft import Craft, CheckUnpass
 
 _logger = Logger("CraftMacroSolver")
+_storage = get_module_storage("MacroCraft")
 
 default_params = {'status': DEFAULT_STATUS()}
 macro_dir = Path(__file__).parent / 'macros'
@@ -16,7 +19,7 @@ macros = list()
 macro_craft_tag_regex = re.compile(r"#CraftMacro:\[(?P<key>[^]]+)]:(?P<arg>[^\n]+)\n")
 macro_max_size = 100
 macro_pairing = dict()
-
+macro_file="*.macro"
 
 class MacroOversize(Exception):
     pass
@@ -25,7 +28,7 @@ class MacroOversize(Exception):
 def load():
     macros.clear()
     macro_pairing.clear()
-    for file in macro_dir.glob("*.macro"):
+    for file in chain(macro_dir.glob(macro_file),_storage.path.glob(macro_file)):
         with open(file, encoding='utf-8') as f:
             macro_str = f.read()
         tags = {gp[0]: gp[1] for gp in macro_craft_tag_regex.findall(macro_str)}
