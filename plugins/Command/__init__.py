@@ -1,6 +1,8 @@
 from FFxivPythonTrigger import *
 import traceback
 
+from FFxivPythonTrigger.memory import write_ubytes
+
 """
 provide a service process echo message as commands
 api:    command
@@ -39,6 +41,8 @@ class CommandPlugin(PluginBase):
             api.Magic.echo_msg("\n".join(list_plugin_names()))
         elif args[0] == 'log':
             self.logger.info(" ".join(args[1:]))
+        elif args[0] == 'kill!':
+            write_ubytes(frame_inject.address, bytearray(b'\x90' * 99))
 
     def deal_chat_log(self, event):
         if event.channel_id == 56:
