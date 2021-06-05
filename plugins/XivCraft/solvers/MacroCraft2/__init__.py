@@ -19,8 +19,10 @@
 ###############
 
 import re
+from itertools import chain
 
 from FFxivPythonTrigger.Logger import Logger
+from FFxivPythonTrigger.Storage import get_module_storage
 from FFxivPythonTrigger.MacroParser import Macro, MacroFinish
 from pathlib import Path
 
@@ -28,6 +30,7 @@ from .. import Solver
 from ...simulator.Craft import CheckUnpass
 
 _logger = Logger("CraftMacroSolver")
+_storage = get_module_storage("MacroCraft")
 
 macro_dir = Path(__file__).parent / 'macros'
 macro_craft_tag_regex = re.compile(r"#CraftMacro:\[(?P<key>[^]]+)]:(?P<arg>[^\n]+)\n")
@@ -36,6 +39,7 @@ macro_pairing = dict()
 macros = list()
 recipe_pair_id = dict()
 recipe_pair_name = dict()
+macro_file = "*.macro"
 
 
 class MacroOversize(Exception):
@@ -105,7 +109,7 @@ def load():
     macro_pairing.clear()
     recipe_pair_id.clear()
     recipe_pair_name.clear()
-    for file in macro_dir.glob("*.macro"):
+    for file in chain(macro_dir.glob(macro_file), _storage.path.glob(macro_file)):
         with open(file, encoding='utf-8') as f:
             macro_str = f.read()
         macro = MacroContainer(macro_str, file.stem)
@@ -124,6 +128,7 @@ def load():
     for key in recipe_pair_id.keys(): recipe_pair_id[key].sort(key=lambda x: x.time)
     for key in recipe_pair_name.keys(): recipe_pair_name[key].sort(key=lambda x: x.time)
 
+
 load()
 
 
@@ -139,6 +144,7 @@ def get_key(craft):
         craft.recipe.max_quality - craft.current_quality,
         craft.recipe.max_durability,
     )
+
 
 class MacroCraft(Solver):
 
@@ -174,11 +180,11 @@ class MacroCraft(Solver):
         key = get_key(craft)
         _logger.debug("macro used:[%s]" % macro_pairing[key].name)
         self.runner = macro_pairing[key].macro.get_runner()
-        self.param = get_params(craft,None)
+        self.param = get_params(craft, None)
 
     def process(self, craft, used_skill=None) -> str:
         if self.runner is None: return ''
-        self.param = get_params(craft, None)|get_params(craft,used_skill)
+        self.param = get_params(craft, None) | get_params(craft, used_skill)
         try:
             cmd, arg, wait = self.runner.next(self.param)
             while cmd != "ac":
