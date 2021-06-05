@@ -72,8 +72,8 @@ class XivNetwork(PluginBase):
     def __init__(self):
         super().__init__()
 
-        self.send_decoder = BundleDecoder(lambda msg_time, msg: self.create_mission(self.process_send_msg, msg_time, msg))
-        self.recv_decoder = BundleDecoder(lambda msg_time, msg: self.create_mission(self.process_recv_msg, msg_time, msg))
+        self.send_decoder = BundleDecoder(self.process_send_msg)
+        self.recv_decoder = BundleDecoder(self.process_recv_msg)
 
         class SendHook(WebActionHook):
             def hook_function(_self, socket, buffer, size):
@@ -163,10 +163,8 @@ class XivNetwork(PluginBase):
         if event is not None: process_event(event)
 
     def process_send_msg(self, msg_time, msg):
-        # self.logger(len(msg),msg.hex())
         if len(msg) < header_size: return
         header = ServerMessageHeader.from_buffer(msg)
-        # self.logger(header.msg_type,msg[:24].hex())
         for key in msg_header_keys.keys():
             msg_header_keys[key] = getattr(header, key)
         if header.msg_type not in send_events_classes:

@@ -30,9 +30,9 @@ magics = {
 header_size = sizeof(FFXIVBundleHeader)
 
 
-def decompress_message(header: FFXIVBundleHeader, buffer: bytearray, offset: int) -> Optional[bytearray]:
+def decompress_message(header: FFXIVBundleHeader, buffer: bytearray) -> Optional[bytearray]:
     if header.encoding == 0x0000 or header.encoding == 0x0001:
-        return buffer[offset + header_size:offset + header.length]
+        return buffer[header_size:header.length]
     if header.encoding != 0x0101 and header.encoding != 0x0100:
         global _encoding_error
         if not _encoding_error:
@@ -40,7 +40,7 @@ def decompress_message(header: FFXIVBundleHeader, buffer: bytearray, offset: int
             _encoding_error = True
         return None
     try:
-        return bytearray(decompress(buffer[offset + header_size + 2:offset + header.length], wbits=-MAX_WBITS))
+        return bytearray(decompress(buffer[header_size + 2:header.length], wbits=-MAX_WBITS))
     except error:
         _logger.error("Decompression error:\n", format_exc())
 
@@ -64,7 +64,7 @@ def extract_single(raw: bytearray):
     if header.length > len(raw):
         _logger.error(f"[single] Invalid msg length({len(raw)}/{header.length})")
         return
-    message_raw = decompress_message(header, raw, 0)
+    message_raw = decompress_message(header, raw)
     if message_raw is None or not len(message_raw): return
     try:
         messages = list()
@@ -119,55 +119,51 @@ class BundleDecoder(object):
     def process(self):
         self.work = True
         self.is_processing = True
-        while self.work:
-            self._buffer += self.data.get()
-            offset = 0
-            while len(self._buffer) and offset < len(self._buffer):
-                if len(self._buffer) - offset <= header_size:
-                    offset = self.reset_stream(offset)
-                    continue
-                header = FFXIVBundleHeader.from_buffer(self._buffer[offset:])
-                if header.magic0 != MAGIC_NUMBER and header.magic0 and header.magic1 and header.magic2 and header.magic3:
-                    raw = self._buffer[offset:offset + header_size].hex()
-                    _logger.error("Invalid magic # in header:", raw)
-                    offset = self.reset_stream(offset)
-                    continue
-                if header.length > len(self._buffer) - offset:
-                    if 0 < offset != len(self._buffer):
-                        del self._buffer[:offset]
-                    break
-                if header.magic0:
-                    magics["magic0"] = header.magic0
-                    magics['magic1'] = header.magic1
-                    magics['magic2'] = header.magic2
-                    magics['magic3'] = header.magic3
-                message = decompress_message(header, self._buffer, offset)
-                if message is None:
-                    offset = self.reset_stream(offset)
-                    continue
-                offset += header.length
-                if offset == len(self._buffer):
-                    self._buffer.clear()
-                if not len(message):
-                    continue
-                try:
-                    msg_offset = 0
-                    msg_time = datetime.fromtimestamp(header.epoch / 1000)
-                    # _logger.debug(f"{header.msg_count} in {len(message)} long [{bytearray(header).hex()}]")
-                    for i in range(header.msg_count):
-                        msg_len = int.from_bytes(message[msg_offset:msg_offset + 4], byteorder='little')
-                        self.recall(msg_time, message[msg_offset:msg_offset + msg_len])
-                        msg_offset += msg_len
-                except Exception:
-                    _logger.error("Split message error:\n", format_exc())
-                    self._buffer.clear()
-                    break
+        try:
+            while self.work:
+                self._buffer += self.data.get()
+                while len(self._buffer):
+                    if len(self._buffer) < header_size:
+                        break
+                    header = FFXIVBundleHeader.from_buffer(self._buffer)
+                    if header.magic0 != MAGIC_NUMBER and header.magic0 and header.magic1 and header.magic2 and header.magic3:
+                        _logger.error("Invalid magic in header:", header.get_data())
+                        self.reset_stream()
+                        continue
+                    if header.length > len(self._buffer):
+                        break
+                    if header.magic0:
+                        for key in magics.keys():
+                            magics[key] = getattr(header, key)
+                    message = decompress_message(header, self._buffer)
+                    if message is None:
+                        self.reset_stream()
+                        continue
+                    if not len(message):
+                        continue
+                    try:
+                        msg_offset = 0
+                        msg_time = datetime.fromtimestamp(header.epoch / 1000)
+                        # _logger.debug(f"{header.msg_count} in {len(message)} long [{bytearray(header).hex()}]")
+                        for i in range(header.msg_count):
+                            msg_len = int.from_bytes(message[msg_offset:msg_offset + 4], byteorder='little')
+                            self.recall(msg_time, message[msg_offset:msg_offset + msg_len])
+                            msg_offset += msg_len
+                    except Exception:
+                        _logger.error("Split message error:\n", format_exc())
+                        self._buffer.clear()
+                        break
+                    finally:
+                        self._buffer = self._buffer[header.length:]
+        except Exception:
+            self.is_processing = False
+            raise
         self.is_processing = False
 
-    def reset_stream(self, offset: int) -> int:
+    def reset_stream(self):
         try:
-            ans = self._buffer.index(MAGIC_NUMBER_Array, offset + 1)
-            return ans
+            idx = self._buffer.index(MAGIC_NUMBER_Array,1)
         except ValueError:
             self._buffer.clear()
-            return -1
+        else:
+            self._buffer = self._buffer[idx:]
