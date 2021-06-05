@@ -138,23 +138,22 @@ class BundleDecoder(object):
                     message = decompress_message(header, self._buffer)
                     if message is None:
                         self.reset_stream()
-                        continue
-                    if not len(message):
-                        continue
-                    try:
-                        msg_offset = 0
-                        msg_time = datetime.fromtimestamp(header.epoch / 1000)
-                        # _logger.debug(f"{header.msg_count} in {len(message)} long [{bytearray(header).hex()}]")
-                        for i in range(header.msg_count):
-                            msg_len = int.from_bytes(message[msg_offset:msg_offset + 4], byteorder='little')
-                            self.recall(msg_time, message[msg_offset:msg_offset + msg_len])
-                            msg_offset += msg_len
-                    except Exception:
-                        _logger.error("Split message error:\n", format_exc())
-                        self._buffer.clear()
-                        break
-                    finally:
+                    else:
                         self._buffer = self._buffer[header.length:]
+                        if len(message):
+                            try:
+                                msg_offset = 0
+                                msg_time = datetime.fromtimestamp(header.epoch / 1000)
+                                # _logger.debug(f"{header.msg_count} in {len(message)} long [{bytearray(header).hex()}]")
+                                for i in range(header.msg_count):
+                                    msg_len = int.from_bytes(message[msg_offset:msg_offset + 4], byteorder='little')
+                                    self.recall(msg_time, message[msg_offset:msg_offset + msg_len])
+                                    msg_offset += msg_len
+                            except Exception:
+                                _logger.error("Split message error:\n", format_exc())
+                                self._buffer.clear()
+                                break
+
         except Exception:
             self.is_processing = False
             raise
