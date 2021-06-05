@@ -203,7 +203,8 @@ def unregister_event(event_id: any, callback: EventCallback):
 
 
 def process_event(event: EventBase):
-    append_missions(Mission("event", -1, _process_event, event))
+    if event.id in _events or '*' in _events:
+        append_missions(Mission("event", 0, _process_event, event))
 
 
 def _process_event(event: EventBase):
@@ -241,8 +242,7 @@ def close():
 
 def append_missions(mission: Mission, guard=True):
     if _allow_create_missions:
-        if guard:
-            _missions.add(mission)
+        if guard:_missions.add(mission)
         mission.start()
         return True
     return False
@@ -301,9 +301,6 @@ _plugins: Dict[str, PluginBase] = dict()
 _missions: Set[Mission] = set()
 _events: Dict[any, Set[EventCallback]] = dict()
 _allow_create_missions: bool = True
-
-_am: AddressManager.AddressManager
-frame_inject: FrameInject.FrameInjectHook
 
 _am = AddressManager.AddressManager(_storage.data.setdefault('address', dict()), _logger)
 frame_inject = FrameInject.FrameInjectHook(_am.get("frame_inject", **Sigs.frame_inject))
