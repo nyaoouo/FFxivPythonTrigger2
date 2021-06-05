@@ -77,7 +77,7 @@ class CombatMonitor(PluginBase):
         if not self.ability_data: return
 
         with self.time_set_lock:
-            if self._min_record_time < MAX_TIME and self._min_record_time - BREAK_TIME > self.last_record_time:
+            if self._min_record_time < MAX_TIME and self._min_record_time - (BREAK_TIME*1000) > self.last_record_time:
                 self.min_record_time = self._min_record_time
             self._min_record_time = MAX_TIME
             self.last_record_time = self._last_record_time
@@ -159,13 +159,13 @@ class CombatMonitor(PluginBase):
     def hot_insert(self, evt):
         timestamp = int(evt.time.timestamp() * 1000)
         with self.time_set_lock:
-            self._min_record_time = min(timestamp,self._min_record_time)
-            self._last_record_time = max(timestamp,self._last_record_time)
+            self._min_record_time = min(timestamp, self._min_record_time)
+            self._last_record_time = max(timestamp, self._last_record_time)
         with self.queue_lock:
             self.ability_data.append((self.get_new_ability_id(), timestamp, None, evt.target_id, None, 'hot', evt.damage))
 
     def get_period(self, period_sec: float, till: int = None):
-        if till is None:till = self.last_record_time
+        if till is None: till = self.last_record_time
         return max(self.min_record_time, int(till - (period_sec * 1000))), till
 
     def actor_dps(self, source_id, period_sec=60, till: int = None):
