@@ -121,7 +121,7 @@ class BundleDecoder(object):
         self.is_processing = True
         try:
             while self.work:
-                self._buffer += self.data.get()
+                self._buffer = self._buffer+self.data.get()
                 while len(self._buffer):
                     if len(self._buffer) < header_size:
                         break
