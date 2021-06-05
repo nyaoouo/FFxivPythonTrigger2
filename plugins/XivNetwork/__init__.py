@@ -72,32 +72,29 @@ class XivNetwork(PluginBase):
     def __init__(self):
         super().__init__()
 
-        self.send_decoder = BundleDecoder()
-        self.recv_decoder = BundleDecoder()
+        self.send_decoder = BundleDecoder(lambda msg_time, msg: self.create_mission(self.process_send_msg, msg_time, msg))
+        self.recv_decoder = BundleDecoder(lambda msg_time, msg: self.create_mission(self.process_recv_msg, msg_time, msg))
 
         class SendHook(WebActionHook):
             def hook_function(_self, socket, buffer, size):
                 _self.socket = socket
-                new_data = self.makeup_data(bytearray(buffer[:size]))
-                size = len(new_data)
-                new_data = (c_ubyte * size).from_buffer(new_data)
-                success_size = _self.original(socket, new_data, size)
-                if success_size: self.create_mission(self.send_data, bytearray(new_data[:success_size]).copy())
-                return success_size
+                return _self.send(self.makeup_data(bytearray(buffer[:size])))
 
-            def send(_self, data: bytearray):
+            def send(_self, data: bytearray,process = True):
                 # self.logger('*', data.hex())
                 size = len(data)
                 new_data = (c_ubyte * size).from_buffer(data)
                 success_size = _self.original(_self.socket, new_data, size)
-                if success_size: self.create_mission(self.send_data, bytearray(new_data[:success_size]).copy())
+                if success_size and process:
+                    self.send_decoder.store_data(bytearray(new_data[:success_size]).copy())
                 return success_size
 
         class RecvHook(WebActionHook):
             def hook_function(_self, socket, buffer, size):
                 _self.socket = socket
                 success_size = _self.original(socket, buffer, size)
-                if success_size: self.create_mission(self.recv_data, bytearray(buffer[:success_size]).copy())
+                if success_size:
+                    self.recv_decoder.store_data(bytearray(buffer[:success_size]).copy())
                 return success_size
 
         am = AddressManager(self.storage.data, self.logger)
@@ -139,7 +136,7 @@ class XivNetwork(PluginBase):
                             try:
                                 msg_header2, msg2 = call(msg_header, msg[header_size:])
                                 if msg_header2 is None:
-                                    msg=None
+                                    msg = None
                                     break
                                 msg = bytearray(msg_header2) + msg2
                             except Exception:
@@ -151,18 +148,6 @@ class XivNetwork(PluginBase):
         except Exception:
             self.logger.error("error in makeup data:\n", format_exc())
             return data
-
-    def recv_data(self, data):
-        if self.recv_decoder.store_data(data):
-            while self.recv_decoder.messages:
-                self.process_recv_msg(*self.recv_decoder.get_next_message())
-
-    def send_data(self, data):
-        # self.logger("in1")
-        if self.send_decoder.store_data(data):
-            while self.send_decoder.messages:
-                # self.logger("out1")
-                self.process_send_msg(*self.send_decoder.get_next_message())
 
     def process_recv_msg(self, msg_time, msg):
         if len(msg) < header_size: return
@@ -194,7 +179,7 @@ class XivNetwork(PluginBase):
         event = send_processors[header.msg_type](msg_time, msg) if header.msg_type in send_processors else None
         if event is not None: process_event(event)
 
-    def send_messages(self, messages: list[tuple[int, bytearray]]):
+    def send_messages(self, messages: list[tuple[int, bytearray]],process = True):
         me = api.XivMemory.actor_table.get_me()
         me_id = me.id if me is not None else 0
         self.send_hook1.send(pack_single(None, [
@@ -205,16 +190,20 @@ class XivNetwork(PluginBase):
                 sec=int(time.time()),
                 **msg_header_keys,
             )) + msg for opcode, msg in messages
-        ]))
+        ]),process)
 
     def _start(self):
         self.send_hook1.enable()
         self.send_hook2.enable()
         self.recv_hook1.enable()
         self.recv_hook2.enable()
+        self.create_mission(self.recv_decoder.process, limit_sec=-1)
+        self.create_mission(self.send_decoder.process, limit_sec=-1)
 
     def _onunload(self):
         self.send_hook1.uninstall()
         self.send_hook2.uninstall()
         self.recv_hook1.uninstall()
         self.recv_hook2.uninstall()
+        self.send_decoder.stop_process()
+        self.recv_decoder.stop_process()

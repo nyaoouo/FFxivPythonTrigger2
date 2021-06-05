@@ -98,7 +98,7 @@ class ActionEffect(object):
                     self.param += effect_entry.param4 * 65535
                 if self.tags.intersection(TYPE_HAVE_CRITICAL_DIRECT):
                     if effect_entry.param1 & 1: self.tags.add('critical')
-                    if effect_entry.param1 & 1: self.tags.add('direct')
+                    if effect_entry.param1 & 2: self.tags.add('direct')
                 if 'ability' in self.tags:
                     if effect_entry.param3 in ABILITY_TYPE:
                         self.tags |= ABILITY_TYPE[effect_entry.param3]
