@@ -163,7 +163,7 @@ class BundleDecoder(object):
                                 break
                     del header
                 if msg_cnt >= SAFE_LIMIT:
-                    _logger.error("too many msg in queue!")
+                    _logger.error("too many msg in buffer!")
                     self._buffer.clear()
 
         except Exception:
