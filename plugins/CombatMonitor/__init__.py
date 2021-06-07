@@ -92,6 +92,8 @@ class CombatMonitor(PluginBase):
             c.executemany(insert_ability, ability_data)
             c.executemany(insert_ability_tag, ability_tag_data)
             self.conn.commit()
+            self.dps_cache.clear()
+            self.tdps_cache.clear()
 
     def save_db(self):
         with self.conn_lock:
