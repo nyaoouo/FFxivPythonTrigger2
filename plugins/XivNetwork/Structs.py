@@ -58,7 +58,7 @@ class ServerActionEffectDisplayType:
     MountName = 13
 
 
-class FFXIVBundleHeader(OffsetStruct({
+FFXIVBundleHeader = OffsetStruct({
     'magic0': c_uint,
     'magic1': c_uint,
     'magic2': c_uint,
@@ -72,11 +72,10 @@ class FFXIVBundleHeader(OffsetStruct({
     'unk3': c_ushort,
     'unk4': c_ushort,
     'unk5': c_ushort,
-})):
-    pass
-    # @property
-    # def epoch(self):
-    #     return (ntohl(self._epoch & 0xFFFFFFFF) << 32) + ntohl(self._epoch >> 32)
+})
+# @property
+# def epoch(self):
+#     return (ntohl(self._epoch & 0xFFFFFFFF) << 32) + ntohl(self._epoch >> 32)
 
 
 ServerMessageHeader = OffsetStruct({

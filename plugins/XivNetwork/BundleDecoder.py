@@ -130,6 +130,10 @@ class BundleDecoder(object):
                         _logger.error("Invalid magic in header:", header.get_data())
                         self.reset_stream()
                         continue
+                    if not header.length:
+                        _logger.error("Invalid header length:", header.get_data())
+                        self.reset_stream()
+                        continue
                     if header.length > len(self._buffer):
                         break
                     if header.magic0:
@@ -153,6 +157,7 @@ class BundleDecoder(object):
                                 _logger.error("Split message error:\n", format_exc())
                                 self._buffer.clear()
                                 break
+                    del header
 
         except Exception:
             self.is_processing = False
