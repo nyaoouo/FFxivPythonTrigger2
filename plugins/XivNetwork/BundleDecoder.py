@@ -15,6 +15,8 @@ from plugins.XivNetwork.Structs import FFXIVBundleHeader
 
 _logger = Logger("XivNetwork/BundleDecoder")
 
+SAFE_LIMIT = 50
+
 MAGIC_NUMBER = 0x41a05252
 MAGIC_NUMBER_Array = pack('I', MAGIC_NUMBER)
 
@@ -121,8 +123,10 @@ class BundleDecoder(object):
         self.is_processing = True
         try:
             while self.work:
-                self._buffer = self._buffer+self.data.get()
-                while len(self._buffer):
+                self._buffer = self._buffer + self.data.get()
+                msg_cnt = 0
+                while len(self._buffer) and msg_cnt < SAFE_LIMIT:
+                    msg_cnt += 1
                     if len(self._buffer) < header_size:
                         break
                     header = FFXIVBundleHeader.from_buffer(self._buffer)
@@ -158,6 +162,9 @@ class BundleDecoder(object):
                                 self._buffer.clear()
                                 break
                     del header
+                if msg_cnt >= SAFE_LIMIT:
+                    _logger.error("too many msg in queue!")
+                    self._buffer.clear()
 
         except Exception:
             self.is_processing = False
@@ -166,7 +173,7 @@ class BundleDecoder(object):
 
     def reset_stream(self):
         try:
-            idx = self._buffer.index(MAGIC_NUMBER_Array,1)
+            idx = self._buffer.index(MAGIC_NUMBER_Array, 1)
         except ValueError:
             self._buffer.clear()
         else:
