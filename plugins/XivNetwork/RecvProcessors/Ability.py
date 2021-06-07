@@ -60,6 +60,7 @@ SWING_TYPES = {
     0x4: {'healing'},
     0x5: {'blocked', 'ability'},
     0x6: {'parry', 'ability'},
+    0x7: {'Invincible'},
     0xA: {'power_drain'},
     0xB: {'power_healing'},
     0xD: {'tp_healing'},
