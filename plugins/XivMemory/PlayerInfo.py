@@ -8,8 +8,8 @@ gauges = {k: read_memory(v, AddressManager.gauge_addr) for k, v in JobGauge.gaug
 class PlayerInfo(Player.Player):
     @property
     def gauge(self):
-        if self.job in gauges:
-            return gauges[self.job]
+        if self.job.value() in gauges:
+            return gauges[self.job.value()]
 
 
 player_info = read_memory(PlayerInfo, AddressManager.player_addr)

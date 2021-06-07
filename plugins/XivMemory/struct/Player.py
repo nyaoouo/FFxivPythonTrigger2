@@ -1,10 +1,10 @@
-from .JobGauge import *
 from ctypes import *
+from FFxivPythonTrigger.memory.StructFactory import OffsetStruct
+from .Enum import Jobs
 
-
-Player=OffsetStruct({
+Player = OffsetStruct({
     'localContentId': (c_ulong, 88),
-    'job': (c_byte, 106),
+    'job': (Jobs, 106),
     'str': (c_uint, 356),
     'dex': (c_uint, 360),
     'vit': (c_uint, 364),

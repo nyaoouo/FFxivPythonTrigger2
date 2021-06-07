@@ -1,3 +1,8 @@
+from ctypes import c_ubyte
+
+from FFxivPythonTrigger.memory.StructFactory import EnumStruct
+
+
 class ActorType(object):
     Null = 0
     Player = 1
@@ -16,25 +21,27 @@ class ActorType(object):
     CardStand = 14
 
 
-class JobClass(object):
-    Paladin = 19  # 骑士PLD
-    Monk = 20  # 武僧MNK
-    Warrior = 21  # 战士WAR
-    Dragoon = 22  # 龙骑士DRG
-    Bard = 23  # 吟游诗人BRD
-    WhiteMage = 24  # 白魔法师WHM
-    BlackMage = 25  # 黑魔法师BLM
-    Arcanist = 26  # 秘术师ACN
-    Summoner = 27  # 召唤师SMN
-    Scholar = 28  # 学者SCH
-    Ninja = 30  # 忍者NIN
-    Machinist = 31  # 机工士MCH
-    DarkKnight = 32  # 暗黑骑士DRK
-    Astrologian = 33  # 占星术士AST
-    Samurai = 34  # 武士SAM
-    RedMage = 35  # 赤魔法师RDM
-    Gunbreaker = 37  # 绝枪战士GNB
-    Dancer = 38  # 舞者DNC
+Jobs = EnumStruct(c_ubyte, {
+    5: 'Archer',  # 弓箭手 Arc
+    19: 'Paladin',  # 骑士PLD
+    20: 'Monk',  # 武僧MNK
+    21: 'Warrior',  # 战士WAR
+    22: 'Dragoon',  # 龙骑士DRG
+    23: 'Bard',  # 吟游诗人BRD
+    24: 'WhiteMage',  # 白魔法师WHM
+    25: 'BlackMage',  # 黑魔法师BLM
+    26: 'Arcanist',  # 秘术师ACN
+    27: 'Summoner',  # 召唤师SMN
+    28: 'Scholar',  # 学者SCH
+    30: 'Ninja',  # 忍者NIN
+    31: 'Machinist',  # 机工士MCH
+    32: 'DarkKnight',  # 暗黑骑士DRK
+    33: 'Astrologian',  # 占星术士AST
+    34: 'Samurai',  # 武士SAM
+    35: 'RedMage',  # 赤魔法师RDM
+    37: 'Gunbreaker',  # 绝枪战士GNB
+    38: 'Dancer'  # 舞者DNC
+})
 
 
 class ChatType(object):

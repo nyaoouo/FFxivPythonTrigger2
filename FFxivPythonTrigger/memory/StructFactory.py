@@ -18,14 +18,14 @@ class _OffsetStruct(Structure):
     _pack_ = 1
     raw_fields: Dict[str, Tuple[any, int]] = None
 
-    def get_data(self,full=False):
-        return get_data(self,full)
+    def get_data(self, full=False):
+        return get_data(self, full)
 
     def __str__(self):
         return str(get_data(self))
 
     def get_full_item(self):
-        for k,_ in self._fields_:
+        for k, _ in self._fields_:
             yield k, getattr(self, k)
 
     def get_item(self):
@@ -92,14 +92,27 @@ def PointerStruct(i_d_type: any, *i_shifts: int) -> Type[_PointerStruct]:
 
 
 class _EnumStruct(Structure):
+    _default:any
     _data: dict
+    _reverse: dict
 
     def value(self):
-        return self._data.get(self.raw_value)
+        try:
+            return self._data[self.raw_value]
+        except KeyError:
+            return self.raw_value if self._default is None else self._default
+
+    def set(self, value):
+        try:
+            self.raw_value = self._reverse[value]
+        except KeyError:
+            self.raw_value = value
 
 
-def EnumStruct(raw_type: any, enum_data) -> Type[_EnumStruct]:
+def EnumStruct(raw_type: any, enum_data: dict, default=None) -> Type[_EnumStruct]:
     return type("EnumStruct", (_EnumStruct,), {
+        '_default': default,
         '_data': enum_data,
+        '_reverse': {v: k for k, v in enum_data.items()},
         '_fields_': [('raw_value', raw_type)],
     })
