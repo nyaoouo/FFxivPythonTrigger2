@@ -15,7 +15,7 @@ from plugins.XivNetwork.Structs import FFXIVBundleHeader
 
 _logger = Logger("XivNetwork/BundleDecoder")
 
-SAFE_LIMIT = 50
+SAFE_LIMIT = 100
 
 MAGIC_NUMBER = 0x41a05252
 MAGIC_NUMBER_Array = pack('I', MAGIC_NUMBER)
@@ -97,13 +97,21 @@ def pack_single(header: Optional[FFXIVBundleHeader], messages: list[bytearray]):
     return ans
 
 
+def reset_stream(buffer):
+    try:
+        idx = buffer.index(MAGIC_NUMBER_Array, 1)
+    except ValueError:
+        buffer.clear()
+    else:
+        del buffer[:idx]
+
+
 class BundleDecoder(object):
 
     # messages: list[tuple[int, bytearray]]
 
     def __init__(self, recall: callable):
         self.data = Queue()
-        self._buffer = bytearray()
         self.recall = recall
         self.messages = Queue()
         self.work = False
@@ -121,33 +129,34 @@ class BundleDecoder(object):
     def process(self):
         self.work = True
         self.is_processing = True
+        buffer = bytearray()
         try:
             while self.work:
-                self._buffer = self._buffer + self.data.get()
+                buffer += self.data.get()
                 msg_cnt = 0
-                while len(self._buffer) and msg_cnt < SAFE_LIMIT:
+                while len(buffer) and msg_cnt < SAFE_LIMIT:
                     msg_cnt += 1
-                    if len(self._buffer) < header_size:
+                    if len(buffer) < header_size:
                         break
-                    header = FFXIVBundleHeader.from_buffer(self._buffer)
+                    header = FFXIVBundleHeader.from_buffer(buffer[:header_size])
                     if header.magic0 != MAGIC_NUMBER and header.magic0 and header.magic1 and header.magic2 and header.magic3:
                         _logger.error("Invalid magic in header:", header.get_data())
-                        self.reset_stream()
+                        reset_stream(buffer)
                         continue
                     if not header.length:
                         _logger.error("Invalid header length:", header.get_data())
-                        self.reset_stream()
+                        reset_stream(buffer)
                         continue
-                    if header.length > len(self._buffer):
+                    if header.length > len(buffer):
                         break
                     if header.magic0:
                         for key in magics.keys():
                             magics[key] = getattr(header, key)
-                    message = decompress_message(header, self._buffer)
+                    message = decompress_message(header,buffer)
                     if message is None:
-                        self.reset_stream()
+                        reset_stream(buffer)
                     else:
-                        self._buffer = self._buffer[header.length:]
+                        del buffer[:header.length]
                         if len(message):
                             try:
                                 msg_offset = 0
@@ -159,22 +168,13 @@ class BundleDecoder(object):
                                     msg_offset += msg_len
                             except Exception:
                                 _logger.error("Split message error:\n", format_exc())
-                                self._buffer.clear()
+                                buffer.clear()
                                 break
-                    del header
                 if msg_cnt >= SAFE_LIMIT:
                     _logger.error("too many msg in buffer!")
-                    self._buffer.clear()
+                    buffer.clear()
 
         except Exception:
             self.is_processing = False
             raise
         self.is_processing = False
-
-    def reset_stream(self):
-        try:
-            idx = self._buffer.index(MAGIC_NUMBER_Array, 1)
-        except ValueError:
-            self._buffer.clear()
-        else:
-            self._buffer = self._buffer[idx:]
