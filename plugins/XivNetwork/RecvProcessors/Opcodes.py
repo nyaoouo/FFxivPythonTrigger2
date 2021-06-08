@@ -1,5 +1,29 @@
 opcodes = {
-    "2021.04.22.0000.0000": {
+    "2021.05.28.0000.0000": {
+        "StatusEffectList": 0x0177,
+        "StatusEffectList2": 0x0335,
+        "BossStatusEffectList": 0xCAFE,
+        "Ability1": 0x0240,
+        "Ability8": 0x0376,
+        "Ability16": 0x035B,
+        "Ability24": 0x020B,
+        "Ability32": 0x0353,
+        "ActorCast": 0x0392,
+        "AddStatusEffect": 0x0212,
+        "ActorControl142": 0x03C3,
+        "ActorControl143": 0x0077,
+        "ActorControl144": 0x007F,
+        "UpdateHpMpTp": 0x0131,
+        "PlayerSpawn": 0x0082,
+        "NpcSpawn": 0x00DD,
+        "NpcSpawn2": 0xCAFE,
+        "ActorMove": 0x0066,
+        "ActorSetPos": 0x009B,
+        "ActorGauge": 0x0136,
+        "PresetWaymark": 0x03D5,
+        "Waymark": 0x03A8,
+    },  # cn5.45
+    "2021.04.22.0000.0000": {  # cn 5.41
         'StatusEffectList': 0x03C1,
         'StatusEffectList2': 0xCAFE,
         'BossStatusEffectList': 0xCAFE,
@@ -23,5 +47,5 @@ opcodes = {
         'PresetWaymark': 0x0221,
         'Waymark': 0x02B3,
         'ActorDrink': 0xCAFE,
-    },
+    },  # cn5.41
 }
