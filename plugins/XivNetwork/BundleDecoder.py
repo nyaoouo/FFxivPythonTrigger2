@@ -134,8 +134,12 @@ class BundleDecoder(object):
             while self.work:
                 buffer += self.data.get()
                 msg_cnt = 0
-                while len(buffer) and msg_cnt < SAFE_LIMIT:
+                while len(buffer):
                     msg_cnt += 1
+                    if msg_cnt>=SAFE_LIMIT:
+                        _logger.error("too many msg in buffer!")
+                        buffer.clear()
+                        break
                     if len(buffer) < header_size:
                         break
                     header = FFXIVBundleHeader.from_buffer(buffer[:header_size])
@@ -170,9 +174,6 @@ class BundleDecoder(object):
                                 _logger.error("Split message error:\n", format_exc())
                                 buffer.clear()
                                 break
-                if msg_cnt >= SAFE_LIMIT:
-                    _logger.error("too many msg in buffer!")
-                    buffer.clear()
 
         except Exception:
             self.is_processing = False
