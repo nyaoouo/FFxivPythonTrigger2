@@ -1,5 +1,4 @@
 from .GetInteger import get_integer, get_packed_integer, NotSupportedType
-from .WorldName import get_world_name
 
 START_BYTE = 2
 END_BYTE = 3
@@ -337,6 +336,7 @@ def get_text_from_chain(message_chain):
 
 class ChatLog(object):
     def __init__(self, raw_data: bytes):
+        #info('log',raw_data.hex(sep=" "))
         self.raw_data = raw_data
         self.time = int.from_bytes(raw_data[0:4], byteorder='little')
         self.channel_id = int.from_bytes(raw_data[4:8], byteorder='little')

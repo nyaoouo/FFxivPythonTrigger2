@@ -13,7 +13,7 @@ try:
 
     "core"
     register_modules([
-        "ChatLog",
+        "ChatLog2",
         "Command",
         "HttpApi",
         "XivMemory",
