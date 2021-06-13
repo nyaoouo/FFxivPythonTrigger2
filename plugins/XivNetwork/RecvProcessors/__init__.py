@@ -2,7 +2,7 @@ from FFxivPythonTrigger.Logger import Logger
 from FFxivPythonTrigger import FFxiv_Version
 
 from .Opcodes import opcodes
-from . import AddStatusEffect, Ability, ActorCast, ActorControl142, StatusEffectList, ActorControl143
+from . import AddStatusEffect, Ability, ActorCast, ActorControl142, StatusEffectList, ActorControl143, Ping
 from . import ActorControl144,ActorGauge,ActorUpdateHpMpTp
 
 _logger = Logger("XivNetwork/RecvProcessors")
@@ -22,15 +22,8 @@ _processors = {
     'ActorControl143': ActorControl143.get_event,
     'ActorControl144': ActorControl144.get_event,
     'UpdateHpMpTp': ActorUpdateHpMpTp.get_event,
-    # 'PlayerSpawn': 0x029A,
-    # 'NpcSpawn': 0x0313,
-    # 'NpcSpawn2': 0xCAFE,
-    # 'ActorMove': 0x023B,
-    # 'ActorSetPos': 0x026B,
     'ActorGauge': ActorGauge.get_event,
-    # 'PresetWaymark': 0x0221,
-    # 'Waymark': 0x02B3,
-    # 'ActorDrink': 0xCAFE,
+    'Ping': Ping.get_event,
 }
 
 processors = dict()
