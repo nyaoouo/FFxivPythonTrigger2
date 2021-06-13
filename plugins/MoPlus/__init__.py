@@ -62,6 +62,7 @@ class MoPlus(PluginBase):
         self.register_api("MoPlus", self._api_class)
 
     def _start(self):
+        self.entity_hook.install()
         self.entity_hook.enable()
 
     def _onunload(self):

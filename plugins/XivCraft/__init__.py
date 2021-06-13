@@ -204,6 +204,7 @@ class XivCraft(PluginBase):
         self.logger.info("end craft")
 
     def _start(self):
+        self.craft_start_hook.install()
         self.craft_start_hook.enable()
 
     def _onunload(self):

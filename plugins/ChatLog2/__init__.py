@@ -75,6 +75,7 @@ class ChatLogPlugin(PluginBase):
         self.register_api('ChatLog', self.api_class)
 
     def _start(self):
+        self.hook.install()
         self.hook.enable()
 
     def _onunload(self):
