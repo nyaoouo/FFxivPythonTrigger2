@@ -16,16 +16,13 @@ MISSION_TIME_LIMIT = 0.05
 class FrameInjectHook(Hook):
     _continue_works = dict()
     _once_works = Queue()
-    _lock = Lock()
 
     def register_continue_call(self, call, *args, **kwargs):
-        with self._lock:
-            self._continue_works[call] = (args, kwargs)
+        self._continue_works[call] = (args, kwargs)
 
     def unregister_continue_call(self, call):
         try:
-            with self._lock:
-                del self._continue_works[call]
+            del self._continue_works[call]
         except KeyError:
             pass
 
@@ -50,14 +47,12 @@ class FrameInjectHook(Hook):
                     self.call(call, *a, **k)
                 except Exception:
                     _logger.error("error in frame call:\n" + format_exc())
-            if self._lock.acquire(False):
-                for c, v in self._continue_works.items():
-                    try:
-                        self.call(c, *v[0], **v[1])
-                    except Exception:
-                        del self._continue_works[c]
-                        _logger.error("error in frame call, continue work will be removed:\n" + format_exc())
-                self._lock.release()
+            for c, v in self._continue_works.copy().items():
+                try:
+                    self.call(c, *v[0], **v[1])
+                except Exception:
+                    del self._continue_works[c]
+                    _logger.error("error in frame call, continue work will be removed:\n" + format_exc())
         except Exception:
             _logger.error("error in frame inject:\n" + format_exc())
         return self.original(*oargs)

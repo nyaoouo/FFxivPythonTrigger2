@@ -4,6 +4,7 @@ from inspect import stack
 
 from . import EasyHook
 
+RAISE_ERROR = False
 
 class Hook(object):
     """
@@ -48,7 +49,10 @@ class Hook(object):
             raise Exception(f"a hook is already installed at [{hex(self.address)}] from [{hook_manager[self.address].create_at}]")
 
         if self.is_installed:
-            raise Exception("Hook is installed")
+            if RAISE_ERROR:
+                raise Exception("Hook is installed")
+            else:
+                return
         self.hook_info = EasyHook.HOOK_TRACE_INFO()
         interface = (WINFUNCTYPE if self.IS_WIN_FUNC else CFUNCTYPE)(self.restype, *self.argtypes)
 
@@ -72,7 +76,10 @@ class Hook(object):
         uninstall the hook
         """
         if not self.is_installed:
-            raise Exception("Hook is not installed")
+            if RAISE_ERROR:
+                raise Exception("Hook is not installed")
+            else:
+                return
         EasyHook.lh_uninstall_hook(byref(self.hook_info))
         EasyHook.lh_wait_for_pending_removals()
         self.is_installed = False
@@ -83,7 +90,10 @@ class Hook(object):
         enable the hook
         """
         if not self.is_installed:
-            raise Exception("Hook is not installed")
+            if RAISE_ERROR:
+                raise Exception("Hook is not installed")
+            else:
+                return
         if EasyHook.lh_set_exclusive_acl(addressof(self.ACL_entries), 1, byref(self.hook_info)):
             raise EasyHook.LocalHookError()
         self.is_enabled = True
@@ -92,7 +102,11 @@ class Hook(object):
         """
         disable the hook
         """
-        if not self.is_installed: raise Exception("Hook is not installed")
+        if not self.is_installed:
+            if RAISE_ERROR:
+                raise Exception("Hook is not installed")
+            else:
+                return
         if EasyHook.lh_set_inclusive_acl(addressof(self.ACL_entries), 1, byref(self.hook_info)):
             raise EasyHook.LocalHookError()
         self.is_enabled = False
