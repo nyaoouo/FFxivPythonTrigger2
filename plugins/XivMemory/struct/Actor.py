@@ -1,5 +1,8 @@
-from FFxivPythonTrigger.memory.StructFactory import OffsetStruct
+import math
 from ctypes import *
+
+from FFxivPythonTrigger.Utils import circle
+from FFxivPythonTrigger.memory.StructFactory import OffsetStruct
 
 Effect = OffsetStruct({
     'buffId': (c_ushort, 0),
@@ -64,8 +67,17 @@ class Actor(OffsetStruct({
     "CastingTargetID": (c_uint, 7024),
     "CastingProgress": (c_float, 7060),
     "CastingTime": (c_float, 7064),
-    'HitboxRadius': (c_float,192),
+    'HitboxRadius': (c_float, 192),
 })):
+    @property
+    def hitbox(self):
+        return circle(self.pos.x, self.pos.y, self.HitboxRadius)
+
+    def absolute_distance_xy(self, target: 'Actor'):
+        return math.sqrt((self.pos.x - target.pos.x) ** 2 + (self.pos.y - target.pos.y) ** 2)
+
+    def target_radian(self, target: 'Actor'):
+        return math.atan2(target.pos.x - self.pos.x, target.pos.y - self.pos.y)
 
     @property
     def Name(self):
@@ -78,7 +90,6 @@ class Actor(OffsetStruct({
         a1 = self.unitStatus1
         a2 = self.unitStatus2
         return bool(a1 & 2 and a1 & 4 and ((a2 >> 11 & 1) <= 0 or a1 >= 128) and not a2 & 0xffffe7f7)
-
 
 # class ActorTableNode(Structure):
 #     _fields_ = [('main_actor', POINTER(Actor)), ('pet_actor', POINTER(Actor))]

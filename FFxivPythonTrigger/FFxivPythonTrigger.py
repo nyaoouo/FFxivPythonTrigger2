@@ -5,7 +5,7 @@ from queue import Queue
 from threading import Lock, Thread
 from time import time, sleep, perf_counter
 from traceback import format_exc
-from typing import List, Type, Dict, Set
+from typing import List, Type, Dict, Set, Optional
 from inspect import isclass, getfile, getsourcelines
 import atexit
 from importlib import import_module, reload
@@ -61,6 +61,7 @@ class EventCallback(object):
 
 class PluginBase(object):
     name = "unnamed_plugin"
+    main_mission: Optional[Mission]
 
     def __init__(self):
         self._events = list()
@@ -68,10 +69,11 @@ class PluginBase(object):
         self._mission_count = 0
         self._missions = list()
         self._lock = Lock()
+        self.main_mission = None
         self.logger = Logger.Logger(self.name)
         self.storage = Storage.get_module_storage(self.name)
 
-    def create_mission(self, call, *args, limit_sec=0.1, **kwargs):
+    def create_mission(self, call, *args, limit_sec=0.1, **kwargs) -> Mission:
         def temp(*_args, **_kwargs):
             start = perf_counter()
             try:
@@ -89,18 +91,19 @@ class PluginBase(object):
         mission = Mission(self.name, mId, temp, *args, **kwargs)
         if append_missions(mission):
             self._missions.append(mission)
+        return mission
 
     def register_api(self, name: str, api_object: any):
         self._apis.append(name)
         api.register(name, api_object)
 
     def register_event(self, event_id, call, limit_sec=None):
-        callback = EventCallback(self, call,limit_sec)
+        callback = EventCallback(self, call, limit_sec)
         self._events.append((event_id, callback))
         register_event(event_id, callback)
 
     def p_start(self):
-        self.create_mission(self._start, limit_sec=0)
+        self.main_mission = self.create_mission(self._start, limit_sec=0)
 
     def p_unload(self):
         for event_id, callback in self._events:

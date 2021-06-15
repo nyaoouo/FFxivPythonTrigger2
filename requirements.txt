@@ -12,4 +12,5 @@ yarl==1.6.3
 Pillow ~= 8.2
 construct ~= 2.9.45
 PyYAML ~= 5.1
+Shapely~=1.7.1
 pywin32
