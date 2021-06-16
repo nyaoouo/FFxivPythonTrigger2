@@ -80,4 +80,10 @@ movement_addr = _am.get("movement", scan_address, movement_sig, cmd_len=7)
 inventory_ptr_sig = "4C 8B 0D ? ? ? ? 8B D9"
 inventory_ptr = _am.get("inventory ptr", scan_address, inventory_ptr_sig, cmd_len=7)
 
+##########
+# party
+##########
+party_sig = "48 8D 0D ? ? ? ? E8 ? ? ? ? 80 B8 ? ? ? ? ? 76 ? B0 ?"
+party_addr = _am.get("party", scan_address, party_sig, cmd_len=7)
+
 _storage.save()
