@@ -68,7 +68,16 @@ class Actor(OffsetStruct({
     "CastingProgress": (c_float, 7060),
     "CastingTime": (c_float, 7064),
     'HitboxRadius': (c_float, 192),
-})):
+    '_status_flags': (c_ubyte, 0x1980),
+}, extra_properties=['Name',
+                     'can_select',
+                     'is_hostile',
+                     'is_in_combat',
+                     'is_weapon_out',
+                     'is_party_member',
+                     'is_alliance_member',
+                     'is_friend',
+                     'is_casting'])):
     @property
     def hitbox(self):
         return circle(self.pos.x, self.pos.y, self.HitboxRadius)
@@ -89,7 +98,35 @@ class Actor(OffsetStruct({
     def can_select(self):
         a1 = self.unitStatus1
         a2 = self.unitStatus2
-        return bool(a1 & 2 and a1 & 4 and ((a2 >> 11 & 1) <= 0 or a1 >= 128) and not a2 & 0xffffe7f7)
+        return bool(a1 & 0b10 and a1 & 0b100 and ((a2 >> 11 & 1) <= 0 or a1 >= 128) and not a2 & 0xffffe7f7)
+
+    @property
+    def is_hostile(self):
+        return bool(self._status_flags & 0b1)
+
+    @property
+    def is_in_combat(self):
+        return bool(self._status_flags & 0b10)
+
+    @property
+    def is_weapon_out(self):
+        return bool(self._status_flags & 0b100)
+
+    @property
+    def is_party_member(self):
+        return bool(self._status_flags & 0b10000)
+
+    @property
+    def is_alliance_member(self):
+        return bool(self._status_flags & 0b100000)
+
+    @property
+    def is_friend(self):
+        return bool(self._status_flags & 0b1000000)
+
+    @property
+    def is_casting(self):
+        return bool(self._status_flags & 0x10000000)
 
 # class ActorTableNode(Structure):
 #     _fields_ = [('main_actor', POINTER(Actor)), ('pet_actor', POINTER(Actor))]
