@@ -36,6 +36,9 @@ class _OffsetStruct(Structure):
         for k in self.extra_properties:
             yield k, getattr(self, k)
 
+    def __hash__(self):
+        return addressof(self)
+
 
 def _(res) -> Tuple[any, int]:
     return (res[0], res[1]) if type(res) == tuple else (res, -1)

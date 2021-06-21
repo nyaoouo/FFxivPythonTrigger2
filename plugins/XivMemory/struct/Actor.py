@@ -78,6 +78,18 @@ class Actor(OffsetStruct({
                      'is_alliance_member',
                      'is_friend',
                      'is_casting'])):
+
+    def __hash__(self):
+        return self.id
+
+    def __eq__(self, other):
+        if type(other) == Actor:
+            return self.id == other.id
+        if type(other) == int:
+            return self.id == other
+        if type(other) == str:
+            return self.Name == other
+
     @property
     def hitbox(self):
         return circle(self.pos.x, self.pos.y, self.HitboxRadius)

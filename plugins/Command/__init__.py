@@ -41,6 +41,8 @@ class CommandPlugin(PluginBase):
             api.Magic.echo_msg("\n".join(list_plugin_names()))
         elif args[0] == 'log':
             self.logger.info(" ".join(args[1:]))
+        elif args[0] == 'eval':
+            exec(" ".join(args[1:]))
         elif args[0] == 'kill!':
             write_ubytes(frame_inject.address, bytearray(b'\x90' * 99))
 
