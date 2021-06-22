@@ -16,13 +16,14 @@ LOG_FILE_SIZE_MAX = 1024 * 1024
 
 
 class Mission(Thread):
-    def __init__(self, name: str, mission_id: int, mission, *args, **kwargs):
+    def __init__(self, name: str, mission_id: int, mission, *args, callback=None, **kwargs):
         super(Mission, self).__init__(name="%s#%s" % (name, mission_id))
         self.name = name
         self.mission_id = mission_id
         self.mission = mission
         self.args = args
         self.kwargs = kwargs
+        self.callback = callback
 
     def run(self):
         try:
@@ -33,6 +34,11 @@ class Mission(Thread):
             _missions.remove(self)
         except KeyError:
             pass
+        if self.callback is not None:
+            try:
+                self.callback(self)
+            except Exception:
+                _logger.error(f"error occurred in mission recall {self}:\n{format_exc()}")
 
 
 class EventBase(object):
@@ -67,7 +73,7 @@ class PluginBase(object):
         self._events = list()
         self._apis = list()
         self._mission_count = 0
-        self._missions = list()
+        self._missions = dict()
         self._lock = Lock()
         self.main_mission = None
         self.logger = Logger.Logger(self.name)
@@ -88,9 +94,15 @@ class PluginBase(object):
         with self._lock:
             mId = self._mission_count
             self._mission_count += 1
-        mission = Mission(self.name, mId, temp, *args, **kwargs)
+
+        def callback(m):
+            if mId in self._missions:
+                del self._missions[mId]
+
+        mission = Mission(self.name, mId, temp, *args, callback=callback, **kwargs)
+
         if append_missions(mission):
-            self._missions.append(mission)
+            self._missions[mId] = mission
         return mission
 
     def register_api(self, name: str, api_object: any):
