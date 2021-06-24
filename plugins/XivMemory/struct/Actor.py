@@ -41,7 +41,7 @@ class Actor(OffsetStruct({
     'effectiveDistanceX': (c_byte, 144),
     'playerTargetStatus': (c_byte, 145),
     'effectiveDistanceY': (c_byte, 146),
-    'unitStatus1': (c_byte, 148),
+    'unitStatus1': (c_ubyte, 148),
     'unitStatus2': (c_uint, 260),
     'pos': (Position, 160),
     'pcTargetId': (c_uint, 496),

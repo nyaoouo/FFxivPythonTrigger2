@@ -123,7 +123,7 @@ class PluginBase(object):
         for name in self._apis:
             api.unregister(name)
         self._onunload()
-        for mission in self._missions:
+        for mission in self._missions.values():
             try:
                 mission.join(-1)
             except RuntimeError:
