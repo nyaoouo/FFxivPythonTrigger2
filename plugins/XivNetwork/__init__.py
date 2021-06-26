@@ -102,16 +102,16 @@ class XivNetwork(PluginBase):
         class SendHook(WebActionHook):
             def hook_function(_self, socket, buffer, size):
                 _self.socket = socket
-                return _self.send(self.makeup_data(bytearray(buffer[:size])))
+                return _self.send(self.makeup_data(bytearray(buffer[:size])), return_size=size)
 
-            def send(_self, data: bytearray, process=True):
+            def send(_self, data: bytearray, process=True, return_size=None):
                 # self.logger('*', data.hex())
                 size = len(data)
                 new_data = (c_ubyte * size).from_buffer(data)
                 success_size = _self.original(_self.socket, new_data, size)
                 if success_size and process:
-                    self.send_decoder.store_data(bytearray(new_data[:success_size]).copy())
-                return success_size
+                    self.send_decoder.store_data(data[:success_size])
+                return success_size if return_size is None else return_size
 
         class RecvHook(WebActionHook):
             def hook_function(_self, socket, buffer, size):
@@ -167,6 +167,7 @@ class XivNetwork(PluginBase):
                                 self.logger.error("error in makeup data:\n", format_exc())
                 if msg is not None:
                     new_messages.append(msg)
+            if not new_messages: return bytearray()
             new_data = pack_single(data_header, new_messages)
             return data if new_data is None else new_data
         except Exception:
