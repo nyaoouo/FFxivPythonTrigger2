@@ -17,8 +17,8 @@ class InitialCommenceEvent(RecvNetworkEventBase):
     id = "network/actor_control/director_update/initial_commence"
     name = "network initial commence event"
 
-    def __init__(self, raw_msg, msg_time):
-        super().__init__(raw_msg, msg_time)
+    def __init__(self, msg_time, raw_msg):
+        super().__init__(msg_time, raw_msg)
         self.content = raw_msg.param1
         self.time = raw_msg.param3
 
@@ -40,8 +40,8 @@ class ChargeBossLBEvent(RecvNetworkEventBase):
     id = "network/actor_control/director_update/charge_boss_lb"
     name = "network charge_boss_lb event"
 
-    def __init__(self, raw_msg, msg_time):
-        super().__init__(raw_msg, msg_time)
+    def __init__(self, msg_time, raw_msg):
+        super().__init__(msg_time, raw_msg)
         self.content = raw_msg.param1
         self.value1 = raw_msg.param3
         self.value2 = raw_msg.param4
@@ -54,8 +54,8 @@ class MusicChangeEvent(RecvNetworkEventBase):
     id = "network/actor_control/director_update/music_change"
     name = "network music change event"
 
-    def __init__(self, raw_msg, msg_time):
-        super().__init__(raw_msg, msg_time)
+    def __init__(self, msg_time, raw_msg):
+        super().__init__(msg_time, raw_msg)
         self.content = raw_msg.param1
         self.value1 = raw_msg.param3
 
@@ -67,8 +67,8 @@ class FadeOutEvent(RecvNetworkEventBase):
     id = "network/actor_control/director_update/fade_out"
     name = "network fade out event"
 
-    def __init__(self, raw_msg, msg_time):
-        super().__init__(raw_msg, msg_time)
+    def __init__(self, msg_time, raw_msg):
+        super().__init__(msg_time, raw_msg)
         self.content = raw_msg.param1
 
     def text(self):
@@ -89,8 +89,8 @@ class VictoryEvent(RecvNetworkEventBase):
     id = "network/actor_control/director_update/victory"
     name = "network victory event"
 
-    def __init__(self, raw_msg, msg_time):
-        super().__init__(raw_msg, msg_time)
+    def __init__(self, msg_time, raw_msg):
+        super().__init__(msg_time, raw_msg)
         self.zone = raw_msg.param1
 
     def text(self):
@@ -114,8 +114,8 @@ class LimitBreakEvent(RecvNetworkEventBase):
     id = "network/actor_control/limit_break"
     name = "network limit break event"
 
-    def __init__(self, raw_msg, msg_time):
-        super().__init__(raw_msg, msg_time)
+    def __init__(self, msg_time, raw_msg):
+        super().__init__(msg_time, raw_msg)
         self.param = raw_msg.param1 & 255
 
     def text(self):
@@ -126,8 +126,8 @@ class UnknownActorControlEvent(RecvNetworkEventBase):
     id = "network/actor_control/unknown_actor_control_143"
     name = "network unknown actor control 143 event"
 
-    def __init__(self, raw_msg, msg_time):
-        super().__init__(raw_msg, msg_time)
+    def __init__(self, msg_time, raw_msg):
+        super().__init__(msg_time, raw_msg)
 
     def text(self):
         return f"unknown actor control category: {self.raw_msg.category} | {hex(self.raw_msg.param1)} | {hex(self.raw_msg.param2)} " \
@@ -138,8 +138,8 @@ class UnknownDirectorUpdateEvent(RecvNetworkEventBase):
     id = "network/actor_control/unknown_director_update"
     name = "network unknown director update event"
 
-    def __init__(self, raw_msg, msg_time):
-        super().__init__(raw_msg, msg_time)
+    def __init__(self, msg_time, raw_msg):
+        super().__init__(msg_time, raw_msg)
 
     def text(self):
         return f"unknown director update category: {self.raw_msg.param2} | {hex(self.raw_msg.param1)} | {hex(self.raw_msg.param3)} |" \
@@ -153,10 +153,10 @@ def get_event(msg_time: datetime, raw_msg: bytearray) -> Optional[RecvNetworkEve
     msg = ServerActorControl143.from_buffer(raw_msg)
     if msg.category == ServerActorControlCategory.DirectorUpdate:
         if msg.param2 in DirectorUpdateCategory:
-            return DirectorUpdateCategory[msg.param2](msg, msg_time)
+            return DirectorUpdateCategory[msg.param2](msg_time, msg)
         else:
-            return UnknownDirectorUpdateEvent(msg, msg_time)
+            return UnknownDirectorUpdateEvent(msg_time, msg)
     elif msg.category == ServerActorControlCategory.LimitBreak:
-        return LimitBreakEvent(msg, msg_time)
+        return LimitBreakEvent(msg_time, msg)
     else:
-        return UnknownActorControlEvent(msg, msg_time)
+        return UnknownActorControlEvent(msg_time, msg)

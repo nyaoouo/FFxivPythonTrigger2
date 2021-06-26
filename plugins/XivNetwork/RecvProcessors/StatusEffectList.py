@@ -16,8 +16,8 @@ class RecvStatusEffectListEvent(RecvNetworkEventBase):
     id = "network/status_effect_list"
     name = "network status effect list event"
 
-    def __init__(self, raw_msg, msg_time):
-        super().__init__(raw_msg, msg_time)
+    def __init__(self, msg_time, raw_msg):
+        super().__init__(msg_time, raw_msg)
         self.actor_id = raw_msg.header.actor_id
         self.current_hp = raw_msg.current_hp
         self.max_hp = raw_msg.max_hp
@@ -32,8 +32,8 @@ class RecvStatusEffectListEvent(RecvNetworkEventBase):
 
 
 class RecvBossStatusEffectListEvent(RecvStatusEffectListEvent):
-    def __init__(self, raw_msg, msg_time):
-        super().__init__(raw_msg, msg_time)
+    def __init__(self, msg_time, raw_msg):
+        super().__init__(msg_time, raw_msg)
         self.effects += [e for e in raw_msg.effects2 if e.effect_id]
 
 
@@ -41,18 +41,18 @@ def get_event(msg_time: datetime, raw_msg: bytearray) -> Optional[RecvNetworkEve
     if len(raw_msg) < size:
         _logger.warning("message is too short to parse as status list:[%s]" % raw_msg.hex())
         return
-    return RecvStatusEffectListEvent(ServerStatusEffectList.from_buffer(raw_msg), msg_time)
+    return RecvStatusEffectListEvent(msg_time, ServerStatusEffectList.from_buffer(raw_msg))
 
 
 def get_event2(msg_time: datetime, raw_msg: bytearray) -> Optional[RecvNetworkEventBase]:
     if len(raw_msg) < size2:
         _logger.warning("message is too short to parse as status list 2:[%s]" % raw_msg.hex())
         return
-    return RecvStatusEffectListEvent(ServerStatusEffectList2.from_buffer(raw_msg), msg_time)
+    return RecvStatusEffectListEvent(msg_time, ServerStatusEffectList2.from_buffer(raw_msg))
 
 
 def get_eventB(msg_time: datetime, raw_msg: bytearray) -> Optional[RecvNetworkEventBase]:
     if len(raw_msg) < sizeB:
         _logger.warning("message is too short to parse as boss status list:[%s]" % raw_msg.hex())
         return
-    return RecvBossStatusEffectListEvent(ServerBossStatusEffectList.from_buffer(raw_msg), msg_time)
+    return RecvStatusEffectListEvent(msg_time, ServerBossStatusEffectList.from_buffer(raw_msg))

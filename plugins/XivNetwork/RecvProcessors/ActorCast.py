@@ -4,7 +4,7 @@ from typing import Optional
 
 from FFxivPythonTrigger.Logger import Logger
 
-from ..Structs import ServerActorCast,RecvNetworkEventBase
+from ..Structs import ServerActorCast, RecvNetworkEventBase
 
 _logger = Logger("XivNetwork/ProcessActorCast")
 size = sizeof(ServerActorCast)
@@ -14,8 +14,8 @@ class RecvActorCastEvent(RecvNetworkEventBase):
     id = "network/actor_cast"
     name = "network actor cast event"
 
-    def __init__(self, raw_msg, msg_time):
-        super().__init__(raw_msg, msg_time)
+    def __init__(self, msg_time, raw_msg):
+        super().__init__(msg_time, raw_msg)
         self.source_id = raw_msg.header.actor_id
         self.target_id = raw_msg.target_id
         self.action_id = raw_msg.action_id
@@ -29,4 +29,4 @@ def get_event(msg_time: datetime, raw_msg: bytearray) -> Optional[RecvNetworkEve
     if len(raw_msg) < size:
         _logger.warning("message is too short to parse:[%s]" % raw_msg.hex())
         return
-    return RecvActorCastEvent(ServerActorCast.from_buffer(raw_msg), msg_time)
+    return RecvActorCastEvent(msg_time, ServerActorCast.from_buffer(raw_msg))

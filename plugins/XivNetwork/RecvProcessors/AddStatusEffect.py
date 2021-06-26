@@ -14,8 +14,8 @@ class RecvAddStatusEffectEvent(RecvNetworkEventBase):
     id = "network/add_status_effect"
     name = "network add status effect event"
 
-    def __init__(self, raw_msg, msg_time):
-        super().__init__(raw_msg, msg_time)
+    def __init__(self, msg_time, raw_msg):
+        super().__init__(msg_time, raw_msg)
         self.actor_id = raw_msg.header.actor_id
         self.actor_id2 = raw_msg.actor_id
         self.current_hp = raw_msg.current_hp
@@ -32,4 +32,4 @@ def get_event(msg_time: datetime, raw_msg: bytearray) -> Optional[RecvNetworkEve
     if len(raw_msg) < size:
         _logger.warning("message is too short to parse:[%s]" % raw_msg.hex())
         return
-    return RecvAddStatusEffectEvent(ServerAddStatusEffect.from_buffer(raw_msg), msg_time)
+    return RecvAddStatusEffectEvent(msg_time, ServerAddStatusEffect.from_buffer(raw_msg))

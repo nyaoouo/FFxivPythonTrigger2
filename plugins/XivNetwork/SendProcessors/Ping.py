@@ -1,5 +1,3 @@
-from datetime import datetime
-from typing import Optional
 from ..Structs import SendNetworkEventBase
 
 
@@ -12,4 +10,4 @@ class SendPingEvent(SendNetworkEventBase):
 
 
 def get_event(msg_time, raw_msg):
-    return SendPingEvent(raw_msg, msg_time)
+    return SendPingEvent(msg_time, raw_msg)

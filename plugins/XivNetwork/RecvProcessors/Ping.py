@@ -12,4 +12,4 @@ class RecvPingEvent(RecvNetworkEventBase):
 
 
 def get_event(msg_time, raw_msg):
-    return RecvPingEvent(raw_msg, msg_time)
+    return RecvPingEvent(msg_time, raw_msg)

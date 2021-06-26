@@ -9,7 +9,7 @@ class NetworkEventBase(EventBase):
     id = "network"
     name = "network event"
 
-    def __init__(self, raw_msg, msg_time):
+    def __init__(self, msg_time, raw_msg):
         self.is_send = None
         self.raw_msg = raw_msg
         self.time = msg_time

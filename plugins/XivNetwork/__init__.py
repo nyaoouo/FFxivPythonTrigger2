@@ -28,8 +28,8 @@ class RecvRawEvent(RecvNetworkEventBase):
 class SendRawEvent(RecvNetworkEventBase):
     name = "network send event"
 
-    def __init__(self, raw_msg, msg_time, header):
-        super().__init__(raw_msg, msg_time)
+    def __init__(self, msg_time, raw_msg, header):
+        super().__init__(msg_time, raw_msg)
         self.header = header
 
 
@@ -37,18 +37,24 @@ class UnkRecvRawEvent(SendNetworkEventBase):
     name = "network unknown recv event"
     id = "network/unk_recv"
 
-    def __init__(self, raw_msg, msg_time, header):
-        super().__init__(raw_msg, msg_time)
+    def __init__(self, msg_time, raw_msg, header):
+        super().__init__(msg_time, raw_msg)
         self.header = header
+
+    def text(self):
+        return f"opcode:{self.header.msg_type} len:{len(self.raw_msg)}"
 
 
 class UnkSendRawEvent(SendNetworkEventBase):
     name = "network unknown send event"
     id = "network/unk_send"
 
-    def __init__(self, raw_msg, msg_time, header):
-        super().__init__(raw_msg, msg_time)
+    def __init__(self, msg_time, raw_msg, header):
+        super().__init__(msg_time, raw_msg)
         self.header = header
+
+    def text(self):
+        return f"opcode:{self.header.msg_type} len:{len(self.raw_msg)}"
 
 
 recv_events_classes = dict()
@@ -174,13 +180,13 @@ class XivNetwork(PluginBase):
             recv_events_classes[header.msg_type] = type(
                 f"NetworkRecv{header.msg_type}RawEvent",
                 (RecvRawEvent,),
-                {'id': f'network/recv_{header.msg_type}'}
+                {'id': f'network/recv/{header.msg_type}'}
             )
-        process_event(recv_events_classes[header.msg_type](msg[header_size:], msg_time, header))
+        process_event(recv_events_classes[header.msg_type](msg_time, msg[header_size:], header))
         if header.msg_type in recv_processors:
             event = recv_processors[header.msg_type](msg_time, msg)
         else:
-            event = UnkRecvRawEvent(msg[header_size:], msg_time, header)
+            event = UnkRecvRawEvent(msg_time, msg[header_size:], header)
         process_event(event)
 
     def process_send_msg(self, msg_time, msg):
@@ -192,13 +198,13 @@ class XivNetwork(PluginBase):
             send_events_classes[header.msg_type] = type(
                 f"NetworkSend{header.msg_type}RawEvent",
                 (SendRawEvent,),
-                {'id': f'network/send_{header.msg_type}'}
+                {'id': f'network/send/{header.msg_type}'}
             )
-        process_event(send_events_classes[header.msg_type](msg[header_size:], msg_time, header))
+        process_event(send_events_classes[header.msg_type](msg_time, msg[header_size:], header))
         if header.msg_type in send_processors:
             event = send_processors[header.msg_type](msg_time, msg)
         else:
-            event = UnkSendRawEvent(msg[header_size:], msg_time, header)
+            event = UnkSendRawEvent(msg_time, msg[header_size:], header)
         process_event(event)
 
     def send_messages(self, messages: list[tuple[int, bytearray]], process=True):

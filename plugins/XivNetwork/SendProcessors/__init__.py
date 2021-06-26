@@ -1,5 +1,6 @@
 from FFxivPythonTrigger.Logger import Logger
 from FFxivPythonTrigger import FFxiv_Version
+from ..Structs import SendNetworkEventBase
 from . import Ping
 
 from .Opcodes import opcodes
@@ -11,8 +12,17 @@ _processors = {
 }
 
 processors = dict()
+
+_undefined_evt_class = dict()
 _opcodes = opcodes.setdefault(FFxiv_Version, dict())
-for k, p in _processors.items():
-    if k not in _opcodes: continue
-    _logger.debug(f"load opcode of [{k}]({hex(_opcodes[k])})")
-    processors[_opcodes[k]] = p
+
+for key, opcode in _opcodes.items():
+    if key not in _processors:
+        _logger.debug(f"load opcode of [{key}]({hex(opcode)}) - no processor defined")
+        processors[opcode] = type(f'SendUndefined_{key}', (SendNetworkEventBase,), {
+            'id': f"network/undefined_send/{key}",
+            'name': f"network undefined send - {key}",
+        })
+    else:
+        _logger.debug(f"load opcode of [{key}]({hex(opcode)})")
+        processors[opcode] = _processors[key]
