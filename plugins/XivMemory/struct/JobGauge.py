@@ -183,20 +183,23 @@ class AstrologianGauge(OffsetStruct({
 
 
 class SamuraiGauge(OffsetStruct({
-    'kenki': (c_ubyte, 4),
+    'prev_kaeshi_time': (c_ushort, 0),
+    'prev_kaeshi_lv': (c_ubyte, 2),
+    'kenki': (c_ubyte, 3),
+    'meditation': (c_ubyte, 4),
     'sen_bits': (c_ubyte, 5)
 }, 16)):
     @property
     def snow(self):
-        return (self.sen_bits & 1) != 0
+        return bool(self.sen_bits & 1)
 
     @property
     def moon(self):
-        return (self.sen_bits & 2) != 0
+        return bool(self.sen_bits & 2)
 
     @property
     def flower(self):
-        return (self.sen_bits & 4) != 0
+        return bool(self.sen_bits & 4)
 
 
 gauges = {
