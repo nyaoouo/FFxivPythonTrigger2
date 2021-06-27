@@ -1,7 +1,7 @@
 from FFxivPythonTrigger.Logger import Logger
 from FFxivPythonTrigger import FFxiv_Version
 from ..Structs import SendNetworkEventBase
-from . import Ping
+from . import Ping, PositionSet, PositionAdjust
 
 from .Opcodes import opcodes
 
@@ -9,6 +9,8 @@ _logger = Logger("XivNetwork/SendProcessors")
 
 _processors = {
     'Ping': Ping.get_event,
+    "UpdatePositionHandler": PositionSet.get_event,
+    "UpdatePositionInstance": PositionAdjust.get_event,
 }
 
 processors = dict()
