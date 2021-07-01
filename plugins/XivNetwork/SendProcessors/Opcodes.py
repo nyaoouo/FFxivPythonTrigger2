@@ -8,6 +8,6 @@ opcodes = {
         "UpdatePositionHandler": 0x0326,
         "UpdatePositionInstance": 0x00D7,
         "MarketBoardPurchaseHandler": 0x0097,
-
+        "ActionSend": 0x34c,
     },  # cn5.45
 }

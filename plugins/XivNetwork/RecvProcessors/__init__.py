@@ -30,9 +30,9 @@ _processors = {
 processors = dict()
 
 _undefined_evt_class = dict()
-_opcodes = opcodes.setdefault(FFxiv_Version, dict())
+version_opcodes = opcodes.setdefault(FFxiv_Version, dict())
 
-for key, opcode in _opcodes.items():
+for key, opcode in version_opcodes.items():
     if key not in _processors:
         _logger.debug(f"load opcode of [{key}]({hex(opcode)}) - no processor defined")
         processors[opcode] = type(f'RecvUndefined_{key}', (RecvNetworkEventBase,), {

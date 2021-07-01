@@ -2,7 +2,6 @@ import time
 from ctypes import *
 from traceback import format_exc
 
-from FFxivPythonTrigger.memory.res import kernel32
 from FFxivPythonTrigger import PluginBase, process_event, api
 from FFxivPythonTrigger.AddressManager import AddressManager
 from FFxivPythonTrigger.hook import Hook
@@ -12,9 +11,7 @@ from .FindAddr2 import find_recv2, find_send2
 from .BundleDecoder import BundleDecoder, extract_single, pack_single
 from .Structs import ServerMessageHeader, RecvNetworkEventBase, SendNetworkEventBase, FFXIVBundleHeader
 from .RecvProcessors import processors as recv_processors
-from .SendProcessors import processors as send_processors
-
-WS_DLL_MODE = True
+from .SendProcessors import processors as send_processors, version_opcodes
 
 
 class RecvRawEvent(RecvNetworkEventBase):
@@ -135,12 +132,16 @@ class XivNetwork(PluginBase):
             'send_messages': self.send_messages,
         }))
 
-    def register_makeup(self, opcode: int, call: callable):
+    def register_makeup(self, opcode, call: callable):
+        if type(opcode) == str and opcode in version_opcodes:
+            opcode = version_opcodes[opcode]
         if opcode not in self.makeups:
             self.makeups[opcode] = set()
         self.makeups[opcode].add(call)
 
-    def unregister_makeup(self, opcode: int, call: callable):
+    def unregister_makeup(self, opcode, call: callable):
+        if type(opcode) == str and opcode in version_opcodes:
+            opcode = version_opcodes[opcode]
         try:
             self.makeups[opcode].remove(call)
         except KeyError:
@@ -211,15 +212,21 @@ class XivNetwork(PluginBase):
     def send_messages(self, messages: list[tuple[int, bytearray]], process=True):
         me = api.XivMemory.actor_table.get_me()
         me_id = me.id if me is not None else 0
-        self.send_hook1.send(pack_single(None, [
-            bytearray(ServerMessageHeader(
+        _messages = []
+        for opcode, msg in messages:
+            if type(opcode) == str:
+                if opcode in version_opcodes:
+                    opcode = version_opcodes[opcode]
+                else:
+                    raise Exception(f"[{opcode}] is not a valid opcode")
+            _messages.append(bytearray(ServerMessageHeader(
                 msg_length=len(msg) + header_size,
                 actor_id=me_id,
                 msg_type=opcode,
                 sec=int(time.time()),
                 **msg_header_keys,
-            )) + msg for opcode, msg in messages
-        ]), process)
+            )) + msg)
+        self.send_hook1.send(pack_single(None, _messages), process)
 
     def _start(self):
         self.send_hook1.install()
