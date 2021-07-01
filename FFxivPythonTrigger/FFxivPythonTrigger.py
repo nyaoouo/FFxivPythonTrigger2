@@ -60,7 +60,7 @@ class EventCallback(object):
 
     def call(self, event: EventBase):
         if self.limit_sec is not None:
-            self.plugin.create_mission(self._call, event, self.limit_sec)
+            self.plugin.create_mission(self._call, event, limit_sec=self.limit_sec)
         else:
             self.plugin.create_mission(self._call, event)
 
