@@ -98,14 +98,19 @@ class XivNetwork(PluginBase):
 
         class SendHook(WebActionHook):
             def hook_function(_self, socket, buffer, size):
-                _self.socket = socket
-                return _self.send(self.makeup_data(bytearray(buffer[:size])), return_size=size)
+                if size > 64: _self.socket = socket
+                # self.logger(hex(socket), hex(cast(buffer, c_void_p).value), size)
+                return _self.send(self.makeup_data(bytearray(buffer[:size])), return_size=size, socket=socket)
 
-            def send(_self, data: bytearray, process=True, return_size=None):
+            def send(_self, data: bytearray, process=True, return_size=None, socket=None):
                 # self.logger('*', data.hex())
+                if socket is None:
+                    if _self.socket is None:
+                        raise Exception("No socket record")
+                    socket = _self.socket
                 size = len(data)
                 new_data = (c_ubyte * size).from_buffer(data)
-                success_size = _self.original(_self.socket, new_data, size)
+                success_size = _self.original(socket, new_data, size)
                 if success_size and process:
                     self.send_decoder.store_data(data[:success_size])
                 return success_size if return_size is None else return_size
