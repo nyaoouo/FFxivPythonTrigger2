@@ -90,7 +90,12 @@ class WebChat(PluginBase):
 
     def deal_chat_log(self, event):
         set_event_loop(self.loop)
-        data = event.get_dict()
+        data = {
+            't': event.chat_log.timestamp,
+            'c': event.channel_id,
+            's': event.player,
+            'm': event.message
+        }
         self.chatLogCache.append(data)
         if len(self.chatLogCache) > 500:
             self.chatLogCache = self.chatLogCache[-200:]
@@ -141,7 +146,7 @@ class WebChat(PluginBase):
                 else:
                     if len(args) > 1:
                         self.server_config['port'] = int(args[1])
-                    self.create_mission(self.start_server,limit_sec=0)
+                    self.create_mission(self.start_server, limit_sec=0)
             elif args[0] == 'close':
                 self.server_config['start_default'] = False
                 if self.work:

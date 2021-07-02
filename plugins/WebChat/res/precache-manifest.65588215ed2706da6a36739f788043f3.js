@@ -1,10 +1,10 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "78e8f7c8610e1fe2461f",
-    "url": "/css/app.9f7cffcb.css"
+    "revision": "885e0f32c4b06139dd75",
+    "url": "/css/app.a5b2a428.css"
   },
   {
-    "revision": "ed87971a14ccaac62606",
+    "revision": "e1ad520efa86bade04ca",
     "url": "/css/chunk-6eac0c83.63b746ac.css"
   },
   {
@@ -16,12 +16,16 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/css/chunk-vendors.37807362.css"
   },
   {
-    "revision": "a363b9327f9335f6cb0d0f8a4a45c105",
+    "revision": "559f0ed9c63eea205311822681d81ffe",
+    "url": "/fonts/FFXIV_Lodestone_SSF.559f0ed9.ttf"
+  },
+  {
+    "revision": "d2bb2c6d35ff4102e0627cc125b05a1a",
     "url": "/index.html"
   },
   {
-    "revision": "78e8f7c8610e1fe2461f",
-    "url": "/js/app.c32befda.js"
+    "revision": "885e0f32c4b06139dd75",
+    "url": "/js/app.dabfbb02.js"
   },
   {
     "revision": "b558fba1f59f1a4350d4",
@@ -32,8 +36,8 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/js/chunk-2d21a3d2.d7f21e07.js"
   },
   {
-    "revision": "ed87971a14ccaac62606",
-    "url": "/js/chunk-6eac0c83.877c42f5.js"
+    "revision": "e1ad520efa86bade04ca",
+    "url": "/js/chunk-6eac0c83.751856fc.js"
   },
   {
     "revision": "33f3e82cb6acf960be26",
