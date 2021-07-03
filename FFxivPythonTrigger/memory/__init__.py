@@ -47,6 +47,7 @@ def scan_patterns_by_sig_base_module(ida_sig: str):
 def read_pointer_shift(base, *shifts):
     ptr = base
     for shift in shifts:
+        if not ptr: return None
         ptr = read_ulonglong(ptr) + shift
     return ptr
 

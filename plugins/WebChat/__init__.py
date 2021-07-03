@@ -99,7 +99,7 @@ class WebChat(PluginBase):
         self.chatLogCache.append(data)
         if len(self.chatLogCache) > 500:
             self.chatLogCache = self.chatLogCache[-200:]
-        for cid, client in self.clients.items():
+        for cid, client in self.clients.copy().items():
             run(client.send_json(data))
 
     async def _stop_server(self):
