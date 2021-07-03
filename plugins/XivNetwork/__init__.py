@@ -22,7 +22,7 @@ class RecvRawEvent(RecvNetworkEventBase):
         self.header = header
 
 
-class SendRawEvent(RecvNetworkEventBase):
+class SendRawEvent(SendNetworkEventBase):
     name = "network send event"
 
     def __init__(self, msg_time, raw_msg, header):
@@ -30,7 +30,7 @@ class SendRawEvent(RecvNetworkEventBase):
         self.header = header
 
 
-class UnkRecvRawEvent(SendNetworkEventBase):
+class UnkRecvRawEvent(RecvNetworkEventBase):
     name = "network unknown recv event"
     id = "network/unk_recv"
 

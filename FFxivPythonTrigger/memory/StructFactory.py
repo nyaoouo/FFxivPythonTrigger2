@@ -28,6 +28,8 @@ class _OffsetStruct(Structure):
     def get_full_item(self):
         for k, _ in self._fields_:
             yield k, getattr(self, k)
+        for k in self.extra_properties:
+            yield k, getattr(self, k)
 
     def get_item(self):
         for k in self.raw_fields.keys():
