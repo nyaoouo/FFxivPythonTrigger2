@@ -9,5 +9,8 @@ opcodes = {
         "UpdatePositionInstance": 0x00D7,
         "MarketBoardPurchaseHandler": 0x0097,
         "ActionSend": 0x34c,
+        "EventStart": 0x3c3,
+        "EventFinish": 0x20B,
+        "EventAction": 0x39d,
     },  # cn5.45
 }
