@@ -379,47 +379,41 @@ ClientPositionAdjust = OffsetStruct({
 }, 40 + header_size)
 
 ClientEventStart = OffsetStruct({
-    'header': ServerMessageHeader,
     'target_id': c_uint,
     'unk0': c_uint,
     'event_id': c_ushort,
     'category': c_ushort,
     'unk3': c_uint,
-}, 16 + header_size)
+}, 16)
 
 ClientEventFinish = OffsetStruct({
-    'header': ServerMessageHeader,
     'event_id': c_ushort,
     'category': c_ushort,
     'unk2': c_uint,
     'unk3': c_uint,
     'unk4': c_uint,
-}, 16 + header_size)
+}, 16)
 
 ClientEventAction = OffsetStruct({
-    'header': ServerMessageHeader,
     'event_id': c_ushort,
     'category': c_ushort,
-}, 16 + header_size)
+}, 16)
 
 ServerEventStart = OffsetStruct({
-    'header': ServerMessageHeader,
     'target_id': c_uint,
     'unk0': c_uint,
     'event_id': c_ushort,
     'category': c_ushort,
-}, 0x18 + header_size)
+}, 0x18)
 
 ServerEventPlay = OffsetStruct({
-    'header': ServerMessageHeader,
     'target_id': c_uint,
     'unk0': c_uint,
     'event_id': c_ushort,
     'category': c_ushort,
-}, 0x28 + header_size)
+}, 0x28)
 
 ServerEventFinish = OffsetStruct({
-    'header': ServerMessageHeader,
     'event_id': c_ushort,
     'category': c_ushort,
-}, 0x10 + header_size)
+}, 0x10)

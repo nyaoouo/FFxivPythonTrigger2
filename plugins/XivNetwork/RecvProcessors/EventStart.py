@@ -1,7 +1,7 @@
 from ctypes import sizeof
 
 from FFxivPythonTrigger.Logger import Logger
-from ..Structs import RecvNetworkEventBase, ServerEventStart
+from ..Structs import RecvNetworkEventBase, ServerEventStart,header_size
 
 _logger = Logger("XivNetwork/ProcessServerEventStart")
 size = sizeof(ServerEventStart)
@@ -16,7 +16,7 @@ class ServerEventStartEvent(RecvNetworkEventBase):
 
 
 def get_event(msg_time, raw_msg):
-    if len(raw_msg) < size:
+    if len(raw_msg) < size+header_size:
         _logger.warning("message is too short to parse:[%s]" % raw_msg.hex())
         return
-    return ServerEventStartEvent(msg_time, ServerEventStart.from_buffer(raw_msg))
+    return ServerEventStartEvent(msg_time, ServerEventStart.from_buffer(raw_msg,header_size))

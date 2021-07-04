@@ -34,6 +34,7 @@ class Actor(OffsetStruct({
     'name': (c_char * 68, 48),
     'id': (c_uint, 116),
     'bNpcId': (c_uint, 120),
+    'eNpcId': (c_uint, 128),
     'ownerId': (c_uint, 132),
     'type': (c_byte, 140),
     'subType': (c_byte, 141),
