@@ -81,7 +81,7 @@ class Actor(OffsetStruct({
                      'is_casting'])):
 
     def __hash__(self):
-        return self.id
+        return addressof(self), self.id, self.bNpcId
 
     def __eq__(self, other):
         if type(other) == Actor:
