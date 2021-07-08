@@ -4,7 +4,7 @@ from FFxivPythonTrigger import FFxiv_Version
 from ..Structs import RecvNetworkEventBase, ServerMessageHeader, header_size
 from .Opcodes import opcodes
 from . import AddStatusEffect, Ability, ActorCast, ActorControl142, StatusEffectList, ActorControl143, Ping
-from . import ActorControl144, ActorGauge, ActorUpdateHpMpTp, EventStart, EventPlay, EventFinish
+from . import ActorControl144, ActorGauge, ActorUpdateHpMpTp, EventStart, EventPlay, EventFinish, CraftStatus
 
 _logger = Logger("XivNetwork/RecvProcessors")
 
@@ -28,6 +28,7 @@ _processors = {
     "EventStart": EventStart.get_event,
     "EventFinish": EventFinish.get_event,
     "EventPlay": EventPlay.get_event,
+    "CraftStatus": CraftStatus.get_event,
 }
 
 
@@ -35,6 +36,9 @@ class UndefinedRecv(RecvNetworkEventBase):
     def __init__(self, msg_time, raw_msg):
         self.header = ServerMessageHeader.from_buffer(raw_msg)
         super().__init__(msg_time, raw_msg[header_size:])
+
+    def text(self):
+        return f"opcode:{self.header.msg_type} len:{len(self.raw_msg)}"
 
 
 processors = dict()

@@ -69,6 +69,7 @@ opcodes = {
         "AirshipExplorationResult": 0x006B,
         "SubmarineExplorationResult": 0x00D8,
         "FreeCompanyDialog": 0x03A5,
+        "CraftStatus": 0x020D,
     },  # cn5.45
     "2021.04.22.0000.0000": {  # cn 5.41
         'StatusEffectList': 0x03C1,

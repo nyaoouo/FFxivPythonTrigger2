@@ -10,12 +10,15 @@ from FFxivPythonTrigger.hook import Hook
 from FFxivPythonTrigger.memory import read_ushort, scan_pattern, read_memory, scan_address
 from FFxivPythonTrigger.memory.StructFactory import OffsetStruct, PointerStruct
 from .simulator import Models, Manager, Craft
-from .solvers import JustDoIt, SkyBuilders,MacroCraft2
+from .solvers import JustDoIt, SkyBuilders, MacroCraft2
 import win32com.client
 
 speaker = win32com.client.Dispatch("SAPI.SpVoice")
 
 recipe_sheet = realm.game_data.get_sheet('Recipe')
+action_sheet = realm.game_data.get_sheet('Action')
+craft_action_sheet = realm.game_data.get_sheet('CraftAction')
+
 craft_start_sig = "40 53 48 83 EC ? 48 8B D9 C6 81 ? ? ? ? ? E8 ? ? ? ? 48 8D 4B ?"
 craft_status_sig = "8B 05 ? ? ? ? BE ? ? ? ? 89 44 24 ?"
 base_quality_ptr_sig = "48 83 3D ? ? ? ? ? 74 ? E8 ? ? ? ? 48 8B C8 E8 ? ? ? ? 3C ? 0F B6 CB"
@@ -36,6 +39,13 @@ registered_solvers = [
 ]
 
 callback = lambda ans: speaker.Speak(ans)
+
+
+def get_action_name_by_id(action_id):
+    if action_id >= 100000:
+        return craft_action_sheet[action_id]['Name']
+    else:
+        return action_sheet[action_id]['Name']
 
 
 class CraftStart(EventBase):
@@ -116,9 +126,9 @@ class XivCraft(PluginBase):
         self.chat_log_processor.register(2114, "^(.+)开始练习制作\ue0bb(.+)。$", self.craft_start)
         self.chat_log_processor.register(2114, "^(.+)开始制作“\ue0bb(.+)”(×\d+)?。$", self.craft_start)
 
-        self.chat_log_processor.register(2091, "^(.+)发动了“(.+)”(。)$", self.craft_next)
-        self.chat_log_processor.register(2114, "^(.+)发动“(.+)”  \ue06f (成功|失败)$", self.craft_next)
-        # self.chat_log_processor.register(56, "^@Craft next$", self.craft_next)
+        # self.chat_log_processor.register(2091, "^(.+)发动了“(.+)”(。)$", self.craft_next)
+        # self.chat_log_processor.register(2114, "^(.+)发动“(.+)”  \ue06f (成功|失败)$", self.craft_next)
+        self.register_event('network/recv_craft_status', self.craft_next_network, limit_sec=0)
 
         self.chat_log_processor.register(2114, "^(.+)练习制作\ue0bb(.+)成功了！$", self.craft_end)
         self.chat_log_processor.register(2114, "^(.+)练习制作\ue0bb(.+)失败了……$", self.craft_end)
@@ -140,7 +150,7 @@ class XivCraft(PluginBase):
         player = Models.Player(me.level, me_info.craft, me_info.control, me.maxCP)
         return recipe, player
 
-    def get_current_craft(self):
+    def get_current_craft(self, current_round=None, current_progress=None, current_quality=None, current_durability=None):
         me = api.XivMemory.actor_table.get_me()
         recipe, player = self.base_data
         effects = dict()
@@ -151,10 +161,10 @@ class XivCraft(PluginBase):
         return Craft.Craft(
             recipe=recipe,
             player=player,
-            craft_round=self.craft_status.round,
-            current_progress=self.craft_status.current_progress,
-            current_quality=self.craft_status.current_quality,
-            current_durability=self.craft_status.current_durability,
+            craft_round=current_round or self.craft_status.round,
+            current_progress=current_progress or self.craft_status.current_progress,
+            current_quality=current_quality or self.craft_status.current_quality,
+            current_durability=current_durability or self.craft_status.current_durability,
             current_cp=me.currentCP,
             status=Manager.status_id[self.craft_status.status_id or 1](),
             effects=effects,
@@ -162,7 +172,7 @@ class XivCraft(PluginBase):
 
     def craft_start(self, chat_log, regex_result):
         self.name = api.XivMemory.actor_table.get_me().Name
-        if regex_result.group(1)!=self.name:return
+        if regex_result.group(1) != self.name: return
         recipe, player = self.base_data = self.get_base_data()
         self.logger.info("start recipe:" + recipe.detail_str)
         craft = Craft.Craft(recipe=recipe, player=player, current_quality=self.base_quality.value)
@@ -174,18 +184,12 @@ class XivCraft(PluginBase):
         if self.solver is not None:
             self.logger.info("solver found, starting to solve...")
             ans = self.solver.process(craft, None)
-            if ans is not None and callback is not None: self.create_mission(callback, ans)
+            if ans is not None and callback is not None:
+                self.create_mission(callback, ans, limit_sec=0)
         else:
             self.logger.info("no solver found, please add a solver for this recipe")
 
-    def craft_next(self, chat_log, regex_result):
-        if regex_result.group(1)!=self.name:return
-        try:
-            skill = Manager.skills[regex_result.group(2) + ('' if regex_result.group(3) != "失败" else ':fail')]()
-        except KeyError:
-            return
-        sleep(0.5)
-        craft = self.get_current_craft()
+    def _craft_next(self, craft, skill):
         if skill == "观察":
             craft.add_effect("观察", 1)
             craft.merge_effects()
@@ -195,7 +199,30 @@ class XivCraft(PluginBase):
         if self.solver is not None:
             ans = self.solver.process(craft, skill)
             self.logger.info("suggested skill '%s'" % ans)
-            if ans and callback is not None: self.create_mission(callback, ans)
+            if ans and callback is not None:
+                self.create_mission(callback, ans, limit_sec=0)
+
+    def craft_next(self, chat_log, regex_result):
+        if regex_result.group(1) != self.name: return
+        try:
+            skill = Manager.skills[regex_result.group(2) + ('' if regex_result.group(3) != "失败" else ':fail')]()
+        except KeyError:
+            return
+        sleep(0.5)
+        self._craft_next(self.get_current_craft(), skill)
+
+    def craft_next_network(self, event):
+        try:
+            skill = Manager.skills[get_action_name_by_id(event.raw_msg.prev_action_id) + ('' if event.raw_msg.prev_action_success else ':fail')]()
+        except KeyError:
+            return
+        sleep(0.1)
+        self._craft_next(self.get_current_craft(
+            current_round=event.round,
+            current_progress=event.current_progress,
+            current_quality=event.current_quality,
+            current_durability=event.current_durability,
+        ), skill)
 
     def craft_end(self, chat_log, regex_result):
         if regex_result.group(1) != self.name: return
