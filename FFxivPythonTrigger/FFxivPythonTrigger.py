@@ -12,7 +12,7 @@ import atexit
 from importlib import import_module, reload
 
 from . import AttrContainer, Storage, Logger, FrameInject, Sigs, AddressManager
-from .CheckGitUpdate import get_last_commit_time
+from .CheckGitUpdate import get_last_update, check_update
 from .Utils import get_hash
 
 LOG_FILE_SIZE_MAX = 1024 * 1024
@@ -80,10 +80,7 @@ class PluginBase(object):
     def last_update_time(self):
         phash = self.plugin_hash
         if phash is None: return 0.
-        t = get_last_update(
-            _storage.data.setdefault('plugin_update_time', dict()).setdefault(self.name, dict()),
-            phash, self.logger
-        )
+        t = get_last_update(self.name, phash, self.logger)
         _storage.save()
         return t
 
@@ -325,24 +322,6 @@ def add_path(path: str):
             _storage.save()
 
 
-def get_last_update(data_dir: dict, current_hash: str, logger: Logger.Logger):
-    if 'time' not in data_dir or 'hash' not in data_dir or data_dir['hash'] != current_hash:
-        logger.debug("last update time update")
-        data_dir['time'] = time()
-        data_dir['hash'] = current_hash
-    return data_dir['time']
-
-
-def check_update(logger: Logger.Logger, repo: str, rpath: str, last_update: float):
-    t = get_last_commit_time(repo, rpath)
-    if t is None:
-        logger.warning(f"cant check update of {repo} - {rpath}")
-    if t.timestamp() > last_update:
-        logger.warning(f"There is a update at {t} on https://github.com/{repo}")
-    else:
-        logger.debug(f"{repo} - {rpath} is up to date")
-
-
 LOG_FILE_FORMAT = 'log_{int_time}.txt'
 STORAGE_DIRNAME = "Core"
 LOGGER_NAME = "Main"
@@ -378,9 +357,6 @@ for path in _storage.data.setdefault('paths', list()):
     _logger.debug("add plugin path:%s" % path)
     sys.path.insert(0, path)
 
-core_last_update = get_last_update(
-    _storage.data.setdefault('core_last_update', dict()),
-    get_hash(os.path.dirname(__file__)), _logger
-)
+core_last_update = get_last_update(None, get_hash(os.path.dirname(__file__)), _logger)
 
 _storage.save()
