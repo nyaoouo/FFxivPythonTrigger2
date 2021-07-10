@@ -1,3 +1,4 @@
+import os
 from traceback import format_exc
 
 from FFxivPythonTrigger import PluginBase, api
@@ -17,6 +18,9 @@ from FFxivPythonTrigger.memory import read_memory, scan_address, scan_pattern
 
 class MoPlus(PluginBase):
     name = "MoPlus"
+    git_repo = 'nyaoouo/FFxivPythonTrigger2'
+    repo_path = 'plugins/MoPlus'
+    hash_path = os.path.dirname(__file__)
 
     def __init__(self):
         super().__init__()

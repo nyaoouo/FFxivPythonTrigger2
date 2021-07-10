@@ -1,3 +1,5 @@
+import os
+
 from aiohttp import web, WSMsgType
 import time
 import json
@@ -14,6 +16,9 @@ command = "@WebChat"
 
 class WebChat(PluginBase):
     name = "WebChat"
+    git_repo = 'nyaoouo/FFxivPythonTrigger2'
+    repo_path = 'plugins/WebChat'
+    hash_path = os.path.dirname(__file__)
 
     async def root_handler(self, request):
         return web.HTTPFound('/index.html')

@@ -1,4 +1,6 @@
 import ctypes.wintypes
+import os
+
 from aiohttp import web
 import time
 from FFxivPythonTrigger import PluginBase, api, window
@@ -23,6 +25,9 @@ class KeyApi:
 
 class SendKeys(PluginBase):
     name = "SendKeys"
+    git_repo = 'nyaoouo/FFxivPythonTrigger2'
+    repo_path = 'plugins/SendKeys'
+    hash_path = os.path.dirname(__file__)
 
     async def text_command_handler(self, request: web.Request):
         try:

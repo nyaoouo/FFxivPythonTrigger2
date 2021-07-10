@@ -27,6 +27,9 @@ functions (*[arg] is optional args):
 
 class CommandPlugin(PluginBase):
     name = "command controller"
+    git_repo = 'nyaoouo/FFxivPythonTrigger2'
+    repo_path = 'plugins/Command'
+    hash_path = os.path.dirname(__file__)
 
     def FptManager(self, args):
         if args[0] == 'close':

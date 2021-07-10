@@ -1,3 +1,5 @@
+import os
+
 from FFxivPythonTrigger import PluginBase, Logger, memory
 from . import ActorTable, CombatData, PlayerInfo, Targets, AddressManager, Movement, Inventory, Party
 from . import struct
@@ -22,6 +24,9 @@ class XivMemory(object):
 
 class XivMemoryPlugin(PluginBase):
     name = "XivMemory"
+    git_repo = 'nyaoouo/FFxivPythonTrigger2'
+    repo_path = 'plugins/XivMemory'
+    hash_path = os.path.dirname(__file__)
 
     def __init__(self):
         super(XivMemoryPlugin, self).__init__()

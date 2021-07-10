@@ -1,3 +1,4 @@
+import os
 import re
 from ctypes import *
 from traceback import format_exc
@@ -83,6 +84,9 @@ class CraftEnd(EventBase):
 
 class XivCraft(PluginBase):
     name = "XivCraft"
+    git_repo = 'nyaoouo/FFxivPythonTrigger2'
+    repo_path = 'plugins/XivCraft'
+    hash_path = os.path.dirname(__file__)
 
     def __init__(self):
         super(XivCraft, self).__init__()

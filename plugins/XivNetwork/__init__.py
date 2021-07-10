@@ -1,3 +1,4 @@
+import os
 import time
 from ctypes import *
 from traceback import format_exc
@@ -89,6 +90,9 @@ msg_header_keys = {
 
 class XivNetwork(PluginBase):
     name = "XivNetwork"
+    git_repo = 'nyaoouo/FFxivPythonTrigger2'
+    repo_path = 'plugins/XivNetwork'
+    hash_path = os.path.dirname(__file__)
 
     def __init__(self):
         super().__init__()

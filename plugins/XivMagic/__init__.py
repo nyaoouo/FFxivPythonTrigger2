@@ -1,3 +1,5 @@
+import os
+
 from FFxivPythonTrigger import PluginBase, api
 from aiohttp import web
 from . import DoTextCommand, DoAction, AddressManager
@@ -17,6 +19,9 @@ class Magics(object):
 
 class XivMagic(PluginBase):
     name = "XivMagic"
+    git_repo = 'nyaoouo/FFxivPythonTrigger2'
+    repo_path = 'plugins/XivMagic'
+    hash_path = os.path.dirname(__file__)
 
     async def text_command_handler(self, request: web.Request):
         cmd=await request.text()

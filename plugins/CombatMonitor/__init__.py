@@ -40,6 +40,9 @@ owners = dict()
 
 class CombatMonitor(PluginBase):
     name = "Combat Monitor"
+    git_repo = 'nyaoouo/FFxivPythonTrigger2'
+    repo_path = 'plugins/CombatMonitor'
+    hash_path = os.path.dirname(__file__)
 
     def __init__(self):
         super().__init__()

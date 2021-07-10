@@ -1,3 +1,5 @@
+import os
+
 from FFxivPythonTrigger import PluginBase, Logger, api
 from aiohttp import web
 import asyncio
@@ -10,6 +12,9 @@ command = "@HttpApi"
 
 class HttpApiPlugin(PluginBase):
     name = "HttpApi"
+    git_repo = 'nyaoouo/FFxivPythonTrigger2'
+    repo_path = 'plugins/HttpApi'
+    hash_path = os.path.dirname(__file__)
 
     def __init__(self):
         super(HttpApiPlugin, self).__init__()

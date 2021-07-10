@@ -49,6 +49,9 @@ class TcpServer(socketserver.BaseRequestHandler):
 
 class SocketLogger(PluginBase):
     name = "socket logger"
+    git_repo = 'nyaoouo/FFxivPythonTrigger2'
+    repo_path = 'plugins/SocketLogger'
+    hash_path = os.path.dirname(__file__)
 
     def __init__(self):
         super(SocketLogger, self).__init__()

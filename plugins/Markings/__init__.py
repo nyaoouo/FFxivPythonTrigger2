@@ -1,4 +1,5 @@
 import json
+import os
 from ctypes import c_float, c_int, c_bool, CFUNCTYPE, c_ubyte, c_int64, c_uint
 from json import JSONDecodeError
 
@@ -70,6 +71,9 @@ def is_valid_way_mark_type(mark_type: str):
 
 class Markings(PluginBase):
     name = "Markings"
+    git_repo = 'nyaoouo/FFxivPythonTrigger2'
+    repo_path = 'plugins/Markings'
+    hash_path = os.path.dirname(__file__)
 
     def __init__(self):
         super(Markings, self).__init__()
