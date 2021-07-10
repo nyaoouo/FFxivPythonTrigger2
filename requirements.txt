@@ -14,3 +14,4 @@ construct ~= 2.9.45
 PyYAML ~= 5.1
 Shapely~=1.7.1
 pywin32
+requests~=2.25.1

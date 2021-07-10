@@ -1,5 +1,6 @@
 import sys
 import os
+from functools import cached_property
 from pathlib import Path
 from queue import Queue
 from threading import Lock, Thread
@@ -11,6 +12,8 @@ import atexit
 from importlib import import_module, reload
 
 from . import AttrContainer, Storage, Logger, FrameInject, Sigs, AddressManager
+from .CheckGitUpdate import get_last_commit_time
+from .Utils import get_hash
 
 LOG_FILE_SIZE_MAX = 1024 * 1024
 
@@ -67,7 +70,27 @@ class EventCallback(object):
 
 class PluginBase(object):
     name = "unnamed_plugin"
+    git_repo = ''
+    repo_path = ''
+    hash_path = ''
+    time_version = 0.
     main_mission: Optional[Mission]
+
+    @cached_property
+    def last_update_time(self):
+        phash = self.plugin_hash
+        if phash is None: return 0.
+        t = get_last_update(
+            _storage.data.setdefault('plugin_update_time', dict()).setdefault(self.name, dict()),
+            phash, self.logger
+        )
+        _storage.save()
+        return t
+
+    @cached_property
+    def plugin_hash(self):
+        if self.hash_path:
+            return get_hash(self.hash_path)
 
     def __init__(self):
         self._events = list()
@@ -116,6 +139,8 @@ class PluginBase(object):
 
     def p_start(self):
         self.main_mission = self.create_mission(self._start, limit_sec=0)
+        if self.git_repo and self.repo_path and self.plugin_hash is not None:
+            self.create_mission(check_update, self.logger, self.git_repo, self.repo_path, self.last_update_time, limit_sec=5)
 
     def p_unload(self):
         for event_id, callback in self._events:
@@ -270,6 +295,7 @@ def append_missions(mission: Mission, guard=True):
 def start():
     for plugin in _plugins.values():
         plugin.p_start()
+    append_missions(Mission("check_update_core", 0, check_update, _logger, "nyaoouo/FFxivPythonTrigger2", "FFxivPythonTrigger", core_last_update))
     if _missions:
         _logger.info('FFxiv Python Trigger started')
         while _missions:
@@ -299,6 +325,22 @@ def add_path(path: str):
             _storage.save()
 
 
+def get_last_update(data_dir: dict, current_hash: str, logger: Logger.Logger):
+    if 'time' not in data_dir or 'hash' not in data_dir or data_dir['hash'] != current_hash:
+        logger.debug("last update time update")
+        data_dir['time'] = time()
+        data_dir['hash'] = current_hash
+    return data_dir['time']
+
+
+def check_update(logger: Logger.Logger, repo: str, rpath: str, last_update: float):
+    t = get_last_commit_time(repo, rpath)
+    if t.timestamp() > last_update:
+        logger.warning(f"There is a update at {t} on https://github.com/{repo}")
+    else:
+        logger.debug(f"{repo} - {rpath} is up to date")
+
+
 LOG_FILE_FORMAT = 'log_{int_time}.txt'
 STORAGE_DIRNAME = "Core"
 LOGGER_NAME = "Main"
@@ -323,7 +365,6 @@ _allow_create_missions: bool = True
 
 _am = AddressManager.AddressManager(_storage.data.setdefault('address', dict()), _logger)
 frame_inject = FrameInject.FrameInjectHook(_am.get("frame_inject", **Sigs.frame_inject))
-_storage.save()
 
 frame_inject.install()
 frame_inject.enable()
@@ -334,4 +375,10 @@ sys.path.insert(0, str(plugin_path))
 for path in _storage.data.setdefault('paths', list()):
     _logger.debug("add plugin path:%s" % path)
     sys.path.insert(0, path)
+
+core_last_update = get_last_update(
+    _storage.data.setdefault('core_last_update', dict()),
+    get_hash(os.path.dirname(__file__)), _logger
+)
+
 _storage.save()

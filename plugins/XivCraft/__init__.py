@@ -189,14 +189,14 @@ class XivCraft(PluginBase):
         else:
             self.logger.info("no solver found, please add a solver for this recipe")
 
-    def _craft_next(self, craft, skill):
+    def _craft_next(self, craft:Craft.Craft, skill):
         if skill == "观察":
             craft.add_effect("观察", 1)
             craft.merge_effects()
         self.logger.debug(f"use skill:{skill.name}")
         self.logger.debug(craft)
         process_event(CraftAction(craft, skill))
-        if self.solver is not None:
+        if self.solver is not None and not craft.is_finished():
             ans = self.solver.process(craft, skill)
             self.logger.info("suggested skill '%s'" % ans)
             if ans and callback is not None:

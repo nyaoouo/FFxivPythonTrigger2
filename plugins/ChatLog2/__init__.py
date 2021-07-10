@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from traceback import format_exc
 from ctypes import *
@@ -49,6 +50,9 @@ class ChatLogEvent(EventBase):
 
 class ChatLogPlugin(PluginBase):
     name = "chat log"
+    git_repo = 'nyaoouo/FFxivPythonTrigger2'
+    repo_path = 'plugins/ChatLog2'
+    hash_path = os.path.dirname(__file__)
 
     def __init__(self):
         super(ChatLogPlugin, self).__init__()

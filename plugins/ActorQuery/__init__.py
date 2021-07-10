@@ -1,3 +1,4 @@
+import os
 from FFxivPythonTrigger import PluginBase, api
 
 command = "@aq"
@@ -5,6 +6,9 @@ command = "@aq"
 
 class ActorQuery(PluginBase):
     name = "Actor Query"
+    git_repo = 'nyaoouo/FFxivPythonTrigger2'
+    repo_path = 'plugins/ActorQuery'
+    hash_path = os.path.dirname(__file__)
 
     def __init__(self):
         super().__init__()
