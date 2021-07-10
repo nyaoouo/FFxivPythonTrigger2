@@ -51,8 +51,8 @@ def check_update(logger: Logger, repo: str, rpath: str, last_update: float):
 
     try:
         q = get(f"{domain}/repos/{repo}/commits", {'path': rpath, 'page': '1', 'per_page': '1', }, headers=headers_)
-    except Exception:
-        logger.warning(f"cant check update of {repo} - {rpath} because error occurred\n{format_exc()}")
+    except Exception as e:
+        logger.warning(f"cant check update of {repo} - {rpath}: {e}")
     else:
         if q.status_code != 304:
             data = q.json()
