@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime,timezone
 
 from requests import get
 import urllib.request
@@ -27,7 +27,7 @@ def test_url(url):
 def get_last_commit_time(repo: str, path: str):
     if not can_check: return EMPTY
     q = get(f"{domain}/repos/{repo}/commits", {'path': path, 'page': '1', 'per_page': '1', }).json()
-    return datetime.strptime(q[0]["commit"]["author"]["date"], '%Y-%m-%dT%H:%M:%SZ')
+    return datetime.strptime(q[0]["commit"]["author"]["date"], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
 
 
 can_check = test_url(domain)
