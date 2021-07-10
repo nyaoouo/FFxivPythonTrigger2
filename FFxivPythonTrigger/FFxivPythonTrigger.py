@@ -335,6 +335,8 @@ def get_last_update(data_dir: dict, current_hash: str, logger: Logger.Logger):
 
 def check_update(logger: Logger.Logger, repo: str, rpath: str, last_update: float):
     t = get_last_commit_time(repo, rpath)
+    if t is None:
+        logger.warning(f"cant check update of {repo} - {rpath}")
     if t.timestamp() > last_update:
         logger.warning(f"There is a update at {t} on https://github.com/{repo}")
     else:
