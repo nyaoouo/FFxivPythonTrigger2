@@ -26,7 +26,11 @@ def test_url(url):
 
 def get_last_commit_time(repo: str, path: str):
     if not can_check: return
-    q = get(f"{domain}/repos/{repo}/commits", {'path': path, 'page': '1', 'per_page': '1', }, headers=headers)
+    try:
+        q = get(f"{domain}/repos/{repo}/commits", {'path': path, 'page': '1', 'per_page': '1', }, headers=headers)
+    except Exception as e:
+        _logger.warning(e)
+        return
     if q.status_code != 200: raise Exception(q.json()["message"])
     return datetime.strptime(q.json()[0]["commit"]["author"]["date"], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
 
