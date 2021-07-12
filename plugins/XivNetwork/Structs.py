@@ -430,9 +430,42 @@ class ServerCraftStatus(OffsetStruct({
     'current_durability': (c_int, 0x4c),
     'add_durability': (c_int, 0x50),
     'status_id': (c_ushort, 0x54),
-    'prev_action_flag':(c_ushort,0x5c),
-}, 160,['prev_action_success'])):
+    'prev_action_flag': (c_ushort, 0x5c),
+}, 160, ['prev_action_success'])):
 
     @property
     def prev_action_success(self):
-        return bool(self.prev_action_flag&0x10)
+        return bool(self.prev_action_flag & 0x10)
+
+
+class LandHouseEntry(OffsetStruct({
+    'price': c_uint,
+    'fluff': c_uint,
+    '_owner': c_char * 32
+}, extra_properties=['owner'])):
+    @property
+    def owner(self):
+        return self._owner.decode('utf-8', errors='ignore')
+
+
+class ServerWardLandInfo(OffsetStruct({
+    'land_id': c_ushort,
+    'ward_id': c_ushort,
+    'territory_type': c_ushort,
+    'world_id': c_ushort,
+    'houses': LandHouseEntry * 60
+})):
+    def houses_without_owner(self):
+        for house in self.houses:
+            if not house.owner:
+                yield house
+
+
+class ClientTrigger(OffsetStruct({
+    'unk0': (c_uint, 0),
+    'event_id': (c_ushort, 0x4),
+    'category': (c_ushort, 0x6),
+    'target_bnpc_id': (c_uint, 0x18),
+    'unk1': (c_uint, 0x1c),
+})):
+    pass

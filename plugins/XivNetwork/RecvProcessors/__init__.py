@@ -5,6 +5,7 @@ from ..Structs import RecvNetworkEventBase, ServerMessageHeader, header_size
 from .Opcodes import opcodes
 from . import AddStatusEffect, Ability, ActorCast, ActorControl142, StatusEffectList, ActorControl143, Ping
 from . import ActorControl144, ActorGauge, ActorUpdateHpMpTp, EventStart, EventPlay, EventFinish, CraftStatus
+from . import WardLandInfo
 
 _logger = Logger("XivNetwork/RecvProcessors")
 
@@ -29,6 +30,7 @@ _processors = {
     "EventFinish": EventFinish.get_event,
     "EventPlay": EventPlay.get_event,
     "CraftStatus": CraftStatus.get_event,
+    "WardLandInfo": WardLandInfo.get_event,
 }
 
 
