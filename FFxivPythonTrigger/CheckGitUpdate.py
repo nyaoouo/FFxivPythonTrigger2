@@ -1,6 +1,5 @@
 from datetime import datetime, timezone
 from time import time
-from traceback import format_exc
 from typing import Optional
 
 from requests import get
