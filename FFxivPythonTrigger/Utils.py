@@ -1,3 +1,5 @@
+import threading
+import time
 from typing import Callable, Tuple, TYPE_CHECKING
 from math import sin, cos
 import hashlib, os
@@ -46,7 +48,7 @@ def dir_hash(directory_path):
             with open(filepath, 'rb') as f1:
                 while True:
                     buf = f1.read(4096)
-                    if not buf:break
+                    if not buf: break
                     hashs.update(hashlib.sha256(buf).digest())
     return hashs.hexdigest()
 
@@ -68,3 +70,34 @@ def get_hash(path):
         return dir_hash(path)
     else:
         return file_hash(path)
+
+
+class Counter(object):
+    def __init__(self):
+        self.current = 0
+        self._lock = threading.Lock()
+
+    def get(self):
+        with self._lock:
+            self.current += 1
+            return self.current
+
+    def reset(self):
+        with self._lock:
+            self.current = 0
+
+
+class WaitTimeoutException(Exception):
+    def __init__(self):
+        super(WaitTimeoutException, self).__init__("Wait Timeout")
+
+
+def wait_until(statement: Callable[[], any], timeout: float = None, period: float = 0.1):
+    temp = statement()
+    start = time.perf_counter()
+    while temp is None:
+        if timeout is not None and time.perf_counter() - start >= timeout:
+            raise WaitTimeoutException()
+        time.sleep(period)
+        temp = statement()
+    return temp
