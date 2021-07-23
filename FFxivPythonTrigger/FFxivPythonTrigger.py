@@ -281,10 +281,20 @@ def close():
         frame_inject.uninstall()
 
 
-def append_missions(mission: Mission, guard=True):
-    if _allow_create_missions:
+def mission_starter():
+    while True:
+        mission, guard = _missions_buffer.get()
         if guard: _missions.add(mission)
         mission.start()
+
+
+def append_missions(mission: Mission, guard=True, put_buffer=False):
+    if _allow_create_missions:
+        if put_buffer:
+            _missions_buffer.put((mission, guard))
+        else:
+            if guard: _missions.add(mission)
+            mission.start()
         return True
     return False
 
@@ -311,6 +321,7 @@ def start():
     global _log_work
     _log_work = False
     _log_mission.join()
+    _missions_starter_mission.join()
 
 
 def add_path(path: str):
@@ -328,6 +339,12 @@ LOGGER_NAME = "Main"
 
 api = AttrContainer.AttrContainer()
 
+
+_missions_buffer = Queue()
+_missions: Set[Mission] = set()
+_missions_starter_mission = Mission('mission_starter',-1,mission_starter)
+_missions_starter_mission.start()
+
 _storage = Storage.ModuleStorage(Storage.BASE_PATH / STORAGE_DIRNAME)
 _logger = Logger.Logger(LOGGER_NAME)
 _log_path = _storage.path / LOG_FILE_FORMAT.format(int_time=int(time()))
@@ -340,7 +357,6 @@ Logger.log_handler.add((Logger.DEBUG, _log_write_buffer.put))
 atexit.register(close)
 
 _plugins: Dict[str, PluginBase] = dict()
-_missions: Set[Mission] = set()
 _events: Dict[any, Set[EventCallback]] = dict()
 _allow_create_missions: bool = True
 
