@@ -440,12 +440,16 @@ class ServerCraftStatus(OffsetStruct({
 
 class LandHouseEntry(OffsetStruct({
     'price': c_uint,
-    'fluff': c_uint,
+    '_flag': c_uint,
     '_owner': c_char * 32
-}, extra_properties=['owner'])):
+}, extra_properties=['owner','is_fc'])):
     @property
     def owner(self):
         return self._owner.decode('utf-8', errors='ignore')
+
+    @property
+    def is_fc(self):
+        return bool(self._flag & (1 << 4))
 
 
 class ServerWardLandInfo(OffsetStruct({
