@@ -288,7 +288,7 @@ def mission_starter():
         mission.start()
 
 
-def append_missions(mission: Mission, guard=True, put_buffer=False):
+def append_missions(mission: Mission, guard=True, put_buffer=True):
     if _allow_create_missions:
         if put_buffer:
             _missions_buffer.put((mission, guard))
