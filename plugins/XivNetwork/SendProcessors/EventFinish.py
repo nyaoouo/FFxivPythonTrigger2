@@ -1,7 +1,17 @@
-from ctypes import sizeof
+from ctypes import *
 
 from FFxivPythonTrigger.Logger import Logger
-from ..Structs import SendNetworkEventBase, ClientEventFinish,header_size
+from FFxivPythonTrigger.memory.StructFactory import OffsetStruct
+from ..Structs import SendNetworkEventBase, header_size
+
+ClientEventFinish = OffsetStruct({
+    'event_id': c_ushort,
+    'category': c_ushort,
+    'unk2': c_uint,
+    'unk3': c_uint,
+    'unk4': c_uint,
+}, 16)
+
 
 _logger = Logger("XivNetwork/ProcessClientEventFinish")
 size = sizeof(ClientEventFinish)

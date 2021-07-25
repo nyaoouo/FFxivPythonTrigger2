@@ -248,7 +248,7 @@ class XivNetwork(PluginBase):
             event = send_processors[header.msg_type](msg_time, msg)
         else:
             event = UnkSendRawEvent(msg_time, msg[header_size:], header)
-        process_event(event)
+        if event is not None: process_event(event)
 
     def get_response(self, response_id: int):
         if response_id in self.response_data:

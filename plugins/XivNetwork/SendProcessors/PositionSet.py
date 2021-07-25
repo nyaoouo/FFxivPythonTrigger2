@@ -1,8 +1,17 @@
-from ctypes import sizeof
+from ctypes import *
 from math import degrees
 
 from FFxivPythonTrigger.Logger import Logger
-from ..Structs import SendNetworkEventBase, ClientPositionSet
+from FFxivPythonTrigger.memory.StructFactory import OffsetStruct
+from ..Structs import SendNetworkEventBase, header_size, Vector3
+
+ClientPositionSet = OffsetStruct({
+    'r': (c_float, 0),
+    'unk0': (c_ushort, 0x4),
+    'unk1': (c_ushort, 0x6),
+    'pos': (Vector3, 0x8),
+    'unk2': (c_uint, 0x14),
+}, 24)
 
 _logger = Logger("XivNetwork/ProcessClientPositionSet")
 size = sizeof(ClientPositionSet)
@@ -22,7 +31,7 @@ class PositionSetEvent(SendNetworkEventBase):
 
 
 def get_event(msg_time, raw_msg):
-    if len(raw_msg) < size:
+    if len(raw_msg) < size + header_size:
         _logger.warning("message is too short to parse:[%s]" % raw_msg.hex())
         return
-    return PositionSetEvent(msg_time, ClientPositionSet.from_buffer(raw_msg))
+    return PositionSetEvent(msg_time, ClientPositionSet.from_buffer(raw_msg[header_size:]))

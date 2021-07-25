@@ -1,7 +1,7 @@
 from FFxivPythonTrigger.Logger import Logger
 from FFxivPythonTrigger import FFxiv_Version
 from ..Structs import SendNetworkEventBase, ServerMessageHeader, header_size
-from . import Ping, PositionSet, PositionAdjust, EventStart, EventFinish, EventAction
+from . import Ping, PositionSet, PositionAdjust, EventStart, EventFinish, EventAction, ClientTrigger
 
 from .Opcodes import opcodes
 
@@ -14,6 +14,7 @@ _processors = {
     "EventStart": EventStart.get_event,
     "EventFinish": EventFinish.get_event,
     "EventAction": EventAction.get_event,
+    "ClientTrigger": ClientTrigger.get_event,
 }
 
 
