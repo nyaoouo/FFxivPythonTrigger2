@@ -5,7 +5,7 @@ from ..Structs import RecvNetworkEventBase, ServerMessageHeader, header_size
 from .Opcodes import opcodes
 from . import AddStatusEffect, Ability, ActorCast, ActorControl142, StatusEffectList, ActorControl143, Ping
 from . import ActorControl144, ActorGauge, ActorUpdateHpMpTp, EventStart, EventPlay, EventFinish, CraftStatus
-from . import WardLandInfo, ItemInfo, ContainerInfo, CurrencyCrystalInfo,RetainerInformation
+from . import WardLandInfo, ItemInfo, ContainerInfo, CurrencyCrystalInfo, RetainerInformation, UpdateInventorySlot
 
 _logger = Logger("XivNetwork/RecvProcessors")
 
@@ -35,6 +35,7 @@ _processors = {
     'ContainerInfo': ContainerInfo.get_event,
     'CurrencyCrystalInfo': CurrencyCrystalInfo.get_event,
     'RetainerInformation': RetainerInformation.get_event,
+    'UpdateInventorySlot': UpdateInventorySlot.get_event,
 }
 
 
