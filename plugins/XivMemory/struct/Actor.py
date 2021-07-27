@@ -101,6 +101,15 @@ class Actor(OffsetStruct({
     def target_radian(self, target: 'Actor'):
         return math.atan2(target.pos.x - self.pos.x, target.pos.y - self.pos.y)
 
+    def target_position(self, target: 'Actor'):
+        a = abs(abs(self.target_radian(target) - self.pos.r) - math.pi)
+        if a < math.pi / 4:
+            return "BACK"
+        elif a < math.pi / 4 * 3:
+            return "SIDE"
+        else:
+            return "FRONT"
+
     @property
     def Name(self):
         return self.name.decode('utf-8', errors='ignore')
