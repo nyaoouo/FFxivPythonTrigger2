@@ -1,5 +1,5 @@
 from FFxivPythonTrigger import api
-from . import Stage1_s4, Stage1_s23, Stage2_s4, Stage2_s23, Stage3_Bfs, Stage3_Astar, Stage1_s4_v2, Stage1_s4_v3
+from . import Stage1_s4, Stage1_s23, Stage2_s4, Stage2_s23, Stage3_Bfs, Stage3_Astar, Stage1_s4_v2, Stage1_s4_v3, Stage1_ultra
 from .. import Solver
 
 USE_ASTAR = False
@@ -21,7 +21,7 @@ class SkyBuilders(Solver):
         elif craft.recipe.status_flag == 0b1110011:
             self_choose_stages = [Stage1_s23.Stage1, Stage2_s23.Stage2]
         elif craft.recipe.status_flag == 0b111110011:
-            self_choose_stages = []
+            self_choose_stages = [Stage1_ultra.Stage1]
         else:
             raise Exception("Unknown recipe status_flag")
         if USE_ASTAR:
