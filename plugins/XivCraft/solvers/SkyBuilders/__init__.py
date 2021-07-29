@@ -9,7 +9,7 @@ class SkyBuilders(Solver):
     @staticmethod
     def suitable(craft):
         # if api.XivMemory.player_info.job != 10: return False
-        return craft.recipe.status_flag == 0b1110011 or craft.recipe.status_flag == 0b111100011
+        return craft.recipe.status_flag in {0b1110011, 0b111100011, 0b111110011}
 
     def __init__(self, craft, logger):
         super().__init__(craft, logger)
@@ -18,8 +18,12 @@ class SkyBuilders(Solver):
             # self_choose_stages = [Stage1_s4.Stage1, Stage2_s4.Stage2]
             # self_choose_stages = [Stage1_s4_v2.Stage1]
             self_choose_stages = [Stage1_s4_v3.Stage1]
-        else:
+        elif craft.recipe.status_flag == 0b1110011:
             self_choose_stages = [Stage1_s23.Stage1, Stage2_s23.Stage2]
+        elif craft.recipe.status_flag == 0b111110011:
+            self_choose_stages = []
+        else:
+            raise Exception("Unknown recipe status_flag")
         if USE_ASTAR:
             self_choose_stages += [Stage3_Astar.Stage3, Stage3_Astar.StageEnd]
         else:
