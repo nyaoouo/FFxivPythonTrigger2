@@ -25,7 +25,7 @@ class ActorTable(POINTER(Actor) * SIZE):
             if actor.name == key:
                 yield actor
 
-    def get_actor_by_id(self, aid: int):
+    def get_actor_by_id(self, aid: int)->Actor:
         for actor in self.get_item():
             if actor.id == aid:
                 return actor

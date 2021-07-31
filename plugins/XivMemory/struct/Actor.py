@@ -3,6 +3,7 @@ from ctypes import *
 
 from FFxivPythonTrigger.Utils import circle
 from FFxivPythonTrigger.memory.StructFactory import OffsetStruct
+from .Enum import Jobs
 
 Effect = OffsetStruct({
     'buffId': (c_ushort, 0),
@@ -59,7 +60,7 @@ class Actor(OffsetStruct({
     'maxGP': (c_ushort, 470),
     'currentCP': (c_ushort, 472),
     'maxCP': (c_ushort, 474),
-    'job': (c_byte, 482),
+    'job': (Jobs, 482),
     'level': (c_byte, 483),
     'effects': (Effects, 6616),
     "IsCasting1": (c_bool, 7008),
