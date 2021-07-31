@@ -1,7 +1,0 @@
-#CraftMacro:[Name]:71半成品
-/ac 闲静 <wait.3>
-/ac 长期俭约 <wait.2>
-/ac 坯料加工 <wait.3>
-/ac [status!="最高品质"] 阔步 <wait.2>
-/ac 比尔格的祝福 <wait.3>
-/ac 坯料制作 <wait.3>
