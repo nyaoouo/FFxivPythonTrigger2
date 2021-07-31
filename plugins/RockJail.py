@@ -68,8 +68,9 @@ class RockJail(PluginBase):
                 if target is None:
                     self.logger.error(f"an target with id:{hex(t_id)[2:]} is not found")
                     continue
-                self.list.append((target.Name, target.job.raw_value))
+                self.list.append((target.Name, target.job.raw_value, t_id))
             if len(self.list) >= 3:
                 data = sorted(self.list, key=lambda x: order[x[1]])
-                msg = '》'.join([f"{jobs[job_value]}({name[0]})" for name, job_value in data])
+                for i, t in enumerate(data): api.Markings.mark_actor(f'attack{i + 1}', t[2])
+                msg = '》'.join([f"{jobs[job_value]}({name[0]})" for name, job_value, _ in data])
                 api.Magic.macro_command(f"/e 泰坦》{msg}》地雷 <se.6>")
