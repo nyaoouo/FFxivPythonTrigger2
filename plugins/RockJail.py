@@ -72,5 +72,9 @@ class RockJail(PluginBase):
             if len(self.list) >= 3:
                 data = sorted(self.list, key=lambda x: order[x[1]])
                 for i, t in enumerate(data): api.Markings.mark_actor(f'attack{i + 1}', t[2])
-                msg = '》'.join([f"{jobs[job_value]}({name[0]})" for name, job_value, _ in data])
-                api.Magic.macro_command(f"/e 泰坦》{msg}》地雷 <se.6>")
+                mode = 'p' if len(list(api.XivMemory.party.main_party())) > 1 else 'e'
+                api.Magic.macro_command(f"""/{mode} 石牢顺序：
+：{jobs[data[0][1]]}｛{data[0][0]}｝
+：{jobs[data[1][1]]}｛{data[1][0]}｝
+：{jobs[data[2][1]]}｛{data[2][0]}｝
+<se.6>""")
