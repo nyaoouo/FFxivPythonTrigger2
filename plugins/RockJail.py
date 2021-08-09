@@ -1,6 +1,9 @@
 from FFxivPythonTrigger import *
 
+command = "@rj"
+
 skills = {11115, 11116}
+test_skills = {11115, 11116, 137}
 
 jobs = {
     19: '骑士',  # 骑士PLD
@@ -55,12 +58,17 @@ class RockJail(PluginBase):
         self.list = []
         self.last_record_time = 0
         self.lock = Lock()
+        self.test_mode = False
+        api.command.register(command, self.process_command)
+
+    def _onunload(self):
+        api.command.unregister(command)
 
     def action_effect(self, evt):
-        if evt.action_id not in skills or evt.action_type != "action":
+        if evt.action_id not in (test_skills if self.test_mode else skills) or evt.action_type != "action":
             return
         with self.lock:
-            if self.list and self.last_record_time < time() - 1:
+            if self.list and self.last_record_time < time() - (5 if self.test_mode else 1):
                 self.list.clear()
             self.last_record_time = time()
             for t_id in evt.targets.keys():
@@ -74,7 +82,32 @@ class RockJail(PluginBase):
                 for i, t in enumerate(data): api.Markings.mark_actor(f'attack{i + 1}', t[2])
                 mode = 'p' if len(list(api.XivMemory.party.main_party())) > 1 else 'e'
                 api.Magic.macro_command(f"""/{mode} 石牢顺序：
-：{jobs[data[0][1]]}｛{data[0][0]}｝
-：{jobs[data[1][1]]}｛{data[1][0]}｝
-：{jobs[data[2][1]]}｛{data[2][0]}｝
+\ue090：{jobs[data[0][1]]}｛{data[0][0]}｝
+\ue091：{jobs[data[1][1]]}｛{data[1][0]}｝
+\ue092：{jobs[data[2][1]]}｛{data[2][0]}｝
 <se.6>""")
+
+    def process_command(self, args):
+        try:
+            msg = self._process_command(args)
+            if msg is not None:
+                api.Magic.echo_msg(msg)
+        except Exception as e:
+            api.Magic.echo_msg(e)
+
+    def _process_command(self, args):
+        if args:
+            if args[0] == "e":
+                self.test_mode = True
+            elif args[0] == "d":
+                self.test_mode = False
+            elif args[0]=="order":
+                mode = 'p' if len(list(api.XivMemory.party.main_party())) > 1 else 'e'
+                msg='\n'.join([f"{i+1}:{n}" for i,n in enumerate(jobs_order)])
+                api.Magic.macro_command(f"""/{mode} 默认顺序：\n{msg}\n<se.6>""")
+                return
+            else:
+                return f"[{args[0]}] is an invalid argument"
+        else:
+            self.test_mode = not self.test_mode
+        return f"test:{self.test_mode}"
