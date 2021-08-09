@@ -1,5 +1,6 @@
 from ctypes import *
 from FFxivPythonTrigger.memory.StructFactory import OffsetStruct
+from .Enum import Jobs
 
 Vector3 = OffsetStruct({
     'x': (c_float, 0),
@@ -23,7 +24,7 @@ class Effects(Effect * 30):
                 yield effect.buffId, effect
 
 
-PartyMember = OffsetStruct({
+class PartyMember(OffsetStruct({
     "effects": (Effects, 0x8),
     "currentHp": (c_uint, 0x1b4),
     "maxHp": (c_uint, 0x1b8),
@@ -32,5 +33,9 @@ PartyMember = OffsetStruct({
     "pos": (Vector3, 0x190),
     "id": (c_uint, 0x1a8),
     "name": (c_char * 64, 0x1c4),
+    "job": (Jobs, 0x205),
     "flag": (c_ubyte, 544),
-}, full_size=0x230)
+}, full_size=0x230)):
+    @property
+    def Name(self):
+        return self.name.encode('utf-8')
