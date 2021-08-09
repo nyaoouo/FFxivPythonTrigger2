@@ -18,7 +18,7 @@ class ServerRetainerInformation(OffsetStruct({
     'class_job': c_ubyte,
     'level': c_ubyte,
     'sell_end_time': c_uint,
-    'unk3': c_uint,
+    'mission_id': c_uint,
     'adv_end_time': c_uint,
     'reserved': c_ubyte,
     '_name': c_char * 39,
