@@ -1,9 +1,7 @@
 from queue import Queue
-from threading import Lock
 from traceback import format_exc
-from typing import List, Tuple
 from time import perf_counter
-from inspect import getfile, getsourcelines, getframeinfo, stack, Traceback
+from inspect import getfile, getsourcelines
 
 from .Logger import Logger
 from .hook import Hook
