@@ -33,6 +33,8 @@ try:
         # "ACTLogLines",  # act接口
         # "SendKeys",  # 按键发送
         # "Markings",  # 标点功能
+        # "PartyTroubleMaker",  # 小警察
+        # "RockJail",  # 三连桶
     ])
     start()
 except Exception:
