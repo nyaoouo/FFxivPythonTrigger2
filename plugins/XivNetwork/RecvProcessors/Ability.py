@@ -129,7 +129,7 @@ class RecvActionEffectEvent(EventBase):
             self.action_type = "action"
         else:
             self.action_type = "unknown_%s" % header.effect_display_type
-        self.action_id = header.action_id
+        self.action_id = header.action_animation_id if self.action_type=="action" else header.action_id
         effect_count = min(header.effect_count, max_count)
         self.targets = dict()
         for i in range(effect_count):

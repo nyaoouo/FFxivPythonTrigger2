@@ -26,9 +26,9 @@ class Effects(Effect * 30):
 
 class PartyMember(OffsetStruct({
     "effects": (Effects, 0x8),
-    "currentHp": (c_uint, 0x1b4),
+    "currentHP": (c_uint, 0x1b4),
     "maxHp": (c_uint, 0x1b8),
-    "currentMp": (c_ushort, 0x1bc),
+    "currentMP": (c_ushort, 0x1bc),
     "maxMp": (c_ushort, 0x1be),
     "pos": (Vector3, 0x190),
     "id": (c_uint, 0x1a8),
@@ -38,4 +38,4 @@ class PartyMember(OffsetStruct({
 }, full_size=0x230)):
     @property
     def Name(self):
-        return self.name.encode('utf-8')
+        return self.name.decode('utf-8')
