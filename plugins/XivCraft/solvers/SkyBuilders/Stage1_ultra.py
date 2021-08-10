@@ -163,7 +163,7 @@ class Stage1:
         # 黄球处理
         #####
         if craft.status == "安定":
-            if craft.effects['内静'].param < 7 and craft.current_durability > 10:
+            if 1 < craft.effects['内静'].param < 7 and craft.current_durability > 10:
                 return '专心加工'
 
         #####
@@ -173,17 +173,16 @@ class Stage1:
         # 可以用俭约补最后几层的话还是俭约补吧，仓促太难了
         # 新增如果是黄球也进入（高速boom警告）
         #####
-        if not process_finish and (craft.status == "高進捗" or '崇敬' in craft.effects or craft.status == "安定"):
+        if not process_finish and ((craft.status == "高進捗") or ('崇敬' in craft.effects) or (craft.status == "安定")):
             for s in '制作', '模范制作', '高速制作':
                 if is_process_finished(craft.clone().use_skill(s)):
                     return progess_skill(craft, s)
             return progess_skill(craft, '高速制作')
-        if craft.effects['内静'].param < 8:
+        if craft.effects['内静'].param < 8 and process_finish:
             #####
             # 现在有伟大的黄球了，让我们把命运交给它吧（快进到黄球专心三连炸）
             #####
             # if craft.effects['内静'].param < 5:
             #     return '专心加工'
             return "仓促" if '俭约' in craft.effects or craft.status == "安定" else '俭约加工'
-        else:
-            return '崇敬'
+        return '崇敬'
