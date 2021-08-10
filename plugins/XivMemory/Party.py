@@ -1,18 +1,8 @@
 from ctypes import *
 from FFxivPythonTrigger.memory import read_memory
 from FFxivPythonTrigger.memory.StructFactory import OffsetStruct
-from .struct.Party import PartyMember as PartyMemberStruct
-from .ActorTable import actor_table
+from .struct.Party import PartyMember
 from .AddressManager import party_addr
-
-
-class PartyMember(PartyMemberStruct):
-    @property
-    def actor(self):
-        if self.id == 0 or self.id == 0xe0000000:
-            return None
-        else:
-            actor_table.get_actor_by_id(self.id)
 
 
 class PartyList(OffsetStruct({
