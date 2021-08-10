@@ -150,7 +150,7 @@ class XivCraft(PluginBase):
     def get_base_data(self):
         recipe = Models.Recipe(self._recipe)
         me = api.XivMemory.actor_table.get_me()
-        me_info = api.XivMemory.player_info
+        me_info = api.XivMemory.player_info.attr
         player = Models.Player(me.level, me_info.craft, me_info.control, me.maxCP)
         return recipe, player
 

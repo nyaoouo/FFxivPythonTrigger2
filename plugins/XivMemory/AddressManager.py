@@ -41,8 +41,11 @@ gauge_addr = _am.get("gauge", scan_address, gauge_sig, cmd_len=7, add=0x10)
 
 # player_sig = "0f 10 ?? ?? ?? ?? ?? 40 0f ?? ?? 0f 95"
 # player_addr = _am.get("player", scan_address, player_sig, cmd_len=7, add=-0x11)
-player_sig = "48 0F 44 05 ? ? ? ? 48 39 07"  # cn5.45
-player_addr = _am.get("player", scan_address, player_sig, cmd_len=8)  # cn5.45
+# player_sig = "48 0F 44 05 ? ? ? ? 48 39 07"  # cn5.45
+# player_addr = _am.get("player", scan_address, player_sig, cmd_len=8)  # cn5.45
+player_sig = "48 8D 0D ? ? ? ? E8 ? ? ? ? 0F B6 F0 0F B6 05 ? ? ? ?"  # cn5.45
+player_addr = _am.get("player_5.5", scan_address, player_sig, cmd_len=7)  # cn5.5
+
 
 ##########
 # targets
