@@ -1,17 +1,17 @@
 opcodes = {
     "2021.07.31.0000.0000": {
         "Ping": 0x372,
-        # "ChatHandler": 0x0070,
-        "ClientTrigger": 0x03C1,
-        # "InventoryModifyHandler": 0x00D9,
-        # "SetSearchInfoHandler": 0x02F3,
-        "UpdatePositionHandler": 0x03B2,
-        "UpdatePositionInstance": 0x01CB,
-        # "MarketBoardPurchaseHandler": 0x0097,
-        "ActionSend": 0x2E0,
-        "EventStart": 0x2D5,
-        "EventFinish": 0x110,
-        "EventAction": 0x105,
+        "ChatHandler": 0X3CA,
+        "ClientTrigger": 0X3C1,
+        "InventoryModifyHandler": 0X1B1,
+        "SetSearchInfoHandler": 0X221,
+        "UpdatePositionHandler": 0X3B2,
+        "UpdatePositionInstance": 0X1CB,
+        "MarketBoardPurchaseHandler": 0X2AC,
+        "EventStart": 0X2D5,
+        "EventFinish": 0X110,
+        "EventAction": 0X105,
+        "ActionSend": 0X2E0,
     },  # cn5.5
     "2021.05.28.0000.0000": {
         "Ping": 0x1bc,
