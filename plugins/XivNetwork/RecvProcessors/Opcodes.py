@@ -22,7 +22,7 @@ opcodes = {
         "ActorGauge": 0x010D,
         "PresetWaymark": 0x026A,
         "Waymark": 0x010C,
-    },
+    },  # cn5.5
     "2021.05.28.0000.0000": {
         "StatusEffectList": 0x0177,
         "StatusEffectList2": 0x0335,
