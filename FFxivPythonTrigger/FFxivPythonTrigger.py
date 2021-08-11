@@ -75,6 +75,7 @@ class PluginBase(object):
     hash_path = ''
     time_version = 0.
     main_mission: Optional[Mission]
+    save_when_unload = True
 
     @cached_property
     def last_update_time(self):
@@ -150,7 +151,8 @@ class PluginBase(object):
                 mission.join(-1)
             except RuntimeError:
                 pass
-        self.storage.save()
+        if self.save_when_unload:
+            self.storage.save()
 
     def _onunload(self):
         pass
