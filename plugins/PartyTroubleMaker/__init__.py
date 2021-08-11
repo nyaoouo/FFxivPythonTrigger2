@@ -89,6 +89,8 @@ def action_display(action_id: int, source_id: int):
     return f"{action_name(action_id)}({actor_name(source_id)})"
 
 
+death_count = dict()
+
 DISABLE = 0
 ECHO = 1
 PARTY = 2
@@ -112,7 +114,6 @@ class PartyTroubleMaker(PluginBase):
 
     def _onunload(self):
         api.command.unregister(command)
-        self.storage.save()
 
     def get_mode(self, key: str):
         return self.storage.data['config'].setdefault(key, DEFAULT_MODE)
@@ -126,6 +127,7 @@ class PartyTroubleMaker(PluginBase):
     def combat_reset(self, evt):
         action_coll_down_cache.clear()
         last_damage_cache.clear()
+        death_count.clear()
 
     def action_effect(self, event):
         with self.lock:
@@ -166,7 +168,7 @@ class PartyTroubleMaker(PluginBase):
                             if t is not None:
                                 r = {eid for eid, _ in t.effects.get_items()}.intersection(damage_reduce)
                                 s = api.XivMemory.actor_table.get_actor_by_id(event.source_id)
-                                if s is not None:r |= {eid for eid, _ in s.effects.get_items()}.intersection(enemy_damage_reduce)
+                                if s is not None: r |= {eid for eid, _ in s.effects.get_items()}.intersection(enemy_damage_reduce)
                             r = "/".join([status_name(eid) for eid in r])
                             record_last_damage(target_id, source_name, effect.param, r)
                             me = api.XivMemory.actor_table.get_me()
@@ -186,6 +188,11 @@ class PartyTroubleMaker(PluginBase):
     def dead(self, event):
         with self.lock:
             if is_actor_in_party(event.target_id):
+                if event.target_id not in death_count:
+                    death_count[event.target_id] = 1
+                else:
+                    death_count[event.target_id] += 1
+
                 # 发送死因
                 msg = f"{actor_name(event.target_id)} 被 {actor_name(event.source_id)} 击杀：{get_last_damage(event.target_id) or '未知'}"
                 self.output(msg, 'death_last_damage')
@@ -200,7 +207,7 @@ class PartyTroubleMaker(PluginBase):
                         if actor.currentHP and job in swift_res_jobs:
                             cd = get_member_action_cd(actor.id, 7561)
                             cd_msg = f"{cd:.1f}s" if cd else "就绪"
-                            if actor.currentMP >= 2400 and not cd:
+                            if actor.currentMP >= 2400 and (not cd or job == 35):
                                 if job in healer:
                                     has_healer = True
                                 else:
@@ -224,6 +231,7 @@ class PartyTroubleMaker(PluginBase):
     def process_command(self, args):
         try:
             msg = self._process_command(args)
+            self.storage.save()
             if msg is not None:
                 api.Magic.echo_msg(msg)
         except Exception as e:

@@ -1,5 +1,6 @@
 import socketserver
 import os
+import sys
 from FFxivPythonTrigger import PluginBase
 from FFxivPythonTrigger import Logger
 
@@ -58,8 +59,14 @@ class SocketLogger(PluginBase):
         self.server = socketserver.ThreadingTCPServer(("127.0.0.1", int(os.environ.setdefault('FptSocketPort',"3520"))), TcpServer)
         self.server.allow_reuse_address = True
         self.create_mission(self.server.serve_forever,limit_sec=0)
+        self.old_std_out = None
+    def _start(self):
+        self.old_std_out = sys.stdout
+        sys.stdout = type('',(object,),{'write':broadcast_msg})
 
     def _onunload(self):
         close()
         self.server.shutdown()
         self.server.server_close()
+        if self.old_std_out is not None:
+            sys.stdout = self.old_std_out
