@@ -62,6 +62,7 @@ class Actor(OffsetStruct({
     'npcTargetId': (c_uint, 0x1818),
     'bNpcTargetId': (c_uint, 0x18D8),
     '_status_flags': (c_ubyte, 0x19A0),
+    '_status_flags2': (c_ubyte, 0x19A5),
     'effects': (Effects, 0x19F8),
     "IsCasting1": (c_bool, 0x1b80),
     "IsCasting2": (c_bool, 0x1b82),
@@ -149,6 +150,10 @@ class Actor(OffsetStruct({
     @property
     def is_casting(self):
         return bool(self._status_flags & 0x10000000)
+
+    @property
+    def is_positional(self):
+        return not bool(self._status_flags2 & 0x1)
 
 # class ActorTableNode(Structure):
 #     _fields_ = [('main_actor', POINTER(Actor)), ('pet_actor', POINTER(Actor))]
