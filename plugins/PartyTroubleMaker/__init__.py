@@ -251,8 +251,8 @@ class PartyTroubleMaker(PluginBase):
         else:
             new = int(value)
         if key == 'all':
-            for k in self.storage.data['config'].copy().keys():
-                self.storage.data[k] = new
+            for k in self.storage.data['config'].keys():
+                self.storage.data['config'][k] = new
             return str(self.storage.data['config'])
         else:
             old = self.storage.data['config'].get(key)
