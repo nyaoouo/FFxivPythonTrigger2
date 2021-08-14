@@ -73,6 +73,7 @@ SWING_TYPES = {
     0x33: {'instant_death'},
     # 0x34: {'buff'},
     0x37: {'buff', 'resistance'},
+    0x3D: {'gauge_add'},
 }
 
 TYPE_HAVE_AMOUNT = {'ability', 'healing', 'power_drain', 'power_healing''tp_healing'}
@@ -123,7 +124,7 @@ class ActionEffect(object):
             # self.tags.add(hex(self.raw_flag)[2:].zfill(8)+"-"+hex(self.raw_amount)[2:].zfill(8))
 
     def __str__(self):
-        return f"{self.param}{self.tags}"  # + str(self.raw_entry.get_data())
+        return f"{self.param}{self.tags}"   + str(self.raw_entry.get_data())
 
 
 class RecvActionEffectEvent(EventBase):
