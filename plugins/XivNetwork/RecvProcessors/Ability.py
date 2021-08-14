@@ -64,24 +64,37 @@ SWING_TYPES = {
     0xA: {'power_drain'},
     0xB: {'power_healing'},
     0xD: {'tp_healing'},
-    0xE: {'buff'},
-    0xF: {'buff'},
+    0xE: {'buff','to_target'},
+    0xF: {'buff','to_source'},
     0x18: {'threat'},
     0x19: {'threat'},
+    0x20: {'knock_back'},
+    0x21: {'absorb'},
     0x33: {'instant_death'},
-    0x34: {'buff'},
+    # 0x34: {'buff'},
     0x37: {'buff', 'resistance'},
 }
 
 TYPE_HAVE_AMOUNT = {'ability', 'healing', 'power_drain', 'power_healing''tp_healing'}
 TYPE_HAVE_CRITICAL_DIRECT = {'ability', 'healing'}
 ABILITY_TYPE = {
-    0: {'unaspected'},
     1: {'physics', 'blow'},
     2: {'physics', 'slash'},
     3: {'physics', 'spur'},
+    4: {'physics', 'shoot'},
     5: {'magic'},
     6: {'diablo'},
+    7: {'sonic'},
+    8: {'limit_break'},
+}
+ABILITY_SUB_TYPE = {
+    1: {'fire'},
+    2: {'ice'},
+    3: {'wind'},
+    4: {'ground'},
+    5: {'thunder'},
+    6: {'water'},
+    7: {'unaspected'},
 }
 
 
@@ -101,24 +114,24 @@ class ActionEffect(object):
                     if effect_entry.param1 & 1: self.tags.add('critical')
                     if effect_entry.param1 & 2: self.tags.add('direct')
                 if 'ability' in self.tags:
-                    if effect_entry.param3 in ABILITY_TYPE:
-                        self.tags |= ABILITY_TYPE[effect_entry.param3]
-                    else:
-                        self.tags.add(f"ability_type_{effect_entry.param3}")
+                    main_type = effect_entry.param2 & 0xf
+                    self.tags |= ABILITY_TYPE[main_type] if main_type in ABILITY_TYPE else {f"unk_main_type_{effect_entry.param3}"}
+                    sub_type = effect_entry.param2 >> 4
+                    self.tags |= ABILITY_SUB_TYPE[sub_type] if sub_type in ABILITY_TYPE else {f"unk_sub_type_{effect_entry.param3}"}
         else:
             self.tags.add(f"UnkType_{effect_entry.type}")
             # self.tags.add(hex(self.raw_flag)[2:].zfill(8)+"-"+hex(self.raw_amount)[2:].zfill(8))
 
     def __str__(self):
-        return f"{self.param}{self.tags}" + str(self.raw_entry.get_data())
+        return f"{self.param}{self.tags}"  # + str(self.raw_entry.get_data())
 
 
 class RecvActionEffectEvent(EventBase):
     id = "network/action_effect"
     name = "network action effect"
 
-    def __init__(self,  msg_time, raw_msg,actor_id, max_count):
-        super().__init__(msg_time,raw_msg)
+    def __init__(self, msg_time, raw_msg, actor_id, max_count):
+        super().__init__(msg_time, raw_msg)
         self.source_id = actor_id
         header = raw_msg.header
         if header.effect_display_type == ServerActionEffectDisplayType.MountName:
@@ -129,7 +142,7 @@ class RecvActionEffectEvent(EventBase):
             self.action_type = "action"
         else:
             self.action_type = "unknown_%s" % header.effect_display_type
-        self.action_id = header.action_animation_id if self.action_type=="action" else header.action_id
+        self.action_id = header.action_animation_id if self.action_type == "action" else header.action_id
         effect_count = min(header.effect_count, max_count)
         self.targets = dict()
         for i in range(effect_count):
