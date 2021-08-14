@@ -15,14 +15,29 @@ last_damage_cache = dict()
 
 
 def record_last_damage(actor_id: int, source_name: str, damage: int, reduced_damage=''):
-    last_damage_cache[actor_id] = (source_name, damage, api.XivMemory.actor_table.get_actor_by_id(actor_id).currentHP, reduced_damage, time())
+    damage = f"{damage:,}"
+    current = time()
+    actor = api.XivMemory.actor_table.get_actor_by_id(actor_id)
+    if actor.shield_percent:
+        shield = int(actor.maxHP * actor.shield_percent / 100)
+        current_hp = f"{actor.currentHP + shield:,}({actor.currentHP}+{shield})"
+    else:
+        current_hp = f"{actor.currentHP:,}"
+    if actor_id in last_damage_cache:
+        source_name_old, damage_old, old_hp, reduced_damage_old, last_time = last_damage_cache[actor_id]
+        if current - last_time < 0.1 and old_hp == current_hp:
+            source_name += '+' + source_name_old
+            damage += '+' + damage_old
+            if reduced_damage_old != reduced_damage:
+                reduced_damage += ' & ' + reduced_damage_old
+    last_damage_cache[actor_id] = (source_name, damage, current_hp, reduced_damage, current)
 
 
 def get_last_damage(actor_id: int):
     if actor_id not in last_damage_cache: return None
     source_name, damage, current_hp, reduced_damage, last_time = last_damage_cache[actor_id]
     if last_time < time() - 30: return None
-    msg = f"{source_name}:{damage:,}/{current_hp:,}"
+    msg = f"{source_name}:{damage}/{current_hp}"
     if reduced_damage: msg += " - 减伤:" + reduced_damage
     return msg
 
@@ -173,7 +188,7 @@ class PartyTroubleMaker(PluginBase):
                             record_last_damage(target_id, source_name, effect.param, r)
                             me = api.XivMemory.actor_table.get_me()
                             if me is not None and target_id == me.id and action_name(event.action_id) not in common_attack_name:
-                                tag = '物理' if 'physics' in effect.tags else '魔法' if 'magic' in effect.tags else '?'
+                                tag = ','.join([ability_type[tag] for tag in effect.tags if tag in ability_type])
                                 self.output(f"{source_name} {effect.param}({tag}) 减伤：{r}", 'damage_reduce')
                         elif 'instant_death' in effect.tags:
                             record_last_damage(target_id, source_name, -1)

@@ -32,10 +32,10 @@ party_cover_skills = {
 }
 
 party_cover_skills_except_source = {
-    118,  # 战斗之声
-    3559,  # 放浪神
-    114,  # 贤者
-    116,  # 军神
+    # 118,  # 战斗之声
+    # 3559,  # 放浪神
+    # 114,  # 贤者
+    # 116,  # 军神
 }
 
 danger_skill = set()
@@ -109,6 +109,24 @@ enemy_magic_damage_reduce = {
 
 common_attack_name = {
     '攻击', ''
+}
+
+ability_type = {
+    'fire': "火属",
+    'ice': "冰属",
+    'wind': "风属",
+    'ground': "土属",
+    'thunder': "雷属",
+    'water': "水属",
+    'unaspected': "无属",
+    'physics': "物理",
+    'magic': "魔法",
+    'blow': "斩击",
+    'slash': "突刺",
+    'spur': "打击",
+    'shoot': "射击",
+    'diablo': "暗黑",
+    'limit_break': "LB",
 }
 
 for f in (Path(__file__).parent / 'datas').glob('*.py'):

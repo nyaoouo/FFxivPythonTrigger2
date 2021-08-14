@@ -61,6 +61,7 @@ class Actor(OffsetStruct({
     'pcTargetId2': (c_uint, 0x230),
     'npcTargetId': (c_uint, 0x1818),
     'bNpcTargetId': (c_uint, 0x18D8),
+    'shield_percent': (c_ubyte, 0x1997),
     '_status_flags': (c_ubyte, 0x19A0),
     '_status_flags2': (c_ubyte, 0x19A5),
     'effects': (Effects, 0x19F8),
