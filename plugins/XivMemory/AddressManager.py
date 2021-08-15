@@ -17,11 +17,11 @@ actor_table_addr = _am.get("actor table", scan_address, actor_table_sig, cmd_len
 ##########
 # combat data
 ##########
-combo_state_sig = "f3 0f ?? ?? ?? ?? ?? ?? f3 0f ?? ?? ?? e8 ?? ?? ?? ?? 48 8b ?? 48 8b ?? 0f b7"
-combo_state_addr = _am.get("combo state", scan_address, combo_state_sig, cmd_len=8)
+combo_state_sig = "89 05 ? ? ? ? F3 0F 11 05 ? ? ? ? 48 83 C2 ?"
+combo_state_addr = _am.get("combo state", scan_address, combo_state_sig, cmd_len=6)
 
-skill_queue_sig = "44 89 2d ?? ?? ?? ?? f3 0f 11 05 ?? ?? ?? ??"
-skill_queue_addr = _am.get("skill queue", scan_address, skill_queue_sig, cmd_len=7, add=4)
+skill_queue_sig = "F3 0F 11 05 ? ? ? ? 48 83 C2 ?"
+skill_queue_addr = _am.get("skill queue", scan_address, skill_queue_sig, cmd_len=8, add=8)
 
 is_in_fight_sig = "80 3d ?? ?? ?? ?? ?? 0f 95 c0 48 83 c4 ??"
 is_in_fight_addr = _am.get("is in fight", scan_address, is_in_fight_sig, cmd_len=7, ptr_idx=2)
@@ -45,7 +45,6 @@ gauge_addr = _am.get("gauge", scan_address, gauge_sig, cmd_len=7, add=0x10)
 # player_addr = _am.get("player", scan_address, player_sig, cmd_len=8)  # cn5.45
 player_sig = "48 8D 0D ? ? ? ? E8 ? ? ? ? 0F B6 F0 0F B6 05 ? ? ? ?"  # cn5.45
 player_addr = _am.get("player_5.5", scan_address, player_sig, cmd_len=7)  # cn5.5
-
 
 ##########
 # targets
@@ -86,7 +85,7 @@ inventory_ptr = _am.get("inventory ptr", scan_address, inventory_ptr_sig, cmd_le
 ##########
 # party
 ##########
-party_sig = "48 8D 0D ? ? ? ? E8 ? ? ? ? 80 B8 ? ? ? ? ? 76 ? B0 ?"
+party_sig = "48 8D 0D ? ? ? ? E8 ? ? ? ? 48 8B 4E ? 48 8B D8"
 party_addr = _am.get("party", scan_address, party_sig, cmd_len=7)
 
 _storage.save()
