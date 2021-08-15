@@ -1,4 +1,5 @@
 import inspect
+import os
 from . import FFxiv_Version
 from .Storage import ModuleStorage, BASE_PATH
 from .memory import BASE_ADDR
@@ -8,6 +9,8 @@ _logger = Logger("AddressManager")
 _storage = ModuleStorage(BASE_PATH / "Address")
 _storage.data = dict()
 _storage.save()
+
+force_search = bool(os.environ['address_search'])
 
 
 class AddressSearchError(Exception):
@@ -28,7 +31,7 @@ class AddressManager(object):
         _storage.data.setdefault('prev', list()).append([f"{frame.filename}:{frame.lineno}", name, param])
         _storage.save()
 
-        if self.storage is not None and name in self.storage:
+        if self.storage is not None and name in self.storage and not force_search:
             offset = self.storage[name]
             addr = offset + BASE_ADDR
             msg = "address load [{addr}] [+{offset}] \"{name}\""
