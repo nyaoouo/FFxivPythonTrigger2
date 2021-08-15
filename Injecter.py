@@ -12,6 +12,7 @@ parser.add_argument('-d', '--dataDir', type=str, nargs='?', default="AppData", m
 parser.add_argument('-n', '--pName', nargs='?', default="ffxiv_dx11.exe", metavar='Process Name', help='name of process find to inject')
 parser.add_argument('-e', '--entrance', nargs='?', default="Entrance.py", metavar='File Name', help='entrance file of FFxivPythonTrigger')
 parser.add_argument('-sr', dest='skip_requirement_check', action='store_const', const=True, default=False, help='skip the requirement check')
+parser.add_argument('-fs', dest='force_search_address', action='store_const', const=True, default=False, help='force address manager search')
 args = parser.parse_args(sys.argv[1:])
 if not args.skip_requirement_check:
     import urllib.request
@@ -86,6 +87,10 @@ except:
 if not is_admin:
     ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
     exit()
+ep=process.enable_privilege()
+if ep:
+    input(f"enable privileges failed with err code {ep}" + endl)
+    exit()
 
 # find the python library
 python_version = "python{0}{1}.dll".format(sys.version_info.major, sys.version_info.minor)
@@ -106,7 +111,7 @@ if pid is None:
                 handler = kernel32.OpenProcess(structure.PROCESS.PROCESS_ALL_ACCESS.value, False, pid)
                 if not handler:  # if cant open process,skip
                     black_list_pid.append(pid)
-                    print(f"can't open process {pid}")
+                    print(f"can't open process {pid} with error {ctypes.windll.kernel32.GetLastError()}")
                     pid = None
                     continue
                 if process.module_from_name(python_version, handler):  # if the process is already injected by python, skip
@@ -154,16 +159,21 @@ else:
 
 err_path = os.path.join(application_path, 'InjectErr.log').replace("\\", "\\\\")
 sys.path.insert(0, application_path)
+game_environ = {
+    'FptSocketPort': str(args.port),
+    'FptDataDir': str(args.dataDir),
+    'address_search': "1" if args.force_search_address else "",
+}
 shellcode = f"""
 import sys
+import os
 from os import chdir,environ
 from traceback import format_exc
-init_modules = sys.modules.copy()
+init_modules = set(sys.modules.keys())
 try:
-    environ['FptSocketPort']="{args.port}"
-    environ['FptDataDir']="{args.dataDir}"
+    os.environ|={game_environ}
     sys.path={dumps(sys.path)}
-    chdir(sys.path[0])
+    os.chdir(sys.path[0])
     __import__("{args.entrance.rstrip('.py')}")
 except:
     with open("{err_path}", "w+") as f:
