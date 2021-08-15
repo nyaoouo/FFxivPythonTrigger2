@@ -48,7 +48,7 @@ class LUID_AND_ATTRIBUTES(ctypes.Structure):
 class TOKEN_PRIVILEGES(ctypes.Structure):
     _fields_ = [
         ("count", ctypes.c_ulong),
-        ("Privileges", LUID_AND_ATTRIBUTES * 0)
+        ("Privileges", LUID_AND_ATTRIBUTES * 1)
     ]
 
     def get_array(self):

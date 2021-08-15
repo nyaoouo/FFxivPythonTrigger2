@@ -1,6 +1,8 @@
 from ctypes import *
 from ctypes import wintypes
-from .res import kernel32, psapi, structure
+from win32con import *
+
+from .res import kernel32, psapi, structure, advapi32
 from . import exception
 import os
 
@@ -130,6 +132,7 @@ def start_thread(address, params=None, handler=CURRENT_PROCESS_HANDLER):
     kernel32.WaitForSingleObject(thread_h, -1)
     return thread_h
 
+
 def list_processes():
     SNAPPROCESS = 0x00000002
     windll.kernel32.SetLastError(0)
@@ -143,3 +146,15 @@ def list_processes():
         yield process_entry
         p32 = kernel32.Process32Next(hSnap, byref(process_entry))
     kernel32.CloseHandle(hSnap)
+
+
+def enable_privilege():
+    hProcess = c_void_p(CURRENT_PROCESS_HANDLER)
+    if advapi32.OpenProcessToken(hProcess, TOKEN_ADJUST_PRIVILEGES, byref(hProcess)):
+        tkp = structure.TOKEN_PRIVILEGES()
+        advapi32.LookupPrivilegeValue(None,SE_DEBUG_NAME, byref(tkp.Privileges[0].Luid))
+        tkp.count = 1
+        tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED
+        advapi32.AdjustTokenPrivileges(hProcess, 0, byref(tkp), 0, None,None)
+        return kernel32.GetLastError()
+    return 0
