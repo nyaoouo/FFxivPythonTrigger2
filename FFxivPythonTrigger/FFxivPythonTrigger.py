@@ -11,6 +11,7 @@ from inspect import isclass, getfile, getsourcelines
 import atexit
 from importlib import import_module, reload
 
+from .memory import PROCESS_FILENAME
 from . import AttrContainer, Storage, Logger, FrameInject, Sigs, AddressManager
 from .CheckGitUpdate import get_last_update, check_update
 from .Utils import get_hash
@@ -341,10 +342,9 @@ LOGGER_NAME = "Main"
 
 api = AttrContainer.AttrContainer()
 
-
 _missions_buffer = Queue()
 _missions: Set[Mission] = set()
-_missions_starter_mission = Mission('mission_starter',-1,mission_starter)
+_missions_starter_mission = Mission('mission_starter', -1, mission_starter)
 _missions_starter_mission.start()
 
 _storage = Storage.ModuleStorage(Storage.BASE_PATH / STORAGE_DIRNAME)
@@ -376,5 +376,11 @@ for path in _storage.data.setdefault('paths', list()):
     sys.path.insert(0, path)
 
 core_last_update = get_last_update(None, get_hash(os.path.dirname(__file__)), _logger)
+
+game_base_dir = Path(PROCESS_FILENAME).parent.parent
+if (game_base_dir / "FFXIVBoot.exe").exists() or (game_base_dir / "rail_files" / "rail_game_identify.json").exists():
+    game_language = "chs"
+else:
+    game_language = _storage.data.setdefault('inter_lang', "en")
 
 _storage.save()
