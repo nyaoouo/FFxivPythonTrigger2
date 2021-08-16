@@ -138,5 +138,5 @@ for f in (Path(__file__).parent / 'datas').glob('*.py'):
         skill_alone |= module.skill_alone
     if hasattr(module, 'skill_together') and isinstance(module.skill_together, dict):
         skill_together |= module.skill_together
-damage_reduce |= magic_damage_reduce | shield
+damage_reduce |= magic_damage_reduce
 enemy_damage_reduce |= enemy_physic_damage_reduce | enemy_magic_damage_reduce

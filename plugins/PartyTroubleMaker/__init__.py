@@ -3,7 +3,6 @@ from datetime import datetime
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QGridLayout, QListWidget
 
-
 from FFxivPythonTrigger import *
 from FFxivPythonTrigger.QT import FloatWidget, ui_loop_exec
 
@@ -44,7 +43,7 @@ def get_last_damage(actor_id: int):
     source_name, damage, current_hp, reduced_damage, last_time = last_damage_cache[actor_id]
     if last_time < time() - 30: return None
     msg = f"{source_name}:{damage}/{current_hp}"
-    if reduced_damage: msg += " - 减伤:" + reduced_damage
+    if reduced_damage: msg += " - " + reduced_damage
     return msg
 
 
@@ -97,10 +96,12 @@ def status_name(status_id: int):
 
 
 def is_in_party():
+    return True
     return api.XivMemory.party.main_size > 1
 
 
 def is_actor_in_party(actor_id: int):
+    return actor_id<0x20000000
     for actor in api.XivMemory.party.main_party():
         if actor.id == actor_id: return True
     return False
@@ -124,6 +125,7 @@ class ListWindow(FloatWidget):
         super().__init__()
         self.setWindowTitle("PartyTroubleMaker")
         self.listWidget = QListWidget()
+        self.listWidget.itemSelectionChanged.connect(self.selectionChanged)
         self.listWidget.itemSelectionChanged.connect(self.selectionChanged)
         self.setFont(QFont('Times', 16))
         self.layout = QGridLayout()
@@ -163,8 +165,10 @@ class PartyTroubleMaker(PluginBase):
     def output(self, string, msg_key: str):
         mode = self.get_mode(msg_key)
         if not mode: return
-        if mode > DISABLE:ui_loop_exec(self.window.listWidget.addItem,f"[{datetime.now().strftime('%H:%M:%S')}] {string}")
-        if mode == PARTY:api.Magic.macro_command("/p " + string)
+        if mode > DISABLE:
+            ui_loop_exec(self.window.listWidget.addItem, f"[{datetime.now().strftime('%H:%M:%S')}] {string}")
+            ui_loop_exec(self.window.listWidget.scrollToBottom)
+        if mode == PARTY: api.Magic.macro_command("/p " + string)
 
     def combat_reset(self, evt):
         action_coll_down_cache.clear()
@@ -206,17 +210,22 @@ class PartyTroubleMaker(PluginBase):
                     for effect in effects:
                         if 'ability' in effect.tags:
                             r = set()
+                            sh=set()
                             t = api.XivMemory.actor_table.get_actor_by_id(target_id)
                             if t is not None:
-                                r = {eid for eid, _ in t.effects.get_items()}.intersection(damage_reduce)
+                                t_e={eid for eid, _ in t.effects.get_items()}
+                                r = t_e.intersection(damage_reduce)
+                                sh = t_e.intersection(shield)
                                 s = api.XivMemory.actor_table.get_actor_by_id(event.source_id)
                                 if s is not None: r |= {eid for eid, _ in s.effects.get_items()}.intersection(enemy_damage_reduce)
-                            r = "/".join([status_name(eid) for eid in r])
-                            record_last_damage(target_id, source_name, effect.param, r)
+                            rs=""
+                            if r: rs = "减伤：" + "/".join([status_name(eid) for eid in r])
+                            if sh:rs+=f"+{t.shield_percent}%盾(≈{t.maxHP * t.shield_percent/100:,.0f})："+"/".join([status_name(eid) for eid in sh])
+                            record_last_damage(target_id, source_name, effect.param, rs)
                             me = api.XivMemory.actor_table.get_me()
                             if me is not None and target_id == me.id and action_name(event.action_id) not in common_attack_name:
                                 tag = ','.join([ability_type[tag] for tag in effect.tags if tag in ability_type])
-                                self.output(f"{source_name} {effect.param}({tag}) 减伤：{r}", 'damage_reduce')
+                                self.output(f"{source_name} {effect.param}({tag}) {rs}", 'damage_reduce')
                         elif 'instant_death' in effect.tags:
                             record_last_damage(target_id, source_name, -1)
 
