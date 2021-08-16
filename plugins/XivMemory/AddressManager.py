@@ -17,8 +17,8 @@ actor_table_addr = _am.get("actor table", scan_address, actor_table_sig, cmd_len
 ##########
 # combat data
 ##########
-combo_state_sig = "89 05 ? ? ? ? F3 0F 11 05 ? ? ? ? 48 83 C2 ?"
-combo_state_addr = _am.get("combo state", scan_address, combo_state_sig, cmd_len=6)
+combo_state_sig = "F3 0F 11 05 ? ? ? ? 48 83 C2 ?"
+combo_state_addr = _am.get("combo state", scan_address, combo_state_sig, cmd_len=8)
 
 skill_queue_sig = "F3 0F 11 05 ? ? ? ? 48 83 C2 ?"
 skill_queue_addr = _am.get("skill queue", scan_address, skill_queue_sig, cmd_len=8, add=8)
