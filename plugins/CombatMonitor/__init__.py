@@ -76,7 +76,7 @@ class CombatMonitor(PluginBase):
                 if not party: party = [me]
                 data = [(a, self.actor_dps(a.id, 0)) for a in party]
                 data.sort(key=lambda x: x[1], reverse=True)
-                _self.label.setText("\n".join([f"{a.job.value()}\t{a.Name}\t{d}" for a, d in data]))
+                _self.label.setText("\n".join([f"{a.job.value()}\t{a.Name}\t{d:,.0f}" for a, d in data]))
 
         self.conn = get_con()
         self.conn_lock = Lock()
