@@ -1,6 +1,12 @@
 import sqlite3
 
+import actor as actor
+from PyQt5.QtCore import QTimer
+from PyQt5.QtGui import QFont
+from PyQt5.QtWidgets import QGridLayout, QLabel
+
 from FFxivPythonTrigger import *
+from FFxivPythonTrigger.QT import FloatWidget, ui_loop_exec
 from .DbCreator import get_con
 from time import time, perf_counter
 
@@ -46,7 +52,32 @@ class CombatMonitor(PluginBase):
 
     def __init__(self):
         super().__init__()
+
         # self.conn = get_con(self.storage.path / 'data.db')
+
+        class DpsWindow(FloatWidget):
+            def __init__(self):
+                super().__init__()
+                self.setWindowTitle("Dps")
+                self.label = QLabel('No Data')
+                self.label.setFont(QFont('Times', 20))
+                self.layout = QGridLayout()
+                self.layout.addWidget(self.label)
+                self.setLayout(self.layout)
+                self.timer = QTimer()
+                self.timer.setInterval(UPDATE_PERIOD * 1000)
+                self.timer.timeout.connect(self.update)
+                self.timer.start()
+
+            def update(_self):
+                me = api.XivMemory.actor_table.get_me()
+                if me is None: return
+                party = [actor for actor in api.XivMemory.party.main_party()]
+                if not party: party = [me]
+                data = [(a, self.actor_dps(a.id, 0)) for a in party]
+                data.sort(key=lambda x: x[1], reverse=True)
+                _self.label.setText("\n".join([f"{a.job.value()}\t{a.Name}\t{d}" for a, d in data]))
+
         self.conn = get_con()
         self.conn_lock = Lock()
         self.id_lock = Lock()
@@ -69,6 +100,10 @@ class CombatMonitor(PluginBase):
         self.last_record_time = self._last_record_time = self.min_record_time = int(time() * 1000)
         self.dps_cache = dict()
         self.tdps_cache = dict()
+        self.dps_window: DpsWindow = ui_loop_exec(DpsWindow)
+
+    def _start(self):
+        ui_loop_exec(self.dps_window.show)
 
     def set_min_time(self, evt):
         self.last_record_time = self.min_record_time = int(time() * 1000)
@@ -80,7 +115,7 @@ class CombatMonitor(PluginBase):
         if not self.ability_data: return
 
         with self.time_set_lock:
-            if self._min_record_time < MAX_TIME and self._min_record_time - (BREAK_TIME*1000) > self.last_record_time:
+            if self._min_record_time < MAX_TIME and self._min_record_time - (BREAK_TIME * 1000) > self.last_record_time:
                 self.min_record_time = self._min_record_time
             self._min_record_time = MAX_TIME
             self.last_record_time = self._last_record_time
@@ -107,6 +142,7 @@ class CombatMonitor(PluginBase):
             self.conn = get_con()
 
     def _onunload(self):
+        ui_loop_exec(self.dps_window.full_close)
         frame_inject.unregister_continue_call(self.continue_work)
         self.save_db()
         self.conn.close()
@@ -171,6 +207,7 @@ class CombatMonitor(PluginBase):
 
     def get_period(self, period_sec: float, till: int = None):
         if till is None: till = self.last_record_time
+        if not period_sec: return self.min_record_time, till
         return max(self.min_record_time, int(till - (period_sec * 1000))), till
 
     def actor_dps(self, source_id, period_sec=60, till: int = None):

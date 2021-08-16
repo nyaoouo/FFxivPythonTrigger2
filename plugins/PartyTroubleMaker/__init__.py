@@ -1,6 +1,11 @@
 from functools import cache, lru_cache
+from datetime import datetime
+from PyQt5.QtGui import QFont
+from PyQt5.QtWidgets import QGridLayout, QListWidget
+
 
 from FFxivPythonTrigger import *
+from FFxivPythonTrigger.QT import FloatWidget, ui_loop_exec
 
 from FFxivPythonTrigger.SaintCoinach import realm
 from .Define import *
@@ -18,11 +23,12 @@ def record_last_damage(actor_id: int, source_name: str, damage: int, reduced_dam
     damage = f"{damage:,}"
     current = time()
     actor = api.XivMemory.actor_table.get_actor_by_id(actor_id)
-    if actor.shield_percent:
-        shield = int(actor.maxHP * actor.shield_percent / 100)
-        current_hp = f"{actor.currentHP + shield:,}({actor.currentHP}+{shield})"
-    else:
-        current_hp = f"{actor.currentHP:,}"
+    # if actor.shield_percent:
+    #     shield = int(actor.maxHP * actor.shield_percent / 100)
+    #     current_hp = f"{actor.currentHP + shield:,}({actor.currentHP}+{shield})"
+    # else:
+    #     current_hp = f"{actor.currentHP:,}"
+    current_hp = f"{actor.currentHP:,}"
     if actor_id in last_damage_cache:
         source_name_old, damage_old, old_hp, reduced_damage_old, last_time = last_damage_cache[actor_id]
         if current - last_time < 0.1 and old_hp == current_hp:
@@ -113,6 +119,22 @@ PARTY = 2
 DEFAULT_MODE = ECHO
 
 
+class ListWindow(FloatWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("PartyTroubleMaker")
+        self.listWidget = QListWidget()
+        self.listWidget.itemSelectionChanged.connect(self.selectionChanged)
+        self.setFont(QFont('Times', 16))
+        self.layout = QGridLayout()
+        self.layout.addWidget(self.listWidget)
+        self.setLayout(self.layout)
+
+    def selectionChanged(self):
+        from pandas.io.clipboard import copy
+        copy('\n'.join([item.text() for item in self.listWidget.selectedItems()]))
+
+
 class PartyTroubleMaker(PluginBase):
     name = "PartyTroubleMaker"
 
@@ -125,9 +147,14 @@ class PartyTroubleMaker(PluginBase):
         self.register_event('network/action_effect', self.action_effect)
         self.register_event('network/actor_control/death', self.dead)
         self.register_event('network/actor_control/director_update/initial_commence', self.combat_reset)
+        self.window: ListWindow = ui_loop_exec(ListWindow)
         api.command.register(command, self.process_command)
 
+    def _start(self):
+        ui_loop_exec(self.window.show)
+
     def _onunload(self):
+        ui_loop_exec(self.window.full_close)
         api.command.unregister(command)
 
     def get_mode(self, key: str):
@@ -136,8 +163,8 @@ class PartyTroubleMaker(PluginBase):
     def output(self, string, msg_key: str):
         mode = self.get_mode(msg_key)
         if not mode: return
-        cmd = '/p ' if mode == PARTY and is_in_party() else '/e '
-        api.Magic.macro_command(cmd + string)
+        if mode > DISABLE:ui_loop_exec(self.window.listWidget.addItem,f"[{datetime.now().strftime('%H:%M:%S')}] {string}")
+        if mode == PARTY:api.Magic.macro_command("/p " + string)
 
     def combat_reset(self, evt):
         action_coll_down_cache.clear()
