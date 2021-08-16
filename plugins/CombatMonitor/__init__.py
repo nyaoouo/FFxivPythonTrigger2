@@ -1,6 +1,5 @@
 import sqlite3
 
-import actor as actor
 from PyQt5.QtCore import QTimer
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QGridLayout, QLabel
