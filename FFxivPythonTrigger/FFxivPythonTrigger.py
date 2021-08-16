@@ -12,7 +12,7 @@ import atexit
 from importlib import import_module, reload
 
 from .memory import PROCESS_FILENAME
-from . import AttrContainer, Storage, Logger, FrameInject, Sigs, AddressManager
+from . import AttrContainer, Storage, Logger, FrameInject, Sigs, AddressManager, QT
 from .CheckGitUpdate import get_last_update, check_update
 from .Utils import get_hash
 
@@ -313,14 +313,7 @@ def start():
         _logger.info('FFxiv Python Trigger closed')
     else:
         _logger.info('FFxiv Python Trigger closed (no mission is found)')
-    alive_missions = [m for m in _missions if m.is_alive()]
-    if _plugins or alive_missions:
-        _logger.error('above item havn\'t cleared, try again')
-        for plugin in _plugins.values():
-            _logger.error("plugin: " + plugin.name)
-        for mission in alive_missions:
-            _logger.error("mission: " + str(mission))
-        close()
+    QT.close_thread()
     global _log_work
     _log_work = False
     _log_mission.join()
