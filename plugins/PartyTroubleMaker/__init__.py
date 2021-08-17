@@ -96,12 +96,10 @@ def status_name(status_id: int):
 
 
 def is_in_party():
-    return True
     return api.XivMemory.party.main_size > 1
 
 
 def is_actor_in_party(actor_id: int):
-    return actor_id<0x20000000
     for actor in api.XivMemory.party.main_party():
         if actor.id == actor_id: return True
     return False
@@ -121,6 +119,7 @@ DEFAULT_MODE = ECHO
 
 
 class ListWindow(FloatWidget):
+    allow_frameless = True
     def __init__(self):
         super().__init__()
         self.setWindowTitle("PartyTroubleMaker")
