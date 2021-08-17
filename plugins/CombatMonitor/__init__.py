@@ -1,8 +1,9 @@
 import sqlite3
+from json import dumps
 
-from PyQt5.QtCore import QTimer
-from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import QGridLayout, QLabel
+from PyQt5.QtCore import QTimer, QUrl
+from PyQt5.QtWidgets import QVBoxLayout, QWidget
+from PyQt5.QtWebEngineWidgets  import QWebEngineView
 
 from FFxivPythonTrigger import *
 from FFxivPythonTrigger.QT import FloatWidget, ui_loop_exec
@@ -42,6 +43,8 @@ WHERE
 
 owners = dict()
 
+web_path = str(Path(__file__).parent / 'dist' / 'index.html')
+
 
 class CombatMonitor(PluginBase):
     name = "Combat Monitor"
@@ -55,27 +58,32 @@ class CombatMonitor(PluginBase):
         # self.conn = get_con(self.storage.path / 'data.db')
 
         class DpsWindow(FloatWidget):
+            allow_frameless=True
             def __init__(self):
                 super().__init__()
                 self.setWindowTitle("Dps")
-                self.label = QLabel('No Data')
-                self.label.setFont(QFont('Times', 20))
-                self.layout = QGridLayout()
-                self.layout.addWidget(self.label)
-                self.setLayout(self.layout)
+                self.browser = QWebEngineView()
+                self.browser.load(QUrl.fromLocalFile(web_path))
+                _layout = QVBoxLayout(self)
+                _layout.addWidget(self.browser)
+                self.setLayout(_layout)
+
+                self.last_update = 0
+
                 self.timer = QTimer()
-                self.timer.setInterval(UPDATE_PERIOD * 1000)
+                self.timer.setInterval(UPDATE_PERIOD * 2000)
                 self.timer.timeout.connect(self.update)
                 self.timer.start()
 
             def update(_self):
                 me = api.XivMemory.actor_table.get_me()
-                if me is None: return
+                if me is None or _self.last_update>self.last_record_time: return
                 party = [actor for actor in api.XivMemory.party.main_party()]
                 if not party: party = [me]
-                data = [(a, self.actor_dps(a.id, 0)) for a in party]
-                data.sort(key=lambda x: x[1], reverse=True)
-                _self.label.setText("\n".join([f"{a.job.value()}\t{a.Name}\t{d:,.0f}" for a, d in data]))
+                data = [{'job':a.job.value(), 'name':a.Name, 'dps':self.actor_dps(a.id, 0)} for a in party]
+                _self.browser.page().runJavaScript(f"window.set_data({dumps(data)})")
+                _self.last_update = time()*1000
+
 
         self.conn = get_con()
         self.conn_lock = Lock()

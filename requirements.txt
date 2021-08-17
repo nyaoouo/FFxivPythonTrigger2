@@ -16,3 +16,4 @@ Shapely~=1.7.1
 pywin32
 requests~=2.25.1
 PyQt5~=5.15.4
+PyQtWebEngine~=5.15.4

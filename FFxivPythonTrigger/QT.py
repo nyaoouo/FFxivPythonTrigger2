@@ -6,6 +6,7 @@ from threading import Thread
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5.Qt import Qt
+import PyQt5.QtWebEngineWidgets
 
 from FFxivPythonTrigger.Utils import Counter
 
@@ -17,15 +18,25 @@ _default_interval = 0.01
 
 
 class FloatWidget(QWidget):
+    allow_frameless = False
+
     def __init__(self):
         super().__init__()
-        self.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.Tool)
+        self.setWindowFlags(Qt.WindowStaysOnTopHint)
+        # self.setAttribute(Qt.WA_TranslucentBackground, True)
 
     def is_frameless(self):
         return self.windowFlags() & Qt.FramelessWindowHint
 
+    def mousePressEvent(self, QMouseEvent):
+        if QMouseEvent.button() == Qt.RightButton and self.allow_frameless:
+            self.switch_frameless()
+
     def switch_frameless(self):
+        self.resize(self.width(), self.height())
+        self.move(self.pos())
         self.setWindowFlags(self.windowFlags() ^ Qt.FramelessWindowHint)
+        self.show()
 
     def full_close(self):
         self.hide()
