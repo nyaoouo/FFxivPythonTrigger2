@@ -2,8 +2,8 @@ import sqlite3
 from json import dumps
 
 from PyQt5.QtCore import QTimer, QUrl
-from PyQt5.QtWidgets import QVBoxLayout, QWidget
-from PyQt5.QtWebEngineWidgets  import QWebEngineView
+from PyQt5.QtWidgets import QVBoxLayout
+from PyQt5.QtWebEngineWidgets import QWebEngineView
 
 from FFxivPythonTrigger import *
 from FFxivPythonTrigger.QT import FloatWidget, ui_loop_exec
@@ -58,7 +58,8 @@ class CombatMonitor(PluginBase):
         # self.conn = get_con(self.storage.path / 'data.db')
 
         class DpsWindow(FloatWidget):
-            allow_frameless=True
+            allow_frameless = True
+
             def __init__(self):
                 super().__init__()
                 self.setWindowTitle("Dps")
@@ -77,13 +78,12 @@ class CombatMonitor(PluginBase):
 
             def update(_self):
                 me = api.XivMemory.actor_table.get_me()
-                if me is None or _self.last_update>self.last_record_time: return
+                if me is None or _self.last_update > self.last_record_time: return
                 party = [actor for actor in api.XivMemory.party.main_party()]
                 if not party: party = [me]
-                data = [{'job':a.job.value(), 'name':a.Name, 'dps':self.actor_dps(a.id, 0)} for a in party]
+                data = [{'job': a.job.value(), 'name': a.Name, 'dps': self.actor_dps(a.id, 0)} for a in party]
                 _self.browser.page().runJavaScript(f"window.set_data({dumps(data)})")
-                _self.last_update = time()*1000
-
+                _self.last_update = time() * 1000
 
         self.conn = get_con()
         self.conn_lock = Lock()

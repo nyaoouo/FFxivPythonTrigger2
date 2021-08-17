@@ -3,7 +3,7 @@ from queue import Queue, Empty
 from time import sleep
 from threading import Thread
 
-from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QTimer, QPoint
 from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5.Qt import Qt
 import PyQt5.QtWebEngineWidgets
@@ -22,21 +22,59 @@ class FloatWidget(QWidget):
 
     def __init__(self):
         super().__init__()
+        self._old_move_pos = None
+        self._old_resize_pos = None
+        self._float_lock = False
         self.setWindowFlags(Qt.WindowStaysOnTopHint)
+        if self.allow_frameless:
+            self.setWindowFlags(self.windowFlags() | Qt.FramelessWindowHint)
         # self.setAttribute(Qt.WA_TranslucentBackground, True)
 
     def is_frameless(self):
         return self.windowFlags() & Qt.FramelessWindowHint
 
+    def is_float_locked(self):
+        return self._float_lock
+
+    def float_lock(self):
+        if self.is_float_locked(): return
+        self._float_lock = True
+        self.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+
+    def float_unlock(self):
+        if self.is_float_locked(): return
+        self._float_lock = False
+        self.setAttribute(Qt.WA_TransparentForMouseEvents, False)
+
     def mousePressEvent(self, QMouseEvent):
+        if self._float_lock: return
         if QMouseEvent.button() == Qt.RightButton and self.allow_frameless:
             self.switch_frameless()
+        if QMouseEvent.button() == Qt.LeftButton:
+            mpos = QMouseEvent.pos()
+            if self.width() + self.height() - mpos.x() - mpos.y() < 35:
+                self._old_resize_pos = QMouseEvent.globalPos()
+            else:
+                self._old_move_pos = QMouseEvent.globalPos()
+
+    def mouseReleaseEvent(self, QMouseEvent):
+        if QMouseEvent.button() == Qt.LeftButton:
+            self._old_move_pos = None
+            self._old_resize_pos = None
 
     def switch_frameless(self):
-        self.resize(self.width(), self.height())
-        self.move(self.pos())
         self.setWindowFlags(self.windowFlags() ^ Qt.FramelessWindowHint)
         self.show()
+
+    def mouseMoveEvent(self, event):
+        if self._old_move_pos is not None:
+            delta = QPoint(event.globalPos() - self._old_move_pos)
+            self.move(self.x() + delta.x(), self.y() + delta.y())
+            self._old_move_pos = event.globalPos()
+        if self._old_resize_pos is not None:
+            delta = QPoint(event.globalPos() - self._old_resize_pos)
+            self.resize(self.width() + delta.x(), self.height() + delta.y())
+            self._old_resize_pos = event.globalPos()
 
     def full_close(self):
         self.hide()
