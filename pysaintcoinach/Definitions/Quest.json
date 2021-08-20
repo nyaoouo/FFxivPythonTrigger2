@@ -179,6 +179,18 @@
       "name": "BeastReputationValue"
     },
     {
+      "index": 34,
+      "name": "SatisfactionNpc",
+      "converter": {
+        "type": "link",
+        "target": "SatisfactionNpc"
+      }
+    },
+    {
+      "index": 35,
+      "name": "SatisfactionLevel"
+    },
+    {
       "index": 36,
       "name": "Mount{Required}",
       "converter": {
@@ -485,6 +497,14 @@
       }
     },
     {
+      "index": 1439,
+      "name": "QuestRewardOtherDisplay",
+      "converter": {
+        "type": "link",
+        "target": "QuestRewardOther"
+      }
+    },
+    {
       "index": 1440,
       "name": "ExpFactor"
     },
@@ -493,8 +513,16 @@
       "name": "GilReward"
     },
     {
+      "index": 1442,
+      "name": "CurrencyReward",
+      "converter": {
+        "type": "link",
+        "target": "Item"
+      }
+    },
+    {
       "index": 1443,
-      "name": "GCSeals"
+      "name": "CurrencyRewardCount"
     },
     {
       "index": 1444,
@@ -525,7 +553,7 @@
       "type": "repeat",
       "count": 7,
       "definition": {
-        "name": "Item{Reward}[0]",
+        "name": "Item{Reward}",
         "converter": {
           "type": "complexlink",
           "links": [
@@ -537,6 +565,13 @@
               "sheet": "QuestClassJobReward"
             },
             {
+              "when": {
+                "key": "ItemRewardType",
+                "value": 7
+              },
+              "sheet": "BeastRankBonus"
+            },
+            {
               "sheet": "Item"
             }
           ]
@@ -546,17 +581,17 @@
     {
       "index": 1458,
       "type": "repeat",
-      "count": 6,
+      "count": 7,
       "definition": {
-        "name": "ItemCount{Reward}[0]"
+        "name": "ItemCount{Reward}"
       }
     },
     {
       "index": 1465,
       "type": "repeat",
-      "count": 6,
+      "count": 7,
       "definition": {
-        "name": "Stain{Reward}[0]",
+        "name": "Stain{Reward}",
         "converter": {
           "type": "link",
           "target": "Stain"
@@ -568,7 +603,7 @@
       "type": "repeat",
       "count": 5,
       "definition": {
-        "name": "Item{Reward}[1]",
+        "name": "OptionalItem{Reward}",
         "converter": {
           "type": "link",
           "target": "Item"
@@ -580,7 +615,7 @@
       "type": "repeat",
       "count": 5,
       "definition": {
-        "name": "ItemCount{Reward}[1]"
+        "name": "OptionalItemCount{Reward}"
       }
     },
     {
@@ -588,7 +623,7 @@
       "type": "repeat",
       "count": 5,
       "definition": {
-        "name": "IsHQ{Reward}[1]"
+        "name": "OptionalItemIsHQ{Reward}"
       }
     },
     {
@@ -596,7 +631,7 @@
       "type": "repeat",
       "count": 5,
       "definition": {
-        "name": "Stain{Reward}[1]",
+        "name": "OptionalItemStain{Reward}",
         "converter": {
           "type": "link",
           "target": "Stain"
@@ -633,11 +668,7 @@
     },
     {
       "index": 1496,
-      "name": "System{Reward}[0]",
-      "converter": {
-        "type": "link",
-        "target": "Action"
-      }
+      "name": "System{Reward}[0]"
     },
     {
       "index": 1497,
@@ -649,19 +680,11 @@
     },
     {
       "index": 1498,
-      "name": "System{Reward}[1]",
-      "converter": {
-        "type": "link",
-        "target": "Action"
-      }
+      "name": "System{Reward}[1]"
     },
     {
       "index": 1499,
-      "name": "GCType{Reward}",
-      "converter": {
-        "type": "link",
-        "target": "Action"
-      }
+      "name": "GCType{Reward}"
     },
     {
       "index": 1500,
@@ -670,6 +693,10 @@
         "type": "link",
         "target": "InstanceContent"
       }
+    },
+    {
+      "index": 1501,
+      "name": "Tomestone"
     },
     {
       "index": 1502,

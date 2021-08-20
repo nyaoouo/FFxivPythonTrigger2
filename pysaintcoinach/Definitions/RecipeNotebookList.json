@@ -2,6 +2,9 @@
   "sheet": "RecipeNotebookList",
   "definitions": [
     {
+      "name": "Count"
+    },
+    {
       "index": 1,
       "type": "repeat",
       "count": 160,
