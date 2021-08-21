@@ -1,12 +1,12 @@
 import sqlite3
 from json import dumps
 
-from PyQt5.QtCore import QTimer, QUrl
-from PyQt5.QtWidgets import QVBoxLayout
-from PyQt5.QtWebEngineWidgets import QWebEngineView
+# from PyQt5.QtCore import QTimer, QUrl
+# from PyQt5.QtWidgets import QVBoxLayout
+# from PyQt5.QtWebEngineWidgets import QWebEngineView
 
 from FFxivPythonTrigger import *
-from FFxivPythonTrigger.QT import FloatWidget, ui_loop_exec
+# from FFxivPythonTrigger.QT import FloatWidget, ui_loop_exec
 from .DbCreator import get_con
 from time import time, perf_counter
 
@@ -57,33 +57,33 @@ class CombatMonitor(PluginBase):
 
         # self.conn = get_con(self.storage.path / 'data.db')
 
-        class DpsWindow(FloatWidget):
-            allow_frameless = True
-
-            def __init__(self):
-                super().__init__()
-                self.setWindowTitle("Dps")
-                self.browser = QWebEngineView()
-                self.browser.load(QUrl.fromLocalFile(web_path))
-                _layout = QVBoxLayout(self)
-                _layout.addWidget(self.browser)
-                self.setLayout(_layout)
-
-                self.last_update = 0
-
-                self.timer = QTimer()
-                self.timer.setInterval(UPDATE_PERIOD * 2000)
-                self.timer.timeout.connect(self.update)
-                self.timer.start()
-
-            def update(_self):
-                me = api.XivMemory.actor_table.get_me()
-                if me is None or _self.last_update > self.last_record_time: return
-                party = [actor for actor in api.XivMemory.party.main_party()]
-                if not party: party = [me]
-                data = [{'job': a.job.value(), 'name': a.Name, 'dps': self.actor_dps(a.id, 0)} for a in party]
-                _self.browser.page().runJavaScript(f"window.set_data({dumps(data)})")
-                _self.last_update = time() * 1000
+        # class DpsWindow(FloatWidget):
+        #     allow_frameless = True
+        #
+        #     def __init__(self):
+        #         super().__init__()
+        #         self.setWindowTitle("Dps")
+        #         self.browser = QWebEngineView()
+        #         self.browser.load(QUrl.fromLocalFile(web_path))
+        #         _layout = QVBoxLayout(self)
+        #         _layout.addWidget(self.browser)
+        #         self.setLayout(_layout)
+        #
+        #         self.last_update = 0
+        #
+        #         self.timer = QTimer()
+        #         self.timer.setInterval(UPDATE_PERIOD * 2000)
+        #         self.timer.timeout.connect(self.update)
+        #         self.timer.start()
+        #
+        #     def update(_self):
+        #         me = api.XivMemory.actor_table.get_me()
+        #         if me is None or _self.last_update > self.last_record_time: return
+        #         party = [actor for actor in api.XivMemory.party.main_party()]
+        #         if not party: party = [me]
+        #         data = [{'job': a.job.value(), 'name': a.Name, 'dps': self.actor_dps(a.id, 0)} for a in party]
+        #         _self.browser.page().runJavaScript(f"window.set_data({dumps(data)})")
+        #         _self.last_update = time() * 1000
 
         self.conn = get_con()
         self.conn_lock = Lock()
@@ -107,10 +107,11 @@ class CombatMonitor(PluginBase):
         self.last_record_time = self._last_record_time = self.min_record_time = int(time() * 1000)
         self.dps_cache = dict()
         self.tdps_cache = dict()
-        self.dps_window: DpsWindow = ui_loop_exec(DpsWindow)
+        # self.dps_window: DpsWindow = ui_loop_exec(DpsWindow)
 
     def _start(self):
-        ui_loop_exec(self.dps_window.show)
+        # ui_loop_exec(self.dps_window.show)
+        pass
 
     def set_min_time(self, evt):
         self.last_record_time = self.min_record_time = int(time() * 1000)
@@ -149,7 +150,7 @@ class CombatMonitor(PluginBase):
             self.conn = get_con()
 
     def _onunload(self):
-        ui_loop_exec(self.dps_window.full_close)
+        # ui_loop_exec(self.dps_window.full_close)
         frame_inject.unregister_continue_call(self.continue_work)
         self.save_db()
         self.conn.close()

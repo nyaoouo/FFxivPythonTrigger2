@@ -1,10 +1,10 @@
 from functools import cache, lru_cache
 from datetime import datetime
-from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import QGridLayout, QListWidget
+# from PyQt5.QtGui import QFont
+# from PyQt5.QtWidgets import QGridLayout, QListWidget
 
 from FFxivPythonTrigger import *
-from FFxivPythonTrigger.QT import FloatWidget, ui_loop_exec
+# from FFxivPythonTrigger.QT import FloatWidget, ui_loop_exec
 
 from FFxivPythonTrigger.SaintCoinach import realm
 from .Define import *
@@ -123,23 +123,23 @@ class PartyTroubleMaker(PluginBase):
 
     def __init__(self):
         super().__init__()
-        #from pandas.io.clipboard import copy
+        # from pandas.io.clipboard import copy
 
-        class ListWindow(FloatWidget):
-            allow_frameless = True
+        # class ListWindow(FloatWidget):
+        #     allow_frameless = True
+        #
+        #     def __init__(self):
+        #         super().__init__()
+        #         self.setWindowTitle("PartyTroubleMaker")
+        #         self.listWidget = QListWidget()
+        #         #self.listWidget.itemSelectionChanged.connect(self.selectionChanged)
+        #         self.setFont(QFont('Times', 16))
+        #         self.layout = QGridLayout()
+        #         self.layout.addWidget(self.listWidget)
+        #         self.setLayout(self.layout)
 
-            def __init__(self):
-                super().__init__()
-                self.setWindowTitle("PartyTroubleMaker")
-                self.listWidget = QListWidget()
-                #self.listWidget.itemSelectionChanged.connect(self.selectionChanged)
-                self.setFont(QFont('Times', 16))
-                self.layout = QGridLayout()
-                self.layout.addWidget(self.listWidget)
-                self.setLayout(self.layout)
-
-            # def selectionChanged(self):
-            #     copy('\n'.join([item.text() for item in self.listWidget.selectedItems()]))
+        # def selectionChanged(self):
+        #     copy('\n'.join([item.text() for item in self.listWidget.selectedItems()]))
 
         self.lock = Lock()
         self.storage.data.setdefault('config', dict())
@@ -148,14 +148,15 @@ class PartyTroubleMaker(PluginBase):
         self.register_event('network/action_effect', self.action_effect)
         self.register_event('network/actor_control/death', self.dead)
         self.register_event('network/actor_control/director_update/initial_commence', self.combat_reset)
-        self.window: ListWindow = ui_loop_exec(ListWindow)
+        # self.window: ListWindow = ui_loop_exec(ListWindow)
         api.command.register(command, self.process_command)
 
     def _start(self):
-        ui_loop_exec(self.window.show)
+        # ui_loop_exec(self.window.show)
+        pass
 
     def _onunload(self):
-        ui_loop_exec(self.window.full_close)
+        # ui_loop_exec(self.window.full_close)
         api.command.unregister(command)
 
     def get_mode(self, key: str):
@@ -165,8 +166,9 @@ class PartyTroubleMaker(PluginBase):
         mode = self.get_mode(msg_key)
         if not mode: return
         if mode > DISABLE:
-            ui_loop_exec(self.window.listWidget.addItem, f"[{datetime.now().strftime('%H:%M:%S')}] {string}")
-            ui_loop_exec(self.window.listWidget.scrollToBottom)
+            self.logger.info(string)
+            # ui_loop_exec(self.window.listWidget.addItem, f"[{datetime.now().strftime('%H:%M:%S')}] {string}")
+            # ui_loop_exec(self.window.listWidget.scrollToBottom)
         if mode == PARTY: api.Magic.macro_command("/p " + string)
 
     def combat_reset(self, evt):
@@ -209,17 +211,18 @@ class PartyTroubleMaker(PluginBase):
                     for effect in effects:
                         if 'ability' in effect.tags:
                             r = set()
-                            sh=set()
+                            sh = set()
                             t = api.XivMemory.actor_table.get_actor_by_id(target_id)
                             if t is not None:
-                                t_e={eid for eid, _ in t.effects.get_items()}
+                                t_e = {eid for eid, _ in t.effects.get_items()}
                                 r = t_e.intersection(damage_reduce)
                                 sh = t_e.intersection(shield)
                                 s = api.XivMemory.actor_table.get_actor_by_id(event.source_id)
                                 if s is not None: r |= {eid for eid, _ in s.effects.get_items()}.intersection(enemy_damage_reduce)
-                            rs=""
+                            rs = ""
                             if r: rs = "减伤：" + "/".join([status_name(eid) for eid in r])
-                            if sh:rs+=f"+{t.shield_percent}%盾(≈{t.maxHP * t.shield_percent/100:,.0f})："+"/".join([status_name(eid) for eid in sh])
+                            if sh: rs += f"+{t.shield_percent}%盾(≈{t.maxHP * t.shield_percent / 100:,.0f})：" + "/".join(
+                                [status_name(eid) for eid in sh])
                             record_last_damage(target_id, source_name, effect.param, rs)
                             me = api.XivMemory.actor_table.get_me()
                             if me is not None and target_id == me.id and action_name(event.action_id) not in common_attack_name:
