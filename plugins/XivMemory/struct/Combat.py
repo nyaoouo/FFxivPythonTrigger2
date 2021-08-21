@@ -32,6 +32,10 @@ class CoolDownGroups(CoolDownGroup * 100):
     def gcd_group(self):
         return self[58]
 
+    @property
+    def item_group(self):
+        return self[59]
+
 
 Enemy = OffsetStruct({
     'id': (c_uint, 0),
