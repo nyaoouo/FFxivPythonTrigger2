@@ -118,29 +118,29 @@ PARTY = 2
 DEFAULT_MODE = ECHO
 
 
-class ListWindow(FloatWidget):
-    allow_frameless = True
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("PartyTroubleMaker")
-        self.listWidget = QListWidget()
-        self.listWidget.itemSelectionChanged.connect(self.selectionChanged)
-        self.listWidget.itemSelectionChanged.connect(self.selectionChanged)
-        self.setFont(QFont('Times', 16))
-        self.layout = QGridLayout()
-        self.layout.addWidget(self.listWidget)
-        self.setLayout(self.layout)
-
-    def selectionChanged(self):
-        from pandas.io.clipboard import copy
-        copy('\n'.join([item.text() for item in self.listWidget.selectedItems()]))
-
-
 class PartyTroubleMaker(PluginBase):
     name = "PartyTroubleMaker"
 
     def __init__(self):
         super().__init__()
+        #from pandas.io.clipboard import copy
+
+        class ListWindow(FloatWidget):
+            allow_frameless = True
+
+            def __init__(self):
+                super().__init__()
+                self.setWindowTitle("PartyTroubleMaker")
+                self.listWidget = QListWidget()
+                #self.listWidget.itemSelectionChanged.connect(self.selectionChanged)
+                self.setFont(QFont('Times', 16))
+                self.layout = QGridLayout()
+                self.layout.addWidget(self.listWidget)
+                self.setLayout(self.layout)
+
+            # def selectionChanged(self):
+            #     copy('\n'.join([item.text() for item in self.listWidget.selectedItems()]))
+
         self.lock = Lock()
         self.storage.data.setdefault('config', dict())
         self.storage.save()
