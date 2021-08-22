@@ -196,7 +196,7 @@ class XivNetwork(PluginBase):
             )
         raw_msg = msg[header_size:]
         process_event(recv_events_classes[header.msg_type](msg_time, header, raw_msg))
-        event = (recv_processors[header.msg_type] if header.msg_type in recv_processors else UnkSendRawEvent)(msg_time, header, raw_msg)
+        event = (recv_processors[header.msg_type] if header.msg_type in recv_processors else UnkRecvRawEvent)(msg_time, header, raw_msg)
         if header.msg_type in self.wait_response:
             waitings = self.wait_response[header.msg_type]
             for waiting in waitings.copy():
