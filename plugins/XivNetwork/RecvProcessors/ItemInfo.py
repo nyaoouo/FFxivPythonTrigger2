@@ -4,7 +4,7 @@ from functools import cached_property
 from FFxivPythonTrigger.Logger import Logger
 from FFxivPythonTrigger.SaintCoinach import realm
 from FFxivPythonTrigger.memory.StructFactory import OffsetStruct
-from ..Structs import RecvNetworkEventBase, header_size
+from ..Structs import RecvNetworkEventBase
 
 
 class ServerItemInfo(OffsetStruct({
@@ -48,8 +48,8 @@ class ServerItemInfoEvent(RecvNetworkEventBase):
     id = "network/recv_item_info"
     name = "network recv item info"
 
-    def __init__(self, msg_time, raw_msg):
-        super().__init__(msg_time, raw_msg)
+    def __init__(self, msg_time, header, raw_msg):
+        super().__init__(msg_time, header, raw_msg)
         self.container_id = self.raw_msg.container_id
         self.slot = self.raw_msg.slot
         self.count = self.raw_msg.count
@@ -62,8 +62,8 @@ class ServerItemInfoEvent(RecvNetworkEventBase):
         return f"{self.item['Name']} x{self.count} at container:{hex(self.container_id)} - slot:{self.slot}"
 
 
-def get_event(msg_time, raw_msg):
-    if len(raw_msg) < size + header_size:
+def get_event(msg_time, header, raw_msg):
+    if len(raw_msg) < size:
         _logger.warning("message is too short to parse:[%s]" % raw_msg.hex())
         return
-    return ServerItemInfoEvent(msg_time, ServerItemInfo.from_buffer(raw_msg[header_size:]))
+    return ServerItemInfoEvent(msg_time, header, ServerItemInfo.from_buffer(raw_msg))

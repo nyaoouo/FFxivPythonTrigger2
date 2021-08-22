@@ -4,7 +4,7 @@ from functools import cached_property
 from FFxivPythonTrigger.Logger import Logger
 from FFxivPythonTrigger.SaintCoinach import realm
 from FFxivPythonTrigger.memory.StructFactory import OffsetStruct
-from ..Structs import RecvNetworkEventBase, header_size
+from ..Structs import RecvNetworkEventBase
 
 class ServerCurrencyCrystalInfo(OffsetStruct({
     'container_sequence': c_uint,
@@ -28,8 +28,8 @@ class ServerCurrencyCrystalInfoEvent(RecvNetworkEventBase):
     id = "network/recv_currency_crystal_info"
     name = "network recv currency crystal info"
 
-    def __init__(self, msg_time, raw_msg):
-        super().__init__(msg_time, raw_msg)
+    def __init__(self, msg_time, header, raw_msg):
+        super().__init__(msg_time, header, raw_msg)
         self.container_id = self.raw_msg.container_id
         self.slot = self.raw_msg.slot
         self.count = self.raw_msg.count
@@ -42,8 +42,8 @@ class ServerCurrencyCrystalInfoEvent(RecvNetworkEventBase):
         return f"{self.item['Name']} x{self.count} at container:{hex(self.container_id)} - slot:{self.slot}"
 
 
-def get_event(msg_time, raw_msg):
-    if len(raw_msg) < size + header_size:
+def get_event(msg_time, header, raw_msg):
+    if len(raw_msg) < size :
         _logger.warning("message is too short to parse:[%s]" % raw_msg.hex())
         return
-    return ServerCurrencyCrystalInfoEvent(msg_time, ServerCurrencyCrystalInfo.from_buffer(raw_msg[header_size:]))
+    return ServerCurrencyCrystalInfoEvent(msg_time, header, ServerCurrencyCrystalInfo.from_buffer(raw_msg))

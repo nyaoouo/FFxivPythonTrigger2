@@ -4,7 +4,7 @@ from functools import cached_property
 from FFxivPythonTrigger.Logger import Logger
 from FFxivPythonTrigger.SaintCoinach import realm
 from FFxivPythonTrigger.memory.StructFactory import OffsetStruct
-from ..Structs import RecvNetworkEventBase, header_size
+from ..Structs import RecvNetworkEventBase
 
 
 class ServerUpdateInventorySlot(OffsetStruct({
@@ -35,19 +35,20 @@ class ServerUpdateInventorySlot(OffsetStruct({
     'materia5_tier': c_ubyte,
     'unk10': c_ubyte,
     'unk11': c_uint,
-}, 0x40)):pass
+}, 0x40)): pass
 
 
 _logger = Logger("XivNetwork/ProcessServerUpdateInventorySlot")
 size = sizeof(ServerUpdateInventorySlot)
 item_sheet = realm.game_data.get_sheet('Item')
 
+
 class ServerUpdateInventorySlotEvent(RecvNetworkEventBase):
     id = "network/update_inventory_slot"
     name = "network recv update inventory slot"
 
-    def __init__(self, msg_time, raw_msg):
-        super().__init__(msg_time, raw_msg)
+    def __init__(self, msg_time, header, raw_msg):
+        super().__init__(msg_time, header, raw_msg)
         self.container_id = self.raw_msg.container_id
         self.slot = self.raw_msg.slot
         self.count = self.raw_msg.count
@@ -60,8 +61,8 @@ class ServerUpdateInventorySlotEvent(RecvNetworkEventBase):
         return f"{self.item['Name']} x{self.count} at container:{hex(self.container_id)} - slot:{self.slot}"
 
 
-def get_event(msg_time, raw_msg):
-    if len(raw_msg) < size + header_size:
+def get_event(msg_time, header, raw_msg):
+    if len(raw_msg) < size:
         _logger.warning("message is too short to parse:[%s]" % raw_msg.hex())
         return
-    return ServerUpdateInventorySlotEvent(msg_time, ServerUpdateInventorySlot.from_buffer(raw_msg[header_size:]))
+    return ServerUpdateInventorySlotEvent(msg_time, header, ServerUpdateInventorySlot.from_buffer(raw_msg))

@@ -3,7 +3,7 @@ from math import degrees
 
 from FFxivPythonTrigger.Logger import Logger
 from FFxivPythonTrigger.memory.StructFactory import OffsetStruct
-from ..Structs import SendNetworkEventBase, header_size, Vector3
+from ..Structs import SendNetworkEventBase, Vector3
 
 ClientPositionAdjust = OffsetStruct({
     'old_r': (c_float, 0x0),
@@ -23,8 +23,8 @@ class PositionAdjustEvent(SendNetworkEventBase):
     id = "network/position_adjust"
     name = "network send self position adjust"
 
-    def __init__(self, msg_time, raw_msg):
-        super().__init__(msg_time, raw_msg)
+    def __init__(self, msg_time, header, raw_msg):
+        super().__init__(msg_time, header, raw_msg)
         self.new_r = raw_msg.new_r
         self.new_pos = raw_msg.new_pos
         self.old_r = raw_msg.old_r
@@ -37,8 +37,8 @@ class PositionAdjustEvent(SendNetworkEventBase):
         )
 
 
-def get_event(msg_time, raw_msg):
-    if len(raw_msg) < size + header_size:
+def get_event(msg_time, header, raw_msg):
+    if len(raw_msg) < size:
         _logger.warning("message is too short to parse:[%s]" % raw_msg.hex())
         return
-    return PositionAdjustEvent(msg_time, ClientPositionAdjust.from_buffer(raw_msg[header_size:]))
+    return PositionAdjustEvent(msg_time, header, ClientPositionAdjust.from_buffer(raw_msg))

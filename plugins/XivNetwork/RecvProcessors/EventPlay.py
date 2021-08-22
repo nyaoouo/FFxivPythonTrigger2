@@ -2,7 +2,7 @@ from ctypes import *
 
 from FFxivPythonTrigger.Logger import Logger
 from FFxivPythonTrigger.memory.StructFactory import OffsetStruct
-from ..Structs import RecvNetworkEventBase, header_size
+from ..Structs import RecvNetworkEventBase
 
 ServerEventPlay = OffsetStruct({
     'target_id': c_uint,
@@ -23,8 +23,8 @@ class ServerEventPlayEvent(RecvNetworkEventBase):
         return f"event play {self.raw_msg.category}-{self.raw_msg.event_id} (target:{hex(self.raw_msg.target_id)})"
 
 
-def get_event(msg_time, raw_msg):
-    if len(raw_msg) < header_size+size:
+def get_event(msg_time, header, raw_msg):
+    if len(raw_msg) < size:
         _logger.warning("message is too short to parse:[%s]" % raw_msg.hex())
         return
-    return ServerEventPlayEvent(msg_time, ServerEventPlay.from_buffer(raw_msg[header_size:]))
+    return ServerEventPlayEvent(msg_time, header, ServerEventPlay.from_buffer(raw_msg))

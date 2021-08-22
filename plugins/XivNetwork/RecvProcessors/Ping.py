@@ -11,5 +11,5 @@ class RecvPingEvent(RecvNetworkEventBase):
         return "ping recv"
 
 
-def get_event(msg_time, raw_msg):
-    return RecvPingEvent(msg_time, raw_msg)
+def get_event(msg_time, header, raw_msg):
+    return RecvPingEvent(msg_time, header, raw_msg)

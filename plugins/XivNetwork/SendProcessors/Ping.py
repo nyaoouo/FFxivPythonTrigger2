@@ -9,5 +9,5 @@ class SendPingEvent(SendNetworkEventBase):
         return "ping send"
 
 
-def get_event(msg_time, raw_msg):
-    return SendPingEvent(msg_time, raw_msg)
+def get_event(msg_time, header, raw_msg):
+    return SendPingEvent(msg_time, header, raw_msg)

@@ -40,10 +40,6 @@ _processors = {
 
 
 class UndefinedRecv(RecvNetworkEventBase):
-    def __init__(self, msg_time, raw_msg):
-        self.header = ServerMessageHeader.from_buffer(raw_msg)
-        super().__init__(msg_time, raw_msg[header_size:])
-
     def text(self):
         return f"opcode:{self.header.msg_type} len:{len(self.raw_msg)}"
 

@@ -2,7 +2,7 @@ from ctypes import *
 
 from FFxivPythonTrigger.Logger import Logger
 from FFxivPythonTrigger.memory.StructFactory import OffsetStruct
-from ..Structs import RecvNetworkEventBase, header_size
+from ..Structs import RecvNetworkEventBase
 
 
 class ServerRetainerInformation(OffsetStruct({
@@ -40,8 +40,8 @@ class ServerRetainerInformationEvent(RecvNetworkEventBase):
         return f"{self.raw_msg.name} {hex(self.raw_msg.retainer_id)}/{hex(self.raw_msg.server_id)}" if self.raw_msg.reserved else 'n/a'
 
 
-def get_event(msg_time, raw_msg):
-    if len(raw_msg) < size + header_size:
+def get_event(msg_time, header, raw_msg):
+    if len(raw_msg) < size:
         _logger.warning("message is too short to parse:[%s]" % raw_msg.hex())
         return
-    return ServerRetainerInformationEvent(msg_time, ServerRetainerInformation.from_buffer(raw_msg[header_size:]))
+    return ServerRetainerInformationEvent(msg_time, header, ServerRetainerInformation.from_buffer(raw_msg))

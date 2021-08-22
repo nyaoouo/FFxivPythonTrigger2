@@ -2,7 +2,7 @@ from ctypes import *
 
 from FFxivPythonTrigger.Logger import Logger
 from FFxivPythonTrigger.memory.StructFactory import OffsetStruct
-from ..Structs import SendNetworkEventBase, header_size
+from ..Structs import SendNetworkEventBase
 
 
 class ClientTrigger(OffsetStruct({
@@ -29,8 +29,8 @@ class ClientTriggerEvent(SendNetworkEventBase):
         return '|'.join(hex(v)[2:] for v in self.raw_msg.get_data().values())
 
 
-def get_event(msg_time, raw_msg):
-    if len(raw_msg) < size + header_size:
+def get_event(msg_time, header, raw_msg):
+    if len(raw_msg) < size:
         _logger.warning("message is too short to parse:[%s]" % raw_msg.hex())
         return
-    return ClientTriggerEvent(msg_time, ClientTrigger.from_buffer(raw_msg[header_size:]))
+    return ClientTriggerEvent(msg_time, header, ClientTrigger.from_buffer(raw_msg))

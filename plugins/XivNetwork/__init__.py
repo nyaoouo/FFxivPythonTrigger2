@@ -20,26 +20,14 @@ from .SendProcessors import processors as send_processors, version_opcodes as se
 class RecvRawEvent(RecvNetworkEventBase):
     name = "network recv event"
 
-    def __init__(self, raw_msg, msg_time, header):
-        super().__init__(raw_msg, msg_time)
-        self.header = header
-
 
 class SendRawEvent(SendNetworkEventBase):
     name = "network send event"
-
-    def __init__(self, msg_time, raw_msg, header):
-        super().__init__(msg_time, raw_msg)
-        self.header = header
 
 
 class UnkRecvRawEvent(RecvNetworkEventBase):
     name = "network unknown recv event"
     id = "network/unk_recv"
-
-    def __init__(self, msg_time, raw_msg, header):
-        super().__init__(msg_time, raw_msg)
-        self.header = header
 
     def text(self):
         return f"opcode:{self.header.msg_type} len:{len(self.raw_msg)}"
@@ -48,10 +36,6 @@ class UnkRecvRawEvent(RecvNetworkEventBase):
 class UnkSendRawEvent(SendNetworkEventBase):
     name = "network unknown send event"
     id = "network/unk_send"
-
-    def __init__(self, msg_time, raw_msg, header):
-        super().__init__(msg_time, raw_msg)
-        self.header = header
 
     def text(self):
         return f"opcode:{self.header.msg_type} len:{len(self.raw_msg)}"
@@ -210,11 +194,9 @@ class XivNetwork(PluginBase):
                 (RecvRawEvent,),
                 {'id': f'network/recv/{header.msg_type}'}
             )
-        process_event(recv_events_classes[header.msg_type](msg_time, msg[header_size:], header))
-        if header.msg_type in recv_processors:
-            event = recv_processors[header.msg_type](msg_time, msg)
-        else:
-            event = UnkRecvRawEvent(msg_time, msg[header_size:], header)
+        raw_msg = msg[header_size:]
+        process_event(recv_events_classes[header.msg_type](msg_time, header, raw_msg))
+        event = (recv_processors[header.msg_type] if header.msg_type in recv_processors else UnkSendRawEvent)(msg_time, header, raw_msg)
         if header.msg_type in self.wait_response:
             waitings = self.wait_response[header.msg_type]
             for waiting in waitings.copy():
@@ -243,11 +225,9 @@ class XivNetwork(PluginBase):
                 (SendRawEvent,),
                 {'id': f'network/send/{header.msg_type}'}
             )
-        process_event(send_events_classes[header.msg_type](msg_time, msg[header_size:], header))
-        if header.msg_type in send_processors:
-            event = send_processors[header.msg_type](msg_time, msg)
-        else:
-            event = UnkSendRawEvent(msg_time, msg[header_size:], header)
+        raw_msg = msg[header_size:]
+        process_event(send_events_classes[header.msg_type](msg_time, header, raw_msg))
+        event = (send_processors[header.msg_type] if header.msg_type in send_processors else UnkSendRawEvent)(msg_time, header, raw_msg)
         if event is not None: process_event(event)
 
     def get_response(self, response_id: int):
@@ -281,8 +261,8 @@ class XivNetwork(PluginBase):
         if not success_len:
             raise Exception("Failed to send messages")
         if response_opcode is not None:
-            res =  wait_until(lambda: self.get_response(response_id), timeout=response_timeout, period=response_period)
-            if isinstance(res,Exception):
+            res = wait_until(lambda: self.get_response(response_id), timeout=response_timeout, period=response_period)
+            if isinstance(res, Exception):
                 raise res
             else:
                 return res
