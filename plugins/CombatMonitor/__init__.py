@@ -1,14 +1,15 @@
 import sqlite3
 from json import dumps
-
-# from PyQt5.QtCore import QTimer, QUrl
-# from PyQt5.QtWidgets import QVBoxLayout
-# from PyQt5.QtWebEngineWidgets import QWebEngineView
-
 from FFxivPythonTrigger import *
-# from FFxivPythonTrigger.QT import FloatWidget, ui_loop_exec
 from .DbCreator import get_con
-from time import time, perf_counter
+from .Definition import ability_damage, dot_damage
+
+use_ui = False
+if use_ui:
+    from PyQt5.QtCore import QTimer, QUrl
+    from PyQt5.QtWidgets import QVBoxLayout
+    from PyQt5.QtWebEngineWidgets import QWebEngineView
+    from FFxivPythonTrigger.QT import FloatWidget, ui_loop_exec
 
 BREAK_TIME = 60
 UPDATE_PERIOD = 0.1
@@ -30,7 +31,7 @@ FROM `AbilityEvent`
 WHERE
     (`source_id` = ?) AND
     (`timestamp` BETWEEN ? AND ?) AND
-    (`type` = 'damage');
+    (`type` = 'damage' OR `type` = 'dot' OR `type` = 'dot_sim');
 """
 select_taken_damage_from = """
 SELECT SUM(`param`),MIN(`timestamp`),Max(`timestamp`)
@@ -56,34 +57,34 @@ class CombatMonitor(PluginBase):
         super().__init__()
 
         # self.conn = get_con(self.storage.path / 'data.db')
+        if use_ui:
+            class DpsWindow(FloatWidget):
+                allow_frameless = True
 
-        # class DpsWindow(FloatWidget):
-        #     allow_frameless = True
-        #
-        #     def __init__(self):
-        #         super().__init__()
-        #         self.setWindowTitle("Dps")
-        #         self.browser = QWebEngineView()
-        #         self.browser.load(QUrl.fromLocalFile(web_path))
-        #         _layout = QVBoxLayout(self)
-        #         _layout.addWidget(self.browser)
-        #         self.setLayout(_layout)
-        #
-        #         self.last_update = 0
-        #
-        #         self.timer = QTimer()
-        #         self.timer.setInterval(UPDATE_PERIOD * 2000)
-        #         self.timer.timeout.connect(self.update)
-        #         self.timer.start()
-        #
-        #     def update(_self):
-        #         me = api.XivMemory.actor_table.get_me()
-        #         if me is None or _self.last_update > self.last_record_time: return
-        #         party = [actor for actor in api.XivMemory.party.main_party()]
-        #         if not party: party = [me]
-        #         data = [{'job': a.job.value(), 'name': a.Name, 'dps': self.actor_dps(a.id, 0)} for a in party]
-        #         _self.browser.page().runJavaScript(f"window.set_data({dumps(data)})")
-        #         _self.last_update = time() * 1000
+                def __init__(self):
+                    super().__init__()
+                    self.setWindowTitle("Dps")
+                    self.browser = QWebEngineView()
+                    self.browser.load(QUrl.fromLocalFile(web_path))
+                    _layout = QVBoxLayout(self)
+                    _layout.addWidget(self.browser)
+                    self.setLayout(_layout)
+
+                    self.last_update = 0
+
+                    self.timer = QTimer()
+                    self.timer.setInterval(UPDATE_PERIOD * 2000)
+                    self.timer.timeout.connect(self.update)
+                    self.timer.start()
+
+                def update(_self):
+                    me = api.XivMemory.actor_table.get_me()
+                    if me is None or _self.last_update > self.last_record_time: return
+                    party = [actor for actor in api.XivMemory.party.main_party()]
+                    if not party: party = [me]
+                    data = [{'job': a.job.value(), 'name': a.Name, 'dps': self.actor_dps(a.id, 0)} for a in party]
+                    _self.browser.page().runJavaScript(f"window.set_data({dumps(data)})")
+                    _self.last_update = time() * 1000
 
         self.conn = get_con()
         self.conn_lock = Lock()
@@ -91,8 +92,8 @@ class CombatMonitor(PluginBase):
         self.queue_lock = Lock()
         self.time_set_lock = Lock()
         self.register_event('network/action_effect', self.ability_insert)
-        self.register_event('network/actor_control/dot', self.dot_insert)
-        self.register_event('network/actor_control/hot', self.hot_insert)
+        self.register_event('network/actor_control/dot', self.dot_hot_insert)
+        self.register_event('network/actor_control/hot', self.dot_hot_insert)
         self.register_event('network/actor_control/director_update/initial_commence', self.set_min_time)
         self.register_api('CombatMonitor', type('obj', (object,), {
             'actor_dps': self.actor_dps,
@@ -107,10 +108,12 @@ class CombatMonitor(PluginBase):
         self.last_record_time = self._last_record_time = self.min_record_time = int(time() * 1000)
         self.dps_cache = dict()
         self.tdps_cache = dict()
-        # self.dps_window: DpsWindow = ui_loop_exec(DpsWindow)
+        self.dot_k_values = dict()
+        self.dot_values = dict()
+        if use_ui: self.dps_window: DpsWindow = ui_loop_exec(DpsWindow)
 
     def _start(self):
-        # ui_loop_exec(self.dps_window.show)
+        if use_ui: ui_loop_exec(self.dps_window.show)
         pass
 
     def set_min_time(self, evt):
@@ -127,7 +130,6 @@ class CombatMonitor(PluginBase):
                 self.min_record_time = self._min_record_time
             self._min_record_time = MAX_TIME
             self.last_record_time = self._last_record_time
-
         with self.queue_lock:
             ability_data = self.ability_data.copy()
             ability_tag_data = self.ability_tag_data.copy()
@@ -143,14 +145,16 @@ class CombatMonitor(PluginBase):
 
     def save_db(self):
         with self.conn_lock:
-            backup_conn = sqlite3.connect(self.storage.path / f'data_{int(time())}.db')
+            save_path = self.storage.path / f'data_{int(time())}.db'
+            backup_conn = sqlite3.connect(save_path)
             self.conn.backup(backup_conn)
             backup_conn.close()
+            self.logger.debug(f"backup database at {save_path}")
             self.conn.close()
             self.conn = get_con()
 
     def _onunload(self):
-        # ui_loop_exec(self.dps_window.full_close)
+        if use_ui: ui_loop_exec(self.dps_window.full_close)
         frame_inject.unregister_continue_call(self.continue_work)
         self.save_db()
         self.conn.close()
@@ -160,6 +164,20 @@ class CombatMonitor(PluginBase):
             d_id = self.last_id
             self.last_id += 1
         return d_id
+
+    def set_dot_value(self, target_id, source_id, dot_id):
+        if dot_id not in dot_damage or source_id not in self.dot_k_values: return False
+        self.dot_values[(target_id, source_id, dot_id)] = self.dot_k_values[source_id] * dot_damage[dot_id]
+        return True
+
+    def get_dot_value(self, target_id, actor_id, dot_id):
+        if dot_id not in dot_damage: return 0
+        k = (target_id, actor_id, dot_id)
+        if k not in self.dot_values and not self.set_dot_value(target_id, actor_id, dot_id):
+            d = list(self.dot_k_values.values())
+            if not d: return dot_damage[dot_id]
+            return sum(d) / len(d) * dot_damage[dot_id]
+        return self.dot_values[k]
 
     def ability_insert(self, evt):
         if evt.action_type != 'action': return
@@ -193,25 +211,39 @@ class CombatMonitor(PluginBase):
                 d_id = self.get_new_ability_id()
                 ability_data.append((d_id, timestamp, source, target_id, evt.action_id, action_type, effect.param))
                 ability_tag_data += [(d_id, tag) for tag in temp]
+                if target_id < 0x20000000:
+                    if action_type == 'damage' and evt.action_id in ability_damage:
+                        dmg = effect.param
+                        if 'critical' in effect.tags: dmg /= 1.4
+                        if 'direct' in effect.tags: dmg /= 1.25
+                        self.dot_k_values[source] = dmg / ability_damage[evt.action_id]
+                    elif action_type == 'buff' and "to_target" in effect.tags and effect.param in dot_damage:
+                        self.set_dot_value(target_id, source, effect.param)
         with self.queue_lock:
             self.ability_data += ability_data
             self.ability_tag_data += ability_tag_data
 
-    def dot_insert(self, evt):
+    def dot_hot_insert(self, evt):
         timestamp = int(evt.time.timestamp() * 1000)
         with self.time_set_lock:
             self._min_record_time = min(timestamp, self._min_record_time)
             self._last_record_time = max(timestamp, self._last_record_time)
+        b_id = evt.source_buff_id if evt.source_buff_id else None
+        s_id = evt.source_id if evt.source_buff_id else None
+        e_type = 'dot' if evt.is_dot else 'hot'
         with self.queue_lock:
-            self.ability_data.append((self.get_new_ability_id(), timestamp, None, evt.target_id, None, 'dot', evt.damage))
-
-    def hot_insert(self, evt):
-        timestamp = int(evt.time.timestamp() * 1000)
-        with self.time_set_lock:
-            self._min_record_time = min(timestamp, self._min_record_time)
-            self._last_record_time = max(timestamp, self._last_record_time)
-        with self.queue_lock:
-            self.ability_data.append((self.get_new_ability_id(), timestamp, None, evt.target_id, None, 'hot', evt.damage))
+            self.ability_data.append((self.get_new_ability_id(), timestamp, s_id, evt.target_id, b_id, e_type, evt.damage))
+        if not b_id:
+            if evt.is_dot:
+                t_id = evt.target_id
+                t = api.XivMemory.actor_table.get_actor_by_id(t_id)
+                if t is None: return
+                d_effects = [(k, e.actorId) for k, e in t.effects.get_dict().items() if k in dot_damage]
+                if not d_effects: return
+                d_effects = [(self.get_dot_value(t_id, x[1], x[0]), x[1], x[0]) for x in d_effects]
+                s_d = evt.damage / sum([x[0] for x in d_effects])
+                for p_d, s_id, e_id in d_effects:
+                    self.ability_data.append((self.get_new_ability_id(), timestamp, s_id, t_id, e_id, "dot_sim", round(s_d * p_d)))
 
     def get_period(self, period_sec: float, till: int = None):
         if till is None: till = self.last_record_time
