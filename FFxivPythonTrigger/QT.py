@@ -16,6 +16,8 @@ _return_status: dict[int, bool] = dict()
 _return_data: dict[int, any] = dict()
 _default_interval = 0.01
 
+float_key = Qt.FramelessWindowHint | Qt.Tool
+
 
 class FloatWidget(QWidget):
     allow_frameless = False
@@ -27,11 +29,11 @@ class FloatWidget(QWidget):
         self._float_lock = False
         self.setWindowFlags(Qt.WindowStaysOnTopHint)
         if self.allow_frameless:
-            self.setWindowFlags(self.windowFlags() | Qt.FramelessWindowHint)
+            self.setWindowFlags(self.windowFlags() | float_key)
         # self.setAttribute(Qt.WA_TranslucentBackground, True)
 
     def is_frameless(self):
-        return self.windowFlags() & Qt.FramelessWindowHint
+        return self.windowFlags() & float_key
 
     def is_float_locked(self):
         return self._float_lock
@@ -63,7 +65,7 @@ class FloatWidget(QWidget):
             self._old_resize_pos = None
 
     def switch_frameless(self):
-        self.setWindowFlags(self.windowFlags() ^ Qt.FramelessWindowHint)
+        self.setWindowFlags(self.windowFlags() ^ float_key)
         self.show()
 
     def mouseMoveEvent(self, event):
