@@ -1,5 +1,7 @@
 from ctypes import c_ubyte
+from functools import cache
 
+from FFxivPythonTrigger.SaintCoinach import realm
 from FFxivPythonTrigger.memory.StructFactory import EnumStruct
 
 
@@ -21,7 +23,20 @@ class ActorType(object):
     CardStand = 14
 
 
-Jobs = EnumStruct(c_ubyte, {
+job_sheet = realm.game_data.get_sheet('ClassJob')
+
+
+@cache
+def job_name(job_id):
+    return job_sheet[job_id]['Name']
+
+
+@cache
+def job_short_name(job_id):
+    return job_sheet[job_id]['Abbreviation']
+
+
+class Jobs(EnumStruct(c_ubyte, {
     5: 'Archer',  # 弓箭手 Arc
     19: 'Paladin',  # 骑士PLD
     20: 'Monk',  # 武僧MNK
@@ -39,9 +54,17 @@ Jobs = EnumStruct(c_ubyte, {
     33: 'Astrologian',  # 占星术士AST
     34: 'Samurai',  # 武士SAM
     35: 'RedMage',  # 赤魔法师RDM
+    36: 'BlueMage',  # 青魔BLM
     37: 'Gunbreaker',  # 绝枪战士GNB
-    38: 'Dancer'  # 舞者DNC
-})
+    38: 'Dancer',  # 舞者DNC
+})):
+    @property
+    def name(self):
+        return job_name(self.raw_value)
+
+    @property
+    def short_name(self):
+        return job_short_name(self.raw_value)
 
 
 class ChatType(object):
