@@ -27,7 +27,7 @@ INSERT INTO `AbilityTags`
 VALUES (?,?);
 """
 select_damage_from = """
-SELECT SUM(`param`),MIN(`timestamp`),Max(`timestamp`)
+SELECT SUM(`param`)
 FROM `AbilityEvent`
 WHERE
     (`source_id` = ?) AND
@@ -35,7 +35,7 @@ WHERE
     (`type` = 'damage' OR `type` = 'dot' OR `type` = 'dot_sim');
 """
 select_taken_damage_from = """
-SELECT SUM(`param`),MIN(`timestamp`),Max(`timestamp`)
+SELECT SUM(`param`)
 FROM `AbilityEvent`
 WHERE
     (`target_id` = ?) AND
@@ -114,7 +114,7 @@ class CombatMonitor(PluginBase):
         self.ability_tag_data = list()
         self.last_id = 0
         self.last_update = perf_counter()
-        self.min_record_time =0
+        self.min_record_time = 0
         self._min_record_time = MAX_TIME
         self.last_record_time = self._last_record_time = int(time() * 1000)
         self.dot_k_values = dict()
@@ -135,7 +135,8 @@ class CombatMonitor(PluginBase):
             if not self.ability_data: return
 
             with self.time_set_lock:
-                if self._min_record_time < MAX_TIME and self._min_record_time - (BREAK_TIME * 1000) > self.last_record_time or not self.min_record_time:
+                if self._min_record_time < MAX_TIME and self._min_record_time - (
+                        BREAK_TIME * 1000) > self.last_record_time or not self.min_record_time:
                     self.min_record_time = self._min_record_time
                 self._min_record_time = MAX_TIME
                 self.last_record_time = self._last_record_time
@@ -281,12 +282,14 @@ class CombatMonitor(PluginBase):
 
     @cache
     def _actor_dps(self, source_id, start_time: int, end_time: int):
+        time_range = end_time - start_time
         with self.conn_lock:
             data = self.conn.execute(select_damage_from, (source_id, start_time, end_time)).fetchone()
-        return data[0] // max((data[2] - data[1]) / 1000, 1) if data[1] is not None else 0
+        return data[0] // max(time_range / 1000, 1) if data[1] is not None else 0
 
     @cache
     def _actor_tdps(self, target_id, start_time: int, end_time: int):
+        time_range = end_time - start_time
         with self.conn_lock:
             data = self.conn.execute(select_taken_damage_from, (target_id, start_time, end_time)).fetchone()
-        return data[0] // max((data[2] - data[1]) / 1000, 1) if data[1] is not None else 0
+        return data[0] // max(time_range / 1000, 1) if data[1] is not None else 0
