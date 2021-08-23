@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5.Qt import Qt
 import PyQt5.QtWebEngineWidgets
 
-from FFxivPythonTrigger.Utils import Counter
+from .Utils import Counter, err_catch
 
 _call_counter = Counter()
 _call_queue: Queue[tuple[int, callable, tuple, dict]] = Queue()
@@ -32,22 +32,27 @@ class FloatWidget(QWidget):
             self.setWindowFlags(self.windowFlags() | float_key)
         # self.setAttribute(Qt.WA_TranslucentBackground, True)
 
+    @err_catch
     def is_frameless(self):
         return self.windowFlags() & float_key
 
+    @err_catch
     def is_float_locked(self):
         return self._float_lock
 
+    @err_catch
     def float_lock(self):
         if self.is_float_locked(): return
         self._float_lock = True
         self.setAttribute(Qt.WA_TransparentForMouseEvents, True)
 
+    @err_catch
     def float_unlock(self):
         if self.is_float_locked(): return
         self._float_lock = False
         self.setAttribute(Qt.WA_TransparentForMouseEvents, False)
 
+    @err_catch
     def mousePressEvent(self, QMouseEvent):
         if self._float_lock: return
         if QMouseEvent.button() == Qt.RightButton and self.allow_frameless:
@@ -59,15 +64,18 @@ class FloatWidget(QWidget):
             else:
                 self._old_move_pos = QMouseEvent.globalPos()
 
+    @err_catch
     def mouseReleaseEvent(self, QMouseEvent):
         if QMouseEvent.button() == Qt.LeftButton:
             self._old_move_pos = None
             self._old_resize_pos = None
 
+    @err_catch
     def switch_frameless(self):
         self.setWindowFlags(self.windowFlags() ^ float_key)
         self.show()
 
+    @err_catch
     def mouseMoveEvent(self, event):
         if self._old_move_pos is not None:
             delta = QPoint(event.globalPos() - self._old_move_pos)
@@ -78,6 +86,7 @@ class FloatWidget(QWidget):
             self.resize(self.width() + delta.x(), self.height() + delta.y())
             self._old_resize_pos = event.globalPos()
 
+    @err_catch
     def full_close(self):
         self.hide()
         self.disconnect()

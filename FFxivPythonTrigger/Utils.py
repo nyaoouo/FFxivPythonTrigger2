@@ -1,10 +1,13 @@
 import threading
 import time
+from traceback import format_exc
 from typing import Callable, Tuple, TYPE_CHECKING
 from math import sin, cos
 import hashlib, os
 
 from shapely.affinity import rotate
+
+from FFxivPythonTrigger.Logger import Logger
 
 if TYPE_CHECKING:
     from shapely.geometry import Polygon
@@ -101,3 +104,16 @@ def wait_until(statement: Callable[[], any], timeout: float = None, period: floa
         time.sleep(period)
         temp = statement()
     return temp
+
+
+_err_logger = Logger("ErrorCatcher")
+
+
+def err_catch(func):
+    def warper(*args, **kwargs):
+        try:
+            func(*args, **kwargs)
+        except Exception:
+            _err_logger.error(format_exc())
+
+    return warper
