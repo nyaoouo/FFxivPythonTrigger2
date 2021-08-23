@@ -79,19 +79,22 @@ class CombatMonitor(PluginBase):
                     self.timer.start()
 
                 def update(_self):
-                    me = api.XivMemory.actor_table.get_me()
-                    if me is None or _self.last_update > self.last_record_time: return
-                    party = [actor for actor in api.XivMemory.party.main_party()]
-                    if not party: party = [me]
-                    data = [{
-                        'job': a.job.name,
-                        'name': a.Name,
-                        'dps': self.actor_dps(a.id, 0),
-                        'dps_m': self.actor_dps(a.id, 60),
-                    } for a in party]
-                    script = f"window.set_data({self.min_record_time},{self.last_record_time},\"{api.XivMemory.zone_name}\",{dumps(data)})"
-                    _self.browser.page().runJavaScript(script)
-                    _self.last_update = time() * 1000
+                    try:
+                        me = api.XivMemory.actor_table.get_me()
+                        if me is None or _self.last_update > self.last_record_time: return
+                        party = [actor for actor in api.XivMemory.party.main_party()]
+                        if not party: party = [me]
+                        data = [{
+                            'job': a.job.name,
+                            'name': a.Name,
+                            'dps': self.actor_dps(a.id, 0),
+                            'dps_m': self.actor_dps(a.id, 60),
+                        } for a in party]
+                        script = f"window.set_data({self.min_record_time},{self.last_record_time},\"{api.XivMemory.zone_name}\",{dumps(data)})"
+                        _self.browser.page().runJavaScript(script)
+                        _self.last_update = time() * 1000
+                    except:
+                        self.logger.error(format_exc())
 
             self.dps_window: DpsWindow = ui_loop_exec(DpsWindow)
 
@@ -285,11 +288,11 @@ class CombatMonitor(PluginBase):
         time_range = end_time - start_time
         with self.conn_lock:
             data = self.conn.execute(select_damage_from, (source_id, start_time, end_time)).fetchone()
-        return data[0] // max(time_range / 1000, 1) if data[1] is not None else 0
+        return data[0] // max(time_range / 1000, 1) if data[0] is not None else 0
 
     @cache
     def _actor_tdps(self, target_id, start_time: int, end_time: int):
         time_range = end_time - start_time
         with self.conn_lock:
             data = self.conn.execute(select_taken_damage_from, (target_id, start_time, end_time)).fetchone()
-        return data[0] // max(time_range / 1000, 1) if data[1] is not None else 0
+        return data[0] // max(time_range / 1000, 1) if data[0] is not None else 0
