@@ -12,6 +12,7 @@ territory_sheet = realm.game_data.get_sheet('TerritoryType')
 
 @cache
 def zone_name(zone_id):
+    if not zone_id:return ""
     return territory_sheet[zone_id]['PlaceName']
 
 
