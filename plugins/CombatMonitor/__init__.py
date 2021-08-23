@@ -1,8 +1,8 @@
-import sqlite3
 from functools import cache
 from json import dumps
 from FFxivPythonTrigger import *
-from .DbCreator import get_con
+from FFxivPythonTrigger.SaintCoinach import realm
+from .DbCreator import *
 from .Definition import ability_damage, dot_damage
 
 use_ui = True
@@ -16,44 +16,17 @@ BREAK_TIME = 30
 UPDATE_PERIOD = 0.1
 MAX_TIME = 1e+99
 
-insert_ability = """
-INSERT INTO `AbilityEvent`
-(`id`,`timestamp`,`source_id`,`target_id`,`ability_id`,`type`,`param`)
-VALUES (?,?,?,?,?,?,?)
-"""
-insert_ability_tag = """
-INSERT INTO `AbilityTags`
-(`ability_event_id`,`tag`)
-VALUES (?,?);
-"""
-select_damage_from = """
-SELECT SUM(`param`)
-FROM `AbilityEvent`
-WHERE
-    (`source_id` = ?) AND
-    (`timestamp` BETWEEN ? AND ?) AND
-    (`type` = 'damage' OR `type` = 'dot' OR `type` = 'dot_sim');
-"""
-select_no_dot_damage_from = """
-SELECT SUM(`param`)
-FROM `AbilityEvent`
-WHERE
-    (`source_id` = ?) AND
-    (`timestamp` BETWEEN ? AND ?) AND
-    (`type` = 'damage' OR `type` = 'dot');
-"""
-select_taken_damage_from = """
-SELECT SUM(`param`)
-FROM `AbilityEvent`
-WHERE
-    (`target_id` = ?) AND
-    (`timestamp` BETWEEN ? AND ?) AND
-    (`type` = 'damage' OR `type` = 'dot');
-"""
-
 owners = dict()
 
 web_path = str(Path(__file__).parent / 'dist' / 'index.html')
+
+status_sheet = realm.game_data.get_sheet('Status')
+
+
+@cache
+def status_name(status_id):
+    if not status_id: return
+    return status_sheet[status_id]['Name']
 
 
 class CombatMonitor(PluginBase):
@@ -98,10 +71,25 @@ class CombatMonitor(PluginBase):
                             'name': a.Name,
                             'dps': self.actor_dps(a.id, 0),
                             'dps_m': self.actor_dps(a.id, 60),
-                            # 'dps_nd': self.actor_no_dot_dps(a.id, 0),
+                            # 'dps_sd': self.actor_sim_dot_dps(a.id, 0),
+                            'dmg': self.actor_dmg(a.id, 0),
+                            # 'dmg_sd': self.actor_sim_dot_dmg(a.id, 0),
+                            # 'dmg_sd_g': '、'.join([
+                            #     f"{status_name(e_id)}({dmg:,})"
+                            #     for e_id, dmg in self.actor_sim_dot_dmg_group(a.id, 0)
+                            # ]),
                             'death': self.dead_record.setdefault(a.id, 0),
                         } for a in party]
-                        script = f"window.set_data({self.min_record_time},{self.last_record_time},\"{api.XivMemory.zone_name}\",{dumps(data)})"
+                        lb_d = self.actor_dps(-1, 0)
+                        if lb_d:
+                            data.append({
+                                'job': 'LB',
+                                'name': 'Limit Break',
+                                'dps': self.actor_dps(-1, 0),
+                                'dps_m': self.actor_dps(-1, 60),
+                            })
+                        script = f"window.set_data({self.min_record_time},{self.last_record_time}," \
+                                 f"\"{api.XivMemory.zone_name}({api.XivMemory.zone_id})\",{dumps(data)})"
                         _self.browser.page().runJavaScript(script)
                         _self.last_update = time() * 1000
                     except:
@@ -165,8 +153,10 @@ class CombatMonitor(PluginBase):
                 c.executemany(insert_ability, ability_data)
                 c.executemany(insert_ability_tag, ability_tag_data)
                 self.conn.commit()
-                self._actor_tdps.cache_clear()
-                self._actor_tdps.cache_clear()
+                self._actor_dmg.cache_clear()
+                self._actor_sim_dot_dmg.cache_clear()
+                self._actor_taken_dmg.cache_clear()
+                self._actor_sim_dot_dmg_group.cache_clear()
         finally:
             self.insert_lock.release()
 
@@ -235,6 +225,7 @@ class CombatMonitor(PluginBase):
             for effect in effects:
                 temp = effect.tags.copy()
                 if 'ability' in temp:
+                    if source >= 0 and 'limit_break' in temp: source = -1
                     if not is_set:
                         is_set = True
                         with self.time_set_lock:
@@ -295,32 +286,50 @@ class CombatMonitor(PluginBase):
         if not period_sec: return self.min_record_time, till
         return max(self.min_record_time, int(till - (period_sec * 1000))), till
 
+    def actor_dmg(self, source_id, period_sec=60, till: int = None):
+        return self._actor_dmg(source_id, *self.get_period(period_sec, till))
+
     def actor_dps(self, source_id, period_sec=60, till: int = None):
-        return self._actor_dps(source_id, *self.get_period(period_sec, till))
+        start_time, end_time = self.get_period(period_sec, till)
+        dmg = self._actor_dmg(source_id, start_time, end_time)
+        return dmg // max((end_time - start_time) / 1000, 1) if dmg else 0
+
+    def actor_sim_dot_dmg(self, source_id, period_sec=60, till: int = None):
+        return self._actor_sim_dot_dmg(source_id, *self.get_period(period_sec, till))
+
+    def actor_sim_dot_dmg_group(self, source_id, period_sec=60, till: int = None):
+        return self._actor_sim_dot_dmg_group(source_id, *self.get_period(period_sec, till))
+
+    def actor_sim_dot_dps(self, source_id, period_sec=60, till: int = None):
+        start_time, end_time = self.get_period(period_sec, till)
+        dmg = self._actor_sim_dot_dmg(source_id, start_time, end_time)
+        return dmg // max((end_time - start_time) / 1000, 1) if dmg else 0
 
     def actor_tdps(self, target_id, period_sec=60, till: int = None):
-        return self._actor_tdps(target_id, *self.get_period(period_sec, till))
+        start_time, end_time = self.get_period(period_sec, till)
+        tdmg = self._actor_taken_dmg(target_id, start_time, end_time)
+        return tdmg // max((end_time - start_time) / 1000, 1) if tdmg else 0
 
     @cache
-    def _actor_dps(self, source_id, start_time: int, end_time: int):
-        time_range = end_time - start_time
+    def _actor_taken_dmg(self, source_id, start_time: int, end_time: int):
+        with self.conn_lock:
+            data = self.conn.execute(select_taken_damage_from, (source_id, start_time, end_time)).fetchone()
+        return data[0] if data[0] is not None else 0
+
+    @cache
+    def _actor_sim_dot_dmg(self, source_id, start_time: int, end_time: int):
+        with self.conn_lock:
+            data = self.conn.execute(select_sim_dot_damage_from, (source_id, start_time, end_time)).fetchone()
+        return data[0] if data[0] is not None else 0
+
+    @cache
+    def _actor_sim_dot_dmg_group(self, source_id, start_time: int, end_time: int):
+        with self.conn_lock:
+            data = self.conn.execute(select_sim_dot_damage_group_from, (source_id, start_time, end_time)).fetchall()
+        return [(row[0], row[1]) for row in data]
+
+    @cache
+    def _actor_dmg(self, source_id, start_time: int, end_time: int):
         with self.conn_lock:
             data = self.conn.execute(select_damage_from, (source_id, start_time, end_time)).fetchone()
-        return data[0] // max(time_range / 1000, 1) if data[0] is not None else 0
-
-    @cache
-    def _actor_tdps(self, target_id, start_time: int, end_time: int):
-        time_range = end_time - start_time
-        with self.conn_lock:
-            data = self.conn.execute(select_taken_damage_from, (target_id, start_time, end_time)).fetchone()
-        return data[0] // max(time_range / 1000, 1) if data[0] is not None else 0
-
-    # def actor_no_dot_dps(self, source_id, period_sec=60, till: int = None):
-    #     return self._actor_no_dot_dps(source_id, *self.get_period(period_sec, till))
-    #
-    # @cache
-    # def _actor_no_dot_dps(self, source_id, start_time: int, end_time: int):
-    #     time_range = end_time - start_time
-    #     with self.conn_lock:
-    #         data = self.conn.execute(select_no_dot_damage_from, (source_id, start_time, end_time)).fetchone()
-    #     return data[0] // max(time_range / 1000, 1) if data[0] is not None else 0
+        return data[0] if data[0] is not None else 0
