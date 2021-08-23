@@ -117,9 +117,8 @@ class CombatMonitor(PluginBase):
         self.ability_tag_data = list()
         self.last_id = 0
         self.last_update = perf_counter()
-        self.min_record_time = 0
         self._min_record_time = MAX_TIME
-        self.last_record_time = self._last_record_time = int(time() * 1000)
+        self.last_record_time = self._last_record_time = self.min_record_time = 0
         self.dot_k_values = dict()
         self.dot_values = dict()
 
@@ -129,7 +128,7 @@ class CombatMonitor(PluginBase):
 
     def set_min_time(self, evt):
         self.logger.debug("resetting min time")
-        self.last_record_time = self.min_record_time = int(time() * 1000)
+        self.last_record_time = self._last_record_time = self.min_record_time = 0
 
     def data_insert(self):
         if not self.insert_lock.acquire(blocking=False):
