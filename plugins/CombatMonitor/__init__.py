@@ -34,6 +34,14 @@ WHERE
     (`timestamp` BETWEEN ? AND ?) AND
     (`type` = 'damage' OR `type` = 'dot' OR `type` = 'dot_sim');
 """
+select_no_dot_damage_from = """
+SELECT SUM(`param`)
+FROM `AbilityEvent`
+WHERE
+    (`source_id` = ?) AND
+    (`timestamp` BETWEEN ? AND ?) AND
+    (`type` = 'damage' OR `type` = 'dot');
+"""
 select_taken_damage_from = """
 SELECT SUM(`param`)
 FROM `AbilityEvent`
@@ -67,6 +75,7 @@ class CombatMonitor(PluginBase):
                     self.setWindowTitle("Dps")
                     self.browser = QWebEngineView()
                     self.browser.load(QUrl.fromLocalFile(web_path))
+                    # self.browser.load(QUrl("http://localhost:8080"))
                     _layout = QVBoxLayout(self)
                     _layout.addWidget(self.browser)
                     self.setLayout(_layout)
@@ -89,6 +98,8 @@ class CombatMonitor(PluginBase):
                             'name': a.Name,
                             'dps': self.actor_dps(a.id, 0),
                             'dps_m': self.actor_dps(a.id, 60),
+                            # 'dps_nd': self.actor_no_dot_dps(a.id, 0),
+                            'death': self.dead_record.setdefault(a.id, 0),
                         } for a in party]
                         script = f"window.set_data({self.min_record_time},{self.last_record_time},\"{api.XivMemory.zone_name}\",{dumps(data)})"
                         _self.browser.page().runJavaScript(script)
@@ -107,6 +118,7 @@ class CombatMonitor(PluginBase):
         self.register_event('network/action_effect', self.ability_insert)
         self.register_event('network/actor_control/dot', self.dot_hot_insert)
         self.register_event('network/actor_control/hot', self.dot_hot_insert)
+        self.register_event('network/actor_control/death', self.player_dead)
         self.register_event('network/actor_control/director_update/initial_commence', self.set_min_time)
         self.register_api('CombatMonitor', type('obj', (object,), {
             'actor_dps': self.actor_dps,
@@ -121,6 +133,7 @@ class CombatMonitor(PluginBase):
         self.last_record_time = self._last_record_time = self.min_record_time = 0
         self.dot_k_values = dict()
         self.dot_values = dict()
+        self.dead_record = dict()
 
     def _start(self):
         if use_ui: ui_loop_exec(self.dps_window.show)
@@ -198,6 +211,12 @@ class CombatMonitor(PluginBase):
             if not d: return dot_damage[dot_id]
             return sum(d) / len(d) * dot_damage[dot_id]
         return self.dot_values[k]
+
+    def player_dead(self, evt):
+        if evt.target_id not in self.dead_record:
+            self.dead_record[evt.target_id] = 1
+        else:
+            self.dead_record[evt.target_id] += 1
 
     def ability_insert(self, evt):
         if evt.action_type != 'action': return
@@ -295,3 +314,13 @@ class CombatMonitor(PluginBase):
         with self.conn_lock:
             data = self.conn.execute(select_taken_damage_from, (target_id, start_time, end_time)).fetchone()
         return data[0] // max(time_range / 1000, 1) if data[0] is not None else 0
+
+    # def actor_no_dot_dps(self, source_id, period_sec=60, till: int = None):
+    #     return self._actor_no_dot_dps(source_id, *self.get_period(period_sec, till))
+    #
+    # @cache
+    # def _actor_no_dot_dps(self, source_id, start_time: int, end_time: int):
+    #     time_range = end_time - start_time
+    #     with self.conn_lock:
+    #         data = self.conn.execute(select_no_dot_damage_from, (source_id, start_time, end_time)).fetchone()
+    #     return data[0] // max(time_range / 1000, 1) if data[0] is not None else 0
