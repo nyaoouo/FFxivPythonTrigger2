@@ -107,7 +107,7 @@ class CombatMonitor(PluginBase):
         self.register_event('network/actor_control/dot', self.dot_hot_insert)
         self.register_event('network/actor_control/hot', self.dot_hot_insert)
         self.register_event('network/actor_control/death', self.player_dead)
-        self.register_event('network/actor_control/director_update/initial_commence', self.set_min_time)
+        self.register_event('network/combat_reset', self.set_min_time)
         self.register_api('CombatMonitor', type('obj', (object,), {
             'actor_dps': self.actor_dps,
             'actor_tdps': self.actor_tdps,

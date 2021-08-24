@@ -15,7 +15,7 @@ from .BundleDecoder import BundleDecoder, extract_single, pack_single
 from .Structs import ServerMessageHeader, RecvNetworkEventBase, SendNetworkEventBase, FFXIVBundleHeader
 from .RecvProcessors import processors as recv_processors, version_opcodes as recv_version_opcodes
 from .SendProcessors import processors as send_processors, version_opcodes as send_version_opcodes
-
+from .CombatReset import CombatReset
 
 class RecvRawEvent(RecvNetworkEventBase):
     name = "network recv event"

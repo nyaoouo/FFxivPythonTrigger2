@@ -147,7 +147,7 @@ class PartyTroubleMaker(PluginBase):
         self.last_death_count = 0
         self.register_event('network/action_effect', self.action_effect)
         self.register_event('network/actor_control/death', self.dead)
-        self.register_event('network/actor_control/director_update/initial_commence', self.combat_reset)
+        self.register_event('network/combat_reset', self.combat_reset)
         # self.window: ListWindow = ui_loop_exec(ListWindow)
         api.command.register(command, self.process_command)
 
