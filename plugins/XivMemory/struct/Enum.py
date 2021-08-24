@@ -33,7 +33,10 @@ def job_name(job_id):
 
 @cache
 def job_short_name(job_id):
-    return job_sheet[job_id]['Abbreviation']
+    try:
+        return job_sheet[job_id]['Abbreviation']
+    except:
+        return ""
 
 
 class Jobs(EnumStruct(c_ubyte, {

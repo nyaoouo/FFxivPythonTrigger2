@@ -149,9 +149,7 @@ PuglistGauge = OffsetStruct({
 }, 16)
 
 MonkGauge = OffsetStruct({
-    'lightningMilliseconds': (c_ushort, 0),
-    'lightningStacks': (c_ubyte, 2),
-    'chakraStacks': (c_ubyte, 3),
+    'chakraStacks': (c_ushort, 0),
 }, 16)
 
 MachinistGauge = OffsetStruct({
