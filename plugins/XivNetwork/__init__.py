@@ -17,6 +17,7 @@ from .RecvProcessors import processors as recv_processors, version_opcodes as re
 from .SendProcessors import processors as send_processors, version_opcodes as send_version_opcodes
 from .CombatReset import CombatReset
 
+
 class RecvRawEvent(RecvNetworkEventBase):
     name = "network recv event"
 
@@ -104,7 +105,10 @@ class XivNetwork(PluginBase):
             def hook_function(_self, socket, buffer, size):
                 if size > 64: _self.socket = socket
                 # self.logger(hex(socket), hex(cast(buffer, c_void_p).value), size)
-                return _self.send(self.makeup_data(bytearray(buffer[:size])), return_size=size, socket=socket)
+                new_data = self.makeup_data(bytearray(buffer[:size]))
+                if new_data:
+                    return _self.send(new_data, return_size=size, socket=socket)
+                return size
 
             def send(_self, data: bytearray, process=True, return_size=None, socket=None):
                 # self.logger('*', data.hex())
