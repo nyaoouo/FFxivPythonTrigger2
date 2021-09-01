@@ -7,7 +7,6 @@ from typing import Callable, Optional, Union
 from FFxivPythonTrigger import PluginBase, process_event, api
 from FFxivPythonTrigger.AddressManager import AddressManager
 from FFxivPythonTrigger.Utils import Counter, wait_until
-from FFxivPythonTrigger.hook import Hook
 from FFxivPythonTrigger.memory import scan_pattern
 
 from .FindAddr2 import find_recv2, find_send2
@@ -44,20 +43,6 @@ class UnkSendRawEvent(SendNetworkEventBase):
 
 recv_events_classes = dict()
 send_events_classes = dict()
-
-
-class WebActionHook(Hook):
-    socket = None
-    argtypes = [c_int64, POINTER(c_ubyte), c_int]
-    restype = c_int
-
-
-class WsDllHook(Hook):
-    socket = None
-    argtypes = [c_int64, POINTER(c_ubyte), c_int, c_int]
-    restype = c_int
-
-
 _unknown_opcode = set()
 
 send_sig = "48 83 EC ? 48 8B 49 ? 45 33 C9 FF 15 ? ? ? ? 85 C0"
@@ -101,6 +86,11 @@ class XivNetwork(PluginBase):
         self.send_decoder = BundleDecoder(self.process_send_msg)
         self.recv_decoder = BundleDecoder(self.process_recv_msg)
 
+        class WebActionHook(self.PluginHook):
+            socket = None
+            argtypes = [c_int64, POINTER(c_ubyte), c_int]
+            restype = c_int
+
         class SendHook(WebActionHook):
             def hook_function(_self, socket, buffer, size):
                 if size > 64: _self.socket = socket
@@ -132,10 +122,10 @@ class XivNetwork(PluginBase):
                 return success_size
 
         am = AddressManager(self.storage.data, self.logger)
-        self.recv_hook1 = RecvHook(am.get('recv', scan_pattern, recv_sig))
-        self.recv_hook2 = RecvHook(am.get('recv2', find_recv2, sig2))
-        self.send_hook1 = SendHook(am.get('send', scan_pattern, send_sig))
-        self.send_hook2 = SendHook(am.get('send2', find_send2, sig2))
+        self.recv_hook1 = RecvHook(am.get('recv', scan_pattern, recv_sig), True)
+        self.recv_hook2 = RecvHook(am.get('recv2', find_recv2, sig2), True)
+        self.send_hook1 = SendHook(am.get('send', scan_pattern, send_sig), True)
+        self.send_hook2 = SendHook(am.get('send2', find_send2, sig2), True)
         self.storage.save()
 
         self.send_counter = Counter()
@@ -272,21 +262,9 @@ class XivNetwork(PluginBase):
                 return res
 
     def _start(self):
-        self.send_hook1.install()
-        self.send_hook2.install()
-        self.recv_hook1.install()
-        self.recv_hook2.install()
-        self.send_hook1.enable()
-        self.send_hook2.enable()
-        self.recv_hook1.enable()
-        self.recv_hook2.enable()
         self.create_mission(self.recv_decoder.process, limit_sec=-1)
         self.create_mission(self.send_decoder.process, limit_sec=-1)
 
     def _onunload(self):
-        self.send_hook1.uninstall()
-        self.send_hook2.uninstall()
-        self.recv_hook1.uninstall()
-        self.recv_hook2.uninstall()
         self.send_decoder.stop_process()
         self.recv_decoder.stop_process()
