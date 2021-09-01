@@ -1,11 +1,12 @@
 from FFxivPythonTrigger.Logger import Logger
 from FFxivPythonTrigger import FFxiv_Version
 
-from ..Structs import RecvNetworkEventBase, ServerMessageHeader, header_size
+from ..Structs import RecvNetworkEventBase
 from .Opcodes import opcodes
 from . import AddStatusEffect, Ability, ActorCast, ActorControl142, StatusEffectList, ActorControl143, Ping
 from . import ActorControl144, ActorGauge, ActorUpdateHpMpTp, EventStart, EventPlay, EventFinish, CraftStatus
 from . import WardLandInfo, ItemInfo, ContainerInfo, CurrencyCrystalInfo, RetainerInformation, UpdateInventorySlot
+from . import MarketBoardItemListing, MarketBoardItemListingCount, MarketBoardItemListingHistory
 
 _logger = Logger("XivNetwork/RecvProcessors")
 
@@ -36,6 +37,9 @@ _processors = {
     'CurrencyCrystalInfo': CurrencyCrystalInfo.get_event,
     'RetainerInformation': RetainerInformation.get_event,
     'UpdateInventorySlot': UpdateInventorySlot.get_event,
+    'MarketBoardItemListing': MarketBoardItemListing.get_event,
+    'MarketBoardItemListingCount': MarketBoardItemListingCount.get_event,
+    'MarketBoardItemListingHistory': MarketBoardItemListingHistory.get_event,
 }
 
 
