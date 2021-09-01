@@ -7,7 +7,6 @@ from time import sleep
 from FFxivPythonTrigger import PluginBase, api, EventBase, process_event
 from FFxivPythonTrigger.AddressManager import AddressManager
 from FFxivPythonTrigger.SaintCoinach import realm
-from FFxivPythonTrigger.hook import Hook
 from FFxivPythonTrigger.memory import read_ushort, scan_pattern, read_memory, scan_address
 from FFxivPythonTrigger.memory.StructFactory import OffsetStruct, PointerStruct
 from .simulator import Models, Manager, Craft
@@ -106,7 +105,7 @@ class XivCraft(PluginBase):
                         result = regex.search(chat_log.message)
                         if result: self.create_mission(callback, chat_log, result)
 
-        class CraftStartHook(Hook):
+        class CraftStartHook(self.PluginHook):
             restype = c_int64
             argtypes = [c_int64]
 
@@ -120,7 +119,7 @@ class XivCraft(PluginBase):
                 return ans
 
         am = AddressManager(self.storage.data, self.logger)
-        self.craft_start_hook = CraftStartHook(am.get('craft_start', scan_pattern, craft_start_sig))
+        self.craft_start_hook = CraftStartHook(am.get('craft_start', scan_pattern, craft_start_sig),True)
         self.craft_status = read_memory(CraftStatus, am.get('craft_status', scan_address, craft_status_sig, cmd_len=6))
         self.base_quality = read_memory(BaseQualityPtr, am.get('base_quality_ptr', scan_address, base_quality_ptr_sig, cmd_len=8, ptr_idx=3))
         self.storage.save()
@@ -193,7 +192,7 @@ class XivCraft(PluginBase):
         else:
             self.logger.info("no solver found, please add a solver for this recipe")
 
-    def _craft_next(self, craft:Craft.Craft, skill):
+    def _craft_next(self, craft: Craft.Craft, skill):
         if skill == "观察":
             craft.add_effect("观察", 1)
             craft.merge_effects()
@@ -233,10 +232,3 @@ class XivCraft(PluginBase):
         process_event(CraftEnd())
         self.solver = None
         self.logger.info("end craft")
-
-    def _start(self):
-        self.craft_start_hook.install()
-        self.craft_start_hook.enable()
-
-    def _onunload(self):
-        self.craft_start_hook.uninstall()

@@ -4,8 +4,6 @@ import sys
 from FFxivPythonTrigger import PluginBase
 from FFxivPythonTrigger import Logger
 
-
-
 connection_pool = []
 
 _logger = Logger.Logger("SocketLogger")
@@ -13,7 +11,7 @@ _logger = Logger.Logger("SocketLogger")
 
 def broadcast_msg(msg):
     data = str(msg).encode('utf-8')
-    len_data = len(data).to_bytes(4, byteorder="little",signed=True)
+    len_data = len(data).to_bytes(4, byteorder="little", signed=True)
     for connection in connection_pool.copy():
         if connection._closed:
             connection_pool.remove(connection)
@@ -23,7 +21,7 @@ def broadcast_msg(msg):
 
 
 def close():
-    data = (-1).to_bytes(4, byteorder="little",signed=True)
+    data = (-1).to_bytes(4, byteorder="little", signed=True)
     for connection in connection_pool.copy():
         if connection._closed:
             connection_pool.remove(connection)
@@ -56,13 +54,21 @@ class SocketLogger(PluginBase):
 
     def __init__(self):
         super(SocketLogger, self).__init__()
-        self.server = socketserver.ThreadingTCPServer(("127.0.0.1", int(os.environ.setdefault('FptSocketPort',"3520"))), TcpServer)
+        self.server = socketserver.ThreadingTCPServer(("127.0.0.1", int(os.environ.setdefault('FptSocketPort', "3520"))), TcpServer)
         self.server.allow_reuse_address = True
-        self.create_mission(self.server.serve_forever,limit_sec=0)
+        self.create_mission(self.server.serve_forever, limit_sec=0)
         self.old_std_out = None
+        self.str_buffer = ""
+
+    def write(self, string):
+        string = self.str_buffer + string
+        lines = string.split("\n")
+        self.str_buffer = lines.pop()
+        for line in lines: broadcast_msg(line)
+
     def _start(self):
         self.old_std_out = sys.stdout
-        sys.stdout = type('',(object,),{'write':broadcast_msg})
+        sys.stdout = self
 
     def _onunload(self):
         close()

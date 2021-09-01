@@ -5,7 +5,6 @@ from ctypes import *
 
 from FFxivPythonTrigger import EventBase, PluginBase, process_event
 from FFxivPythonTrigger.memory.StructFactory import OffsetStruct
-from FFxivPythonTrigger.hook import Hook
 from FFxivPythonTrigger.memory import scan_pattern, read_memory
 from FFxivPythonTrigger.AddressManager import AddressManager
 
@@ -60,7 +59,7 @@ class ChatLogPlugin(PluginBase):
         addr = _am.get("hook addr", scan_pattern, sig)
         self.storage.save()
 
-        class LogHook(Hook):
+        class LogHook(self.PluginHook):
             restype = c_int64
             argtypes = [c_int64, POINTER(c_ubyte), c_int]
 
@@ -73,14 +72,7 @@ class ChatLogPlugin(PluginBase):
                     self.logger.error(format_exc())
                 return _self.original(a1, buffer, size)
 
-        self.hook = LogHook(addr)
+        self.hook = LogHook(addr, True)
 
         self.api_class = type('', (object,), {'chat_log': None})
         self.register_api('ChatLog', self.api_class)
-
-    def _start(self):
-        self.hook.install()
-        self.hook.enable()
-
-    def _onunload(self):
-        self.hook.uninstall()

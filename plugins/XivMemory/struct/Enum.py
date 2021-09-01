@@ -24,6 +24,15 @@ class ActorType(object):
 
 
 job_sheet = realm.game_data.get_sheet('ClassJob')
+job_category_sheet = realm.game_data.get_sheet('ClassJobCategory')
+
+
+@cache
+def is_job_in_category(category_id, job_id) -> bool:
+    n = job_short_name(job_id)
+    if n:
+        return job_category_sheet[category_id][n]
+    return False
 
 
 @cache
@@ -68,6 +77,34 @@ class Jobs(EnumStruct(c_ubyte, {
     @property
     def short_name(self):
         return job_short_name(self.raw_value)
+
+    @property
+    def is_melee(self):
+        return is_job_in_category(86, self.raw_value)
+
+    @property
+    def is_range(self):
+        return is_job_in_category(87, self.raw_value)
+
+    @property
+    def is_tank(self):
+        return is_job_in_category(156, self.raw_value)
+
+    @property
+    def is_healer(self):
+        return is_job_in_category(157, self.raw_value)
+
+    @property
+    def is_dps(self):
+        return is_job_in_category(131, self.raw_value)
+
+    @property
+    def is_physic_dps(self):
+        return is_job_in_category(158, self.raw_value)
+
+    @property
+    def is_magic_dps(self):
+        return is_job_in_category(159, self.raw_value)
 
 
 class ChatType(object):

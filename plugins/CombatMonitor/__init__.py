@@ -130,6 +130,7 @@ class CombatMonitor(PluginBase):
     def set_min_time(self, evt):
         self.logger.debug("resetting min time")
         self.last_record_time = self._last_record_time = self.min_record_time = 0
+        self.dead_record.clear()
 
     def data_insert(self):
         if not self.insert_lock.acquire(blocking=False):

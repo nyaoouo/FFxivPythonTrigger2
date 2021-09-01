@@ -3,7 +3,6 @@ from traceback import format_exc
 
 from FFxivPythonTrigger import PluginBase, api
 from FFxivPythonTrigger.AddressManager import AddressManager
-from FFxivPythonTrigger.hook import Hook
 from ctypes import *
 
 from FFxivPythonTrigger.memory import read_memory, scan_address, scan_pattern
@@ -15,6 +14,8 @@ from FFxivPythonTrigger.memory import read_memory, scan_address, scan_pattern
 # get_matrix_singleton = lambda: 0
 # screen_to_world_native = lambda camPos, clipPos, rayDistance, worldPos, unk1: False
 
+mo_entity_sig = "E8 ? ? ? ? 48 8B ? ? ? 48 8B ? ? ? 4C 8B ? ? ? 41 83 FC"
+
 
 class MoPlus(PluginBase):
     name = "MoPlus"
@@ -24,9 +25,8 @@ class MoPlus(PluginBase):
 
     def __init__(self):
         super().__init__()
-        am = AddressManager(self.storage.data, self.logger)
 
-        class MoEntityHook(Hook):
+        class MoEntityHook(self.PluginHook):
             argtypes = [c_int64, c_int64]
 
             def hook_function(_self, a1, actor_addr):
@@ -54,7 +54,11 @@ class MoPlus(PluginBase):
         self._mo_entity = None
         self._mo_item = None
 
-        self.entity_hook = MoEntityHook(am.get("mo_entity_addr", scan_address, "E8 ? ? ? ? 48 8B ? ? ? 48 8B ? ? ? 4C 8B ? ? ? 41 83 FC", cmd_len=5))
+        self.entity_hook = MoEntityHook(
+            AddressManager(self.storage.data, self.logger)
+                .get("mo_entity_addr", scan_address, mo_entity_sig, cmd_len=5)
+            , True)
+        self.storage.save()
         # global get_matrix_singleton, screen_to_world_native
         # addr1 = am.get("get_matrix_singleton", scan_address, "E8 ?? ?? ?? ?? 48 8D 4C 24 ?? 48 89 4c 24 ?? 4C 8D 4D ?? 4C 8D 44 24 ??", cmd_len=5)
         # get_matrix_singleton = get_matrix_singleton_type(addr1)
@@ -64,10 +68,3 @@ class MoPlus(PluginBase):
 
         self._api_class = api_class()
         self.register_api("MoPlus", self._api_class)
-
-    def _start(self):
-        self.entity_hook.install()
-        self.entity_hook.enable()
-
-    def _onunload(self):
-        self.entity_hook.uninstall()

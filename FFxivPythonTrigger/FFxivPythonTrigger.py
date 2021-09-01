@@ -12,7 +12,7 @@ import atexit
 from importlib import import_module, reload
 
 from .memory import PROCESS_FILENAME
-from . import AttrContainer, Storage, Logger, FrameInject, Sigs, AddressManager, QT
+from . import AttrContainer, Storage, Logger, FrameInject, Sigs, AddressManager, QT, hook
 from .CheckGitUpdate import get_last_update, check_update
 from .Utils import get_hash
 
@@ -69,6 +69,11 @@ class EventCallback(object):
             self.plugin.create_mission(self._call, event)
 
 
+class PluginHookI(hook.Hook):
+    def __init__(_self, func_address: int, auto_start=False):
+        super().__init__(func_address)
+
+
 class PluginBase(object):
     name = "unnamed_plugin"
     git_repo = ''
@@ -77,6 +82,7 @@ class PluginBase(object):
     time_version = 0.
     main_mission: Optional[Mission]
     save_when_unload = True
+    PluginHook: Type[PluginHookI]
 
     @cached_property
     def last_update_time(self):
@@ -92,11 +98,37 @@ class PluginBase(object):
             return get_hash(self.hash_path)
 
     def __init__(self):
+
+        class PluginHook(PluginHookI):
+            def __init__(_self, func_address: int, auto_start=False):
+                super().__init__(func_address)
+                if auto_start:
+                    if self.started:
+                        _self.install()
+                        _self.enable()
+                    else:
+                        self._hook_to_start.append(_self)
+
+            def install(_self) -> None:
+                super(PluginHook, _self).install()
+                self._installed_hooks.append(_self)
+
+            def uninstall(_self) -> None:
+                super(PluginHook, _self).uninstall()
+                try:
+                    self._installed_hooks.remove(_self)
+                except ValueError:
+                    pass
+
+        self.PluginHook = PluginHook
         self._events = list()
         self._apis = list()
         self._mission_count = 0
         self._missions = dict()
+        self._installed_hooks = list()
         self._lock = Lock()
+        self._hook_to_start = list()
+        self.started = False
         self.main_mission = None
         self.logger = Logger.Logger(self.name)
         self.storage = Storage.get_module_storage(self.name)
@@ -137,9 +169,16 @@ class PluginBase(object):
         register_event(event_id, callback)
 
     def p_start(self):
+        for p_hook in self._hook_to_start:
+            try:
+                p_hook.install()
+                p_hook.enable()
+            except Exception:
+                self.logger.warning("an auto start hook initialize failed:\n" + format_exc())
         self.main_mission = self.create_mission(self._start, limit_sec=0)
         if self.git_repo and self.repo_path and self.plugin_hash is not None:
             self.create_mission(check_update, self.logger, self.git_repo, self.repo_path, self.last_update_time, limit_sec=5)
+        self.started = True
 
     def p_unload(self):
         for event_id, callback in self._events:
@@ -152,6 +191,8 @@ class PluginBase(object):
                 mission.join(-1)
             except RuntimeError:
                 pass
+        for p_hook in self._installed_hooks.copy():
+            p_hook.uninstall()
         if self.save_when_unload:
             self.storage.save()
 
