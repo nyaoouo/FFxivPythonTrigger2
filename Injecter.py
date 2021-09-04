@@ -15,58 +15,16 @@ parser.add_argument('-sr', dest='skip_requirement_check', action='store_const', 
 parser.add_argument('-fs', dest='force_search_address', action='store_const', const=True, default=False, help='force address manager search')
 args = parser.parse_args(sys.argv[1:])
 if not args.skip_requirement_check:
-    import urllib.request
-    from urllib.error import HTTPError, URLError
-    import pkg_resources, pip
-    from pkg_resources import DistributionNotFound, VersionConflict
-    from urllib.parse import urlsplit
+    from FFxivPythonTrigger import requirements_controller
 
-    pip_source_name = "default"
-    pip_source = "https://pypi.python.org/simple"
-    pip_sources = {
-        '阿里云': 'http://mirrors.aliyun.com/pypi/simple/',
-        # '中国科技大学': 'https://pypi.mirrors.ustc.edu.cn/simple',
-        '豆瓣(douban)': 'http://pypi.douban.com/simple/',
-        '清华大学': 'https://pypi.tuna.tsinghua.edu.cn/simple',
-    }
-
-
-    def test_url(name, url):
-        try:
-            return urllib.request.urlopen(url, timeout=5).getcode() == 200
-        except (HTTPError, URLError) as error:
-            print('Data of [%s] not retrieved because %s' % (name, error))
-        except socket.timeout:
-            print('socket timed out - URL [%s]' % url)
-        return False
-
-
-    def test_requirements():
-        try:
-            pkg_resources.require(open('requirements.txt', mode='r'))
-        except DistributionNotFound:
-            return False
-        except VersionConflict:
-            return False
-        else:
-            return True
-
-
-    if not test_requirements():
-        back = list(pip_sources.items())
-        while not test_url(pip_source_name, pip_source):
-            if not back:
-                input("no valid pip source" + endl)
-                exit()
-            pip_source_name, pip_source = back.pop(0)
-
-        print('use pypi source [%s]' % pip_source_name)
-        param = ['install', '-r', 'requirements.txt', '-i', pip_source, '--trusted-host', urlsplit(pip_source).netloc]
-        if hasattr(pip, 'main'):
-            pip.main(param)
-        else:
-            pip._internal.main(param)
-        if not test_requirements():
+    requirements = [i for i in open('requirements.txt', mode='r').read().split('\n') if i]
+    if not requirements_controller.test_requirements(requirements):
+        if requirements_controller.pip_source is None:
+            input("no valid pip source" + endl)
+            exit()
+        print('use pypi source [%s]' % requirements_controller.pip_source_name)
+        requirements_controller.install(*requirements)
+        if not requirements_controller.test_requirements(requirements):
             input("cant install requirements" + endl)
             exit()
 
@@ -87,7 +45,7 @@ except:
 if not is_admin:
     ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
     exit()
-ep=process.enable_privilege()
+ep = process.enable_privilege()
 if ep:
     input(f"enable privileges failed with err code {ep}" + endl)
     exit()

@@ -29,7 +29,6 @@ class AddressManager(object):
 
         frame = inspect.stack()[1]
         _storage.data.setdefault('prev', list()).append([f"{frame.filename}:{frame.lineno}", name, param])
-        _storage.save()
 
         if self.storage is not None and name in self.storage and not force_search:
             offset = self.storage[name]
@@ -44,5 +43,7 @@ class AddressManager(object):
             if self.storage is not None:
                 self.storage[name] = offset
             msg = "address found [{addr}] [+{offset}] \"{name}\""
+        _storage.data.setdefault(FFxiv_Version, dict())[name] = offset
+        _storage.save()
         self.logger.debug(msg.format(name=name, addr=hex(addr), offset=hex(offset)))
         return addr

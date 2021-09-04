@@ -1,6 +1,9 @@
 import socketserver
 import os
 import sys
+from io import StringIO
+from typing import IO
+
 from FFxivPythonTrigger import PluginBase
 from FFxivPythonTrigger import Logger
 
@@ -46,6 +49,18 @@ class TcpServer(socketserver.BaseRequestHandler):
                 break
 
 
+class SocketTextIO(StringIO):
+    def __init__(self):
+        super().__init__()
+        self.str_buffer = ""
+
+    def write(self, string):
+        string = self.str_buffer + string
+        lines = string.split("\n")
+        self.str_buffer = lines.pop()
+        for line in lines: broadcast_msg(line)
+
+
 class SocketLogger(PluginBase):
     name = "socket logger"
     git_repo = 'nyaoouo/FFxivPythonTrigger2'
@@ -57,22 +72,21 @@ class SocketLogger(PluginBase):
         self.server = socketserver.ThreadingTCPServer(("127.0.0.1", int(os.environ.setdefault('FptSocketPort', "3520"))), TcpServer)
         self.server.allow_reuse_address = True
         self.create_mission(self.server.serve_forever, limit_sec=0)
+        self.io=SocketTextIO()
         self.old_std_out = None
+        self.old_std_err = None
         self.str_buffer = ""
-
-    def write(self, string):
-        string = self.str_buffer + string
-        lines = string.split("\n")
-        self.str_buffer = lines.pop()
-        for line in lines: broadcast_msg(line)
 
     def _start(self):
         self.old_std_out = sys.stdout
-        sys.stdout = self
+        self.old_std_err = sys.stderr
+        sys.stdout = self.io
+        sys.stderr = self.io
 
     def _onunload(self):
         close()
         self.server.shutdown()
         self.server.server_close()
-        if self.old_std_out is not None:
+        if sys.stdout == self.io:
             sys.stdout = self.old_std_out
+            sys.stderr = self.old_std_err
