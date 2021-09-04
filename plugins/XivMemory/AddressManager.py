@@ -1,4 +1,4 @@
-from FFxivPythonTrigger.memory import scan_address
+from FFxivPythonTrigger.memory import scan_address, scan_pattern
 from FFxivPythonTrigger.Logger import Logger
 from FFxivPythonTrigger.Storage import get_module_storage
 from FFxivPythonTrigger.AddressManager import AddressManager
@@ -87,5 +87,11 @@ inventory_ptr = _am.get("inventory ptr", scan_address, inventory_ptr_sig, cmd_le
 ##########
 party_sig = "48 8D 0D ? ? ? ? E8 ? ? ? ? 48 8B 4E ? 48 8B D8"
 party_addr = _am.get("party", scan_address, party_sig, cmd_len=7)
+
+##########
+# world_id
+##########
+world_id_hook_sig = "48 89 5C 24 ? 57 48 83 EC ? 0F B6 42 ? 48 8B FA 88 81 ? ? ? ? 48 8B D9 0F B6 42 ?"
+world_id_hook_addr = _am.get("world_id_hook", scan_pattern, world_id_hook_sig)
 
 _storage.save()

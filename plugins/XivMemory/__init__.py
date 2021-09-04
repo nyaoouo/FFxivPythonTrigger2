@@ -1,5 +1,6 @@
 import os
 from functools import cache
+from ctypes import *
 
 from FFxivPythonTrigger import PluginBase, Logger, memory
 from FFxivPythonTrigger.SaintCoinach import realm
@@ -12,7 +13,7 @@ territory_sheet = realm.game_data.get_sheet('TerritoryType')
 
 @cache
 def zone_name(zone_id):
-    if not zone_id:return ""
+    if not zone_id: return ""
     return territory_sheet[zone_id]['PlaceName']
 
 
@@ -25,6 +26,7 @@ class XivMemory(object):
     movement = Movement.movement
     inventory = Inventory.export
     party = Party.party
+    world_id = 0
 
     @property
     def zone_id(self):
@@ -43,6 +45,16 @@ class XivMemoryPlugin(PluginBase):
 
     def __init__(self):
         super(XivMemoryPlugin, self).__init__()
+
+        class WorldIdHook(self.PluginHook):
+            argtypes = [c_int64, c_int64]
+            restype = c_int64
+
+            def hook_function(_self, a1, a2):
+                XivMemory.world_id = memory.read_ushort(a2 + 4)
+                return _self.original(a1, a2)
+
+        self.world_id_hook = WorldIdHook(AddressManager.world_id_hook_addr, True)
         self.apiClass = XivMemory()
         self.register_api('XivMemory', self.apiClass)
         self.work = False
