@@ -252,8 +252,8 @@ def reload_module(module):
         if sub_module.startswith(module_name):
             try:
                 reload(import_module(sub_module))
-            except ModuleNotFoundError:
-                continue
+            except Exception:
+                del sys.modules[sub_module]
     for plugin in register_module(import_module(module_name)):
         plugin.p_start()
 
@@ -303,13 +303,14 @@ def _process_event(event: EventBase):
 
 
 def unload_plugin(plugin_name):
-    _logger.debug("unregister plugin [start]: %s" % plugin_name)
-    try:
-        _plugins[plugin_name].p_unload()
-        del _plugins[plugin_name]
-        _logger.info("unregister plugin [success]: %s" % plugin_name)
-    except Exception:
-        _logger.error('error occurred during unload plugin\n %s' % format_exc())
+    if plugin_name in _plugins:
+        _logger.debug("unregister plugin [start]: %s" % plugin_name)
+        try:
+            _plugins[plugin_name].p_unload()
+            del _plugins[plugin_name]
+            _logger.info("unregister plugin [success]: %s" % plugin_name)
+        except Exception:
+            _logger.error('error occurred during unload plugin\n %s' % format_exc())
 
 
 def list_plugin_names():
