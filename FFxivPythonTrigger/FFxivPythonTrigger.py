@@ -7,7 +7,7 @@ from threading import Lock, Thread
 from time import time, sleep, perf_counter
 from traceback import format_exc
 from typing import List, Type, Dict, Set, Optional
-from inspect import isclass, getfile, getsourcelines
+from inspect import isclass, getfile, getsourcelines, signature
 import atexit
 from importlib import import_module, reload
 
@@ -28,19 +28,24 @@ class Mission(Thread):
         self.args = args
         self.kwargs = kwargs
         self.callback = callback
+        self.rtn = None
 
     def run(self):
         try:
-            self.mission(*self.args, **self.kwargs)
-        except Exception:
+            self.rtn = self.mission(*self.args, **self.kwargs)
+        except Exception as e:
             _logger.error(f"error occurred in mission {self}:\n{format_exc()}")
+            self.rtn = e
         try:
             _missions.remove(self)
         except KeyError:
             pass
         if self.callback is not None:
             try:
-                self.callback(self)
+                if len(signature(self.callback).parameters) < 2:
+                    self.callback(self)
+                else:
+                    self.callback(self, self.rtn)
             except Exception:
                 _logger.error(f"error occurred in mission recall {self}:\n{format_exc()}")
 
@@ -70,7 +75,7 @@ class EventCallback(object):
 
 
 class PluginHookI(hook.Hook):
-    def __init__(_self, func_address: int, auto_start=False):
+    def __init__(self, func_address: int, auto_start=False):
         super().__init__(func_address)
 
 
@@ -133,7 +138,7 @@ class PluginBase(object):
         self.logger = Logger.Logger(self.name)
         self.storage = Storage.get_module_storage(self.name)
 
-    def create_mission(self, call, *args, limit_sec=0.1, **kwargs) -> Mission:
+    def create_mission(self, call, *args, limit_sec=0.1, put_buffer=True, **kwargs) -> Mission:
         def temp(*_args, **_kwargs):
             start = perf_counter()
             try:
@@ -149,13 +154,13 @@ class PluginBase(object):
             mId = self._mission_count
             self._mission_count += 1
 
-        def callback(m):
+        def callback(_, __):
             if mId in self._missions:
                 del self._missions[mId]
 
         mission = Mission(self.name, mId, temp, *args, callback=callback, **kwargs)
 
-        if append_missions(mission):
+        if append_missions(mission, put_buffer=put_buffer):
             self._missions[mId] = mission
         return mission
 
@@ -386,7 +391,7 @@ _storage = Storage.ModuleStorage(Storage.BASE_PATH / STORAGE_DIRNAME)
 _logger = Logger.Logger(LOGGER_NAME)
 _log_path = _storage.path / LOG_FILE_FORMAT.format(int_time=int(time()))
 _log_work = True
-_log_write_buffer = Queue()
+_log_write_buffer: Queue[Logger.Log] = Queue()
 _log_mission = Mission('logger', -1, log_writer)
 _log_mission.start()
 

@@ -34,8 +34,11 @@ class FrameInjectHook(Hook):
         call(*args, **kwargs)
         use = perf_counter() - start
         if use > MISSION_TIME_LIMIT:
-            _logger.warning("frame mission over time {:.2}s (limit:{:.2}s):\n"
-                            "at:\t{}:{}".format(use, MISSION_TIME_LIMIT, getfile(call), getsourcelines(call)[1]))
+            _logger.warning(f"frame mission over time {use:.2f}s (limit:{MISSION_TIME_LIMIT:.2f}s):")
+            try:
+                _logger.warning(f"at:\t{getfile(call)}:{getsourcelines(call)[1]}")
+            except:
+                pass
 
     def hook_function(self, *oargs):
         try:
